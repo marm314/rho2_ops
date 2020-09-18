@@ -1,15 +1,18 @@
 RHO2_OPS
 --------
 
-Contact me for doubts: marm3.14@gmail.com
+Contact me if you have any doubts: marm3.14@gmail.com
 
-A Makefile is provided to compile the code. It can be easily adapted for your preferred compiler (OpenMP is required for its compilation).  
+A Makefile is provided to compile the code. It can be easily adapted for your preferred compiler (OpenMP is required for its compilation). 
 
-chimpanC is an interface to transform 2-RDM matrices from the molecular orbital basis to the primitive basis. This code is compatible with DMN code of Dr. Matito and with DoNOF code of Dr. Piris. 
-Although, 2-RDM and the .basis files can be generated using your own interface. 
+The source files will build two programs:
 
-RHO2_OPS requires a .basis (with the information about the primitives basis set) and a 2-RDM (in primitives as well). 
-It can compute: intracules, extracules and total position spread. The first two quantities are computed using the algorithm of Cioslowksi and Liu.
+chimpanC which is an interface to transform 2-RDM matrices from the molecular orbital basis to the primitive basis. 
+This code is compatible with DMN code of Dr. Matito and with DoNOF code of Dr. Piris and requires a Gaussian like fchk file to produce the 2-RDM in the
+primitive basis. Although, 2-RDM and the .basis files can be generated using a user's coded interface. Contact me for doubts about formats. 
+
+RHO2_OPS which requires the .basis (with the information about the primitives basis set) and the 2-RDM (in primitives as well). 
+This code computes: intracules, extracules and total position spread. The first two quantities are computed using the algorithm of Cioslowksi and Liu.
 
 The input file:
 ---------------
