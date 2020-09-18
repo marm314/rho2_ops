@@ -33,4 +33,4 @@ chimpanC: chimpanC.cpp
 	$(CPP) $(CPPFLAGS) chimpanC.cpp -o chimpanC
 
 tar:
-	tar -pczf RHO2_OPS.tar.gz *.cpp *.h Makefile README utils utils2 utils3 utils4 test 
+	tar -pczf RHO2_OPS.tar.gz *.cpp *.h Makefile README test 
