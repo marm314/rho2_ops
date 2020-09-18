@@ -1,0 +1,26 @@
+$NAME_BASIS
+name_file.basis    -> Name of the file with the basis
+$NAME_DM2
+name_file.dm2      -> Name of the file with the DM2 (in primitives)
+$THRESHOLD
+1e-10              -> Threshold for storing the DM2 terms   
+$TAU
+1e-10              -> Tau from Cioslowski article (for the screening threshold)   
+$RADIAL            (Use for SCAN the intracule: Incompatible with $LEGENDRE but compatible with $ANGULAR)
+0.0e0              -> Initial Point for 'u'
+0.05               -> step size
+10                 -> Last Point
+$LEGENDRE          (Use a Legendre Quadrature for |r_12| coordinate: Incompatible with $RADIAL but compatible with $ANGULAR)
+10                 -> Order for the Legendre Quadrature (some integer)
+1e99               -> Superior limit of the integral (e.g. for integral _0 ^12  write 12) Note: Use 1e99 for Infinity 
+$ANGULAR           (Spherical average via Sphere-Lebedev Rule)
+6                  -> Angular grid for the spherical average (set 0 for none spherical average). 
+$ANGULAR2          (Spherical average via Legendre theta & phi)
+40                 -> Theta
+50                 -> Phi
+$PARALLEL          (OpenMP parallelization of the intracule's evaluation [Only available for $LEGENDRE not for $RADIAL])
+4                  -> Number of THREADS to use. 
+$REDUCE            -> Only include this keyword if the symmetry reduction of the DM2 terms must be peformed (Not mandatory! Recall i<=>k and j<=>l symmetry in the integrals).
+$INTRACULE         -> To compute the intracule (is incompatible with $MOMENTS but compatible with $EXTRACULE)
+$EXTRACULE         -> To compute the intracule (is incompatible with $MOMENTS but compatible with $INTRACULE)
+$MOMENTS           -> To compute second moments (x1x2, x1y2, etc.) Is incompatible with $INTRACULE and $EXTRACULE
