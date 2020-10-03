@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
  cout<<endl;
  cout<<"# Copyright (C) 2016 M.Sc. Mauricio A. Rodríguez Mayorga                     #";
  cout<<endl;
- cout<<"# Ph.D. student at University of the Basque Country (Donostia) EHU/UPV        #";
+ cout<<"# Ph.D. student at Donostia International Physics Center (DIPC)               #";
  cout<<endl;
  cout<<"# for support and comments send an email to: marm314@gmail.com                #";
  cout<<endl;
@@ -1321,10 +1321,14 @@ void Quant_fill(int **Quant,int styp)
  }
  if(styp==3)
  {
+  permute[0]=Quant[5][0];permute[1]=Quant[5][1];permute[2]=Quant[5][2];
+  Quant[5][0]=Quant[4][0];Quant[5][1]=Quant[4][1];Quant[5][2]=Quant[4][2];
+  Quant[4][0]=Quant[3][0];Quant[4][1]=Quant[3][1];Quant[4][2]=Quant[3][2];
+  Quant[3][0]=permute[0];Quant[3][1]=permute[1];Quant[3][2]=permute[2];
+
   permute[0]=Quant[7][0];permute[1]=Quant[7][1];permute[2]=Quant[7][2];
-  Quant[7][0]=Quant[6][0];Quant[7][1]=Quant[6][1];Quant[7][2]=Quant[6][2];
-  Quant[6][0]=Quant[5][0];Quant[6][1]=Quant[5][1];Quant[6][2]=Quant[5][2];
-  Quant[5][0]=permute[0];Quant[5][1]=permute[1];Quant[5][2]=permute[2];
+  Quant[7][0]=Quant[8][0];Quant[7][1]=Quant[8][1];Quant[7][2]=Quant[8][2];
+  Quant[8][0]=permute[0];Quant[8][1]=permute[1];Quant[8][2]=permute[2];
  }
  if(styp==4)
  {
