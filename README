@@ -39,7 +39,12 @@ $ANGULAR2          (Spherical average via Legendre theta & phi)
 50                 -> Phi
 $PARALLEL          (OpenMP parallelization of the intracule's evaluation [Only available for $LEGENDRE not for $RADIAL])
 4                  -> Number of THREADS to use. 
-$REDUCE            -> Only include this keyword if the symmetry reduction of the DM2 terms must be peformed (Not mandatory! Recall i<=>k and j<=>l symmetry in the integrals).
+$REDUCE            -> Only include this keyword if the symmetry reduction of the DM2 terms must be peformed (Optional: Recall i<=>k and j<=>l symm.).
 $INTRACULE         -> To compute the intracule (is incompatible with $MOMENTS but compatible with $EXTRACULE)
 $EXTRACULE         -> To compute the intracule (is incompatible with $MOMENTS but compatible with $INTRACULE)
 $MOMENTS           -> To compute second moments (x1x2, x1y2, etc.) Is incompatible with $INTRACULE and $EXTRACULE
+$RANGESEP          -> To select a lambda_rs value for the intracule integration: Int I(u) erf[lambda_rs*u] u^n du (Optional: Default lambda_rs=1e99)
+0.5                -> lambda_rs
+$SCREENING         -> To select a lambda_scr value for the intracule integration: Int I(u) exp[-lambda_scr*u] u^n du (Optional: Default lambda_scr=0.0e0)
+0.5                -> lambda_scr
+$RWEIGHTS          -> To print the radial weights. Recall that Integral = radial_val times weight
