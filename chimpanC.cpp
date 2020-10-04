@@ -15,6 +15,7 @@ void Quant_fill(int **Quant,int styp);
 void write_basis(FILE *pFile,string name_dm2,int &nucleous,double Atom_coord[3],double Exp,int nx,int ny,int nz);
 //Global variables:
 int RECORD_DELIMITER_LENGTH=4;
+bool donofdm2=false; 
 
 int main(int argc, char *argv[])
 {
@@ -60,7 +61,7 @@ int main(int argc, char *argv[])
  cout<<endl;
  if(argc==5 || argc==6)
  {
-  bool contractSP=false,use_dm2_iiii_aa=false,two_dm2_mat=false,reduce=false,all_dm2_are_given=false,donofdm2=false;
+  bool contractSP=false,use_dm2_iiii_aa=false,two_dm2_mat=false,reduce=false,all_dm2_are_given=false;
   int i,j,k,l,AO,nbasis,nbasis2,nprim_shell,stype,contr_coef,spcontr_coef,iprim,iprim_tot,smap,prim_exp,natoms;
   int *shelltype,*nprim_per_shell,*shell_to_atom,*Atomic_Z,nucleous,**Quant;
   int pivot,element[2]={10},element_prime[2]={10};
@@ -1321,14 +1322,27 @@ void Quant_fill(int **Quant,int styp)
  }
  if(styp==3)
  {
-  permute[0]=Quant[5][0];permute[1]=Quant[5][1];permute[2]=Quant[5][2];
-  Quant[5][0]=Quant[4][0];Quant[5][1]=Quant[4][1];Quant[5][2]=Quant[4][2];
-  Quant[4][0]=Quant[3][0];Quant[4][1]=Quant[3][1];Quant[4][2]=Quant[3][2];
-  Quant[3][0]=permute[0];Quant[3][1]=permute[1];Quant[3][2]=permute[2];
-
-  permute[0]=Quant[7][0];permute[1]=Quant[7][1];permute[2]=Quant[7][2];
-  Quant[7][0]=Quant[8][0];Quant[7][1]=Quant[8][1];Quant[7][2]=Quant[8][2];
-  Quant[8][0]=permute[0];Quant[8][1]=permute[1];Quant[8][2]=permute[2];
+  if(!donofdm2)
+  {
+   permute[0]=Quant[5][0];permute[1]=Quant[5][1];permute[2]=Quant[5][2];
+   Quant[5][0]=Quant[4][0];Quant[5][1]=Quant[4][1];Quant[5][2]=Quant[4][2];
+   Quant[4][0]=Quant[3][0];Quant[4][1]=Quant[3][1];Quant[4][2]=Quant[3][2];
+   Quant[3][0]=permute[0];Quant[3][1]=permute[1];Quant[3][2]=permute[2];
+   permute[0]=Quant[7][0];permute[1]=Quant[7][1];permute[2]=Quant[7][2];
+   Quant[7][0]=Quant[8][0];Quant[7][1]=Quant[8][1];Quant[7][2]=Quant[8][2];
+   Quant[8][0]=permute[0];Quant[8][1]=permute[1];Quant[8][2]=permute[2];
+  }
+  else
+  {
+   permute[0]=Quant[3][0];permute[1]=Quant[3][1];permute[2]=Quant[3][2];
+   Quant[3][0]=Quant[4][0];Quant[3][1]=Quant[4][1];Quant[3][2]=Quant[4][2];
+   Quant[4][0]=Quant[5][0];Quant[4][1]=Quant[5][1];Quant[4][2]=Quant[5][2];
+   Quant[5][0]=permute[0];Quant[5][1]=permute[1];Quant[5][2]=permute[2];
+   permute[0]=Quant[8][0];permute[1]=Quant[8][1];permute[2]=Quant[8][2];
+   Quant[8][0]=Quant[7][0];Quant[8][1]=Quant[7][1];Quant[8][2]=Quant[7][2];
+   Quant[7][0]=Quant[6][0];Quant[7][1]=Quant[6][1];Quant[7][2]=Quant[6][2];
+   Quant[6][0]=permute[0];Quant[6][1]=permute[1];Quant[6][2]=permute[2];
+  }
  }
  if(styp==4)
  {
