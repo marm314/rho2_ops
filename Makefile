@@ -1,4 +1,4 @@
-# Makefile for Intracules
+# Makefile for RHO2_OPS
 #
 CPP = g++
 CPPFLAGS = -O3 
