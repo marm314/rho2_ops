@@ -7,6 +7,9 @@
 #include"Input_commands.h"
 #include"Numbers.h"
 #include"Mathematical_Functions.h"
+#ifdef HAVE_MPI
+#include<mpi.h>
+#endif
 
 using namespace std;
 
@@ -30,9 +33,9 @@ double Jab(double &expa, double &expb,int &lxa,int &lya,int &lza,int &lxb,
 int &lyb,int &lzb,double &Xa,double &Ya,double &Za,double &Xb,double &Yb,double &Zb);
 
 //Global variables
-int nterms;
-bool noreduce;
-double threshold,Rmax[5][5]={ZERO},DATE[2][4];
+long int nterms;
+int ID=0,nproc=1;
+double threshold,Rmax[5][5]={ZERO},DATE[2][4],localIr,globalIr;
 const int RECORD_DELIMITER_LENGTH=4;
 ifstream date_file;
 struct basis_info
@@ -40,6 +43,7 @@ struct basis_info
  int Z;
  double Cart_cord[3];
  double Expon;
+ bool newterm;
  int nx,ny,nz;
 };
 struct DM2
@@ -50,6 +54,16 @@ struct DM2
 DM2 *dm2;
 
 int main(int argc, char *argv[])
+{
+#ifdef HAVE_MPI
+MPI::Init();
+int id=MPI::COMM_WORLD.Get_rank();
+ID=id;
+int npr[1];
+MPI_Comm_size(MPI_COMM_WORLD,npr);
+nproc=npr[0];
+#endif
+if(ID==0)
 {
  cout<<"##########################################################################"<<endl;
  cout<<"##########################################################################"<<endl;
@@ -102,6 +116,7 @@ int main(int argc, char *argv[])
  date_file>>DATE[0][0]>>DATE[0][1]>>DATE[0][2]>>DATE[0][3];
  date_file.close();
  system("rm date_intrac.date");
+}
  if(argc==2)
  {
   int i,j,k,nprims,Lmax,Nroot_2Lmax_plus_1,Nroot_Lmax_plus_2,nrad,order_ijkl,max_exp_ijkl,nx_sum,ny_sum,nz_sum,nang,nang2,counter=0;
@@ -119,9 +134,12 @@ int main(int argc, char *argv[])
   /////////////////////
   if(Input_commands.intracule)
   {
+if(ID==0)
+{
    cout<<"#******************************************#"<<endl;
    cout<<"#          Compute the Intracule           #"<<endl;
    cout<<"#******************************************#"<<endl;
+}
    Init=Input_commands.radial_Init;
    Step=Input_commands.radial_Step;
    Last=Input_commands.radial_Last;
@@ -130,15 +148,19 @@ int main(int argc, char *argv[])
    string name_dm2=Input_commands.name_dm2;
    string name_basis=Input_commands.name_basis;
    threshold=Input_commands.threshold_in;
-   noreduce=(!Input_commands.reduce_terms);
    parallel=Input_commands.parallel;
    ////////////////
    //Check times //
    ////////////////
+if(ID==0)
+{
    if(Input_commands.time_intra){cout<<endl;cout<<"Time 1 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+}
    ////////////////
    //End time    //
    ////////////////
+if(ID==0)
+{
    if(parallel)
    {
     cout<<"OpenMP parallelized evaluations of the intracule will be done."<<endl;
@@ -148,6 +170,7 @@ int main(int argc, char *argv[])
     cout<<"Serial evaluations of the intracule will be done."<<endl;
    }
    cout<<"Threshold for DM2 terms:"<<setprecision(10)<<fixed<<scientific<<setw(18)<<Input_commands.threshold_in<<endl;
+}
    //We define the DMNfactor to correct from McWeeney Normalization [N(N-1)/2]2! to Lowdin N(N-1)/2 for the DMN matrix.
    DMNfact=HALF;
    //Create angular grid
@@ -165,7 +188,10 @@ int main(int argc, char *argv[])
    }
    else
    {
+if(ID==0)
+{
     cout<<"None angular grid chosen for spherical average"<<setw(17)<<endl;
+}
     nang=1;
     Cnorm_ang=ONE;
    }
@@ -249,6 +275,11 @@ int main(int argc, char *argv[])
     {
      Last=ONE;
     }
+#ifdef HAVE_MPI
+MPI_Barrier(MPI_COMM_WORLD);
+#endif
+if(ID==0)
+{
     legendre_quadrature(name_basis.substr(0,name_basis.length()-6),nrad,Init,Last);
     //Read quadrature info
     ifstream read_rad_quad;
@@ -270,9 +301,17 @@ int main(int argc, char *argv[])
     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+}
+#ifdef HAVE_MPI
+MPI_Bcast(w_legendre,nrad,MPI_DOUBLE,0,MPI_COMM_WORLD);
+MPI_Bcast(r_legendre,nrad,MPI_DOUBLE,0,MPI_COMM_WORLD);
+#endif
     if(Input_commands.radial_Last==1e99)
     {
+if(ID==0)
+{
      cout<<"Superior lim. Legendre :         Infinity"<<endl;
+}
      for(i=0;i<nrad;i++)
      {
       for(j=0;j<5;j++)
@@ -285,7 +324,10 @@ int main(int argc, char *argv[])
     }
     else
     {
+if(ID==0)
+{
      cout<<"Superior lim. Legendre :"<<setprecision(10)<<fixed<<scientific<<setw(18)<<Last<<endl;
+}
      for(i=0;i<nrad;i++)
      {
       for(j=0;j<5;j++)
@@ -317,10 +359,16 @@ int main(int argc, char *argv[])
     }
     open_basis.close();
     //We use the number of primitives to compute threshold 2 and we also initialize Rmax matrix here
+if(ID==0)
+{
     cout<<"tau                    :"<<setprecision(10)<<fixed<<scientific<<setw(18)<<Input_commands.tau<<endl;
+}
     threshold2=TWO*Input_commands.tau/((double)nprims*((double)nprims+ONE));
+if(ID==0)
+{
     cout<<"2*tau/[Np(Np+1)]       :"<<setprecision(10)<<fixed<<scientific<<setw(18)<<threshold2<<endl;
     cout<<"[Np = Number of primitives]"<<endl;
+}
     initialize(Rmax);
     //Compute Nroot_2Lmax_plus_1
     Lmax=0;
@@ -331,11 +379,17 @@ int main(int argc, char *argv[])
       Lmax=BASIS_INFO[i].nx;
      }
     }
+if(ID==0)
+{
     cout<<"Lmax                   :"<<setw(18)<<Lmax<<endl;
+}
     //Create quadrature rule order
     Nroot_2Lmax_plus_1=2*Lmax+1;
+if(ID==0)
+{
     cout<<"Quadrature rule order  :"<<setw(18)<<Nroot_2Lmax_plus_1<<endl;
     cout<<"[Quadrature for primitive integrals. Order = 2 Lmax + 1 ]"<<endl;
+}
     alpha=ZERO;
     a=ZERO;
     b=ONE;
@@ -356,6 +410,14 @@ int main(int argc, char *argv[])
     for(i=0;i<Nroot_2Lmax_plus_1;i++)
     {
      j=i+1;
+#ifdef HAVE_MPI
+double *wtmp,*rtmp;
+wtmp=new double[j];
+rtmp=new double[j];
+MPI_Barrier(MPI_COMM_WORLD);
+#endif
+if(ID==0)
+{
      gauss_hermite_rule(name_basis.substr(0,name_basis.length()-6),alpha,a,b,j);
      // Read weights
      read_quad_w.open((name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
@@ -365,6 +427,10 @@ int main(int argc, char *argv[])
      {
       read_quad_w>>w_intrac[i][j];
       read_quad_r>>r_intrac[i][j];
+#ifdef HAVE_MPI
+wtmp[j]=w_intrac[i][j];
+rtmp[j]=r_intrac[i][j];
+#endif
      }
      read_quad_r.close();
      read_quad_w.close();
@@ -372,6 +438,18 @@ int main(int argc, char *argv[])
      system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
      system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
      system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+}
+#ifdef HAVE_MPI
+MPI_Bcast(wtmp,j,MPI_DOUBLE,0,MPI_COMM_WORLD);
+MPI_Bcast(rtmp,j,MPI_DOUBLE,0,MPI_COMM_WORLD);
+for(j=0;j<i+1;j++)
+{
+w_intrac[i][j]=wtmp[j];
+r_intrac[i][j]=rtmp[j];
+}
+delete[] wtmp;wtmp=NULL;
+delete[] rtmp;rtmp=NULL;
+#endif
     }
     //Read DM2  file
     ifstream open_dm2;
@@ -382,21 +460,22 @@ int main(int argc, char *argv[])
      nterms=0;
      //Check number of terms
      terms_dm2(name_dm2);
+#ifdef HAVE_MPI
+if(ID==0)
+{
+cout<<"Reducing the number of DM2 terms to "<<setw(8)<<nterms/nproc+1<<" per proc."<<endl;
+}
+nterms=nterms/nproc+1;
+#endif
      dm2=new DM2[nterms];
      //Store the DM2
-     if(noreduce)
-     {
-      cout<<"Storage of the DM2"<<endl;
-     }
-     else
-     {
-      cout<<"Storage and reduction of repeated terms of the DM2"<<endl;
-     }
+if(ID==0)
+{
+     cout<<"Storage of the DM2"<<endl;
+}
      fill_in_dm2(name_dm2);
-     if(!noreduce)
-     {
-      cout<<"Unique terms in DM2    : "<<setw(16)<<nterms<<endl;
-     }
+if(ID==0)
+{
      cout<<"Storage done!"<<endl;
      //Number of terms to compute
      cout<<"Total intracule points : "<<setw(17)<<nang*nrad<<endl;
@@ -414,11 +493,15 @@ int main(int argc, char *argv[])
      ////////////////
      cout<<"#*****************************************************************************#";
      cout<<endl;
+}
      if(parallel)
      {
       if(Input_commands.nthreads>omp_get_max_threads())
       {Input_commands.nthreads=omp_get_max_threads();}
+if(ID==0)
+{
       cout<<"Running"<<setw(4)<<Input_commands.nthreads<<" threads."<<endl;
+}
       #pragma omp parallel num_threads(Input_commands.nthreads) \
        private(i,j,k,Point_intra,Xprime,Yprime,Zprime,Jik,Jjl,Cnorm_4gauss,Coord_atom, \
        nx_sum,ny_sum,nz_sum,order_ijkl,max_exp_ijkl,nx_exp,ny_exp,nz_exp,zeta_ik,zeta_jl, \
@@ -647,13 +730,23 @@ int main(int argc, char *argv[])
          }
          Tot_rad[i][0]=DMNfact*FOUR*PI*Integral;
          Shannon_rad[i]=DMNfact*FOUR*PI*Integral2;
+#ifdef HAVE_MPI
+globalIr=ZERO;
+localIr=Tot_rad[i][0];
+MPI_Reduce(&localIr,&globalIr,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+Tot_rad[i][0]=globalIr;
+Shannon_rad[i]=ZERO;
+#endif
         }
        }
       }
      }
      else
      {
+if(ID==0)
+{
       cout<<"Running"<<setw(4)<<1<<" thread."<<endl;
+}
       for(i=0;i<nterms;i++)
       {
        Cnorm_4gauss=ONE;
@@ -819,6 +912,8 @@ int main(int argc, char *argv[])
      ////////////////
      //Check times //
      ////////////////
+if(ID==0)
+{
      if(Input_commands.time_intra){cout<<"Time 3 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
      ////////////////
      //End time    //
@@ -841,7 +936,12 @@ int main(int argc, char *argv[])
      cout<<endl;
      cout<<"#*****************************************************************************#";
      cout<<endl;
+#ifdef HAVE_MPI
+     cout<<"#    u              I(u)                I(u)u^2           I(u)*erf[l*u]*u^2   I(u)*exp[-l*u]*u^2"<<endl;
+#else
      cout<<"#    u              I(u)                I(u)u^2           I(u)*erf[l*u]*u^2   I(u)*exp[-l*u]*u^2  S_M[I_3D(u,Omega_12)]"<<endl;
+#endif
+}
      for(i=0;i<10;i++){res[i]=ZERO;}
      rscan=Init;
      for(i=0;i<nrad;i++)
@@ -874,23 +974,44 @@ int main(int argc, char *argv[])
        }
        Tot_rad[i][0]=DMNfact*FOUR*PI*Integral;
        Shannon_rad[i]=DMNfact*FOUR*PI*Integral2;
+#ifdef HAVE_MPI
+globalIr=ZERO;
+localIr=Tot_rad[i][0];
+MPI_Reduce(&localIr,&globalIr,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+Tot_rad[i][0]=globalIr;
+Shannon_rad[i]=ZERO;
+#endif
       }
       if(abs(Tot_rad[i][0])<pow(TEN,-THREE*FIVE)){Tot_rad[i][0]=ZERO;}
       if(abs(Tot_rad[i][0])>ZERO)
       {
        if(legendre)
        {
+if(ID==0)
+{
         cout<<setprecision(8)<<fixed<<scientific<<r_legendre[i]<<setw(20)<<Tot_rad[i][0]<<setw(20);
         cout<<Tot_rad[i][0]*pow(r_legendre[i],TWO)<<setw(20)<<Tot_rad[i][0]*pow(r_legendre[i],TWO)*erf(r_legendre[i]*lambda_rs)<<setw(20);
+#ifdef HAVE_MPI
+        cout<<Tot_rad[i][0]*pow(r_legendre[i],TWO)*exp(-r_legendre[i]*lambda_scr);
+#else
         cout<<Tot_rad[i][0]*pow(r_legendre[i],TWO)*exp(-r_legendre[i]*lambda_scr)<<setw(20)<<Shannon_rad[i];
+#endif
         cout<<endl;
+}
        }
        else
        {
+if(ID==0)
+{
         cout<<setprecision(8)<<fixed<<scientific<<rscan<<setw(20)<<Tot_rad[i][0]<<setw(20);
         cout<<Tot_rad[i][0]*pow(rscan,TWO)<<setw(20)<<Tot_rad[i][0]*pow(rscan,TWO)*erf(rscan*lambda_rs)<<setw(20);
+#ifdef HAVE_MPI
+        cout<<Tot_rad[i][0]*pow(rscan,TWO)*exp(-rscan*lambda_scr);
+#else
         cout<<Tot_rad[i][0]*pow(rscan,TWO)*exp(-rscan*lambda_scr)<<setw(20)<<Shannon_rad[i];
+#endif
         cout<<endl;
+}
        }
       }
       if(legendre)
@@ -926,6 +1047,8 @@ int main(int argc, char *argv[])
       }
       rscan=rscan+Step;
      }
+if(ID==0)
+{    
      cout<<endl;
      cout<<"#################################################"<<endl;
      cout<<endl;
@@ -948,7 +1071,9 @@ int main(int argc, char *argv[])
      cout<<"[Trace is N(N-1)/2]"<<endl;
      cout<<"<  u  > per pair of e- :"<<setw(18)<<res[3]/res[2]<<endl;
      cout<<"< u^2 > per pair of e- :"<<setw(18)<<res[4]/res[2]<<endl;
+#ifndef HAVE_MPI
      cout<<"S_Norm[I(u,Omega_12)]  :"<<setw(18)<<(res[2]*log(res[2])+res[5])/res[2]<<endl;
+#endif
      cout<<"Range sep lambda (l)   :"<<setw(18)<<lambda_rs<<endl;
      cout<<"Range sep Vee          :"<<setw(18)<<res[6]<<endl;
      cout<<"Range sep Tr[^2Dijkl]  :"<<setw(18)<<res[7]<<endl;
@@ -956,11 +1081,16 @@ int main(int argc, char *argv[])
      cout<<"Screened Vee           :"<<setw(18)<<res[8]<<endl;
      cout<<"Screened Tr[^2Dijkl]   :"<<setw(18)<<res[9]<<endl;
      cout<<"<u> and <u^2> are per pair of electrons to ensure that a PROBABILITY is used!"<<endl;
+#ifndef HAVE_MPI
      cout<<"S_Norm[I_3D(u,Omega_12)] = (M*Log[M]+S_M[I_3D(u,Omega_12)])/M where M = Tr[^2Dijkl] and S_M is normalized to M"<<endl;
+#endif
      cout<<"Range sep = Integrals of the intracule including erf[lambda_rs*u] "<<endl;
      cout<<"Screening = Integrals of the intracule including exp[-lambda_scr*u] "<<endl;
      cout<<endl;
+}
      delete[] dm2;
+if(ID==0)
+{
      if(Input_commands.rweight)
      {
       if(legendre)
@@ -984,13 +1114,20 @@ int main(int argc, char *argv[])
        cout<<"No weights were generated for the radial scan"<<endl;
       }
      }
+}
     }
     else
     {
+if(ID==0)
+{
      cout<<endl;
+}
      open_dm2.close();
+if(ID==0)
+{
      cout<<"Error! Could not open file: "<<name_dm2<<endl;
      cout<<endl;
+}
     }
     delete[] BASIS_INFO;
     for(i=0;i<Nroot_2Lmax_plus_1;i++)
@@ -1003,10 +1140,16 @@ int main(int argc, char *argv[])
    }
    else
    {
+if(ID==0)
+{
     cout<<endl;
+}
     open_basis.close();
+if(ID==0)
+{
     cout<<"Error! Could not open file: "<<name_basis<<endl;
     cout<<endl;
+}
    }
    delete[] x;
    delete[] y;
@@ -1043,7 +1186,6 @@ int main(int argc, char *argv[])
    string name_dm2=Input_commands.name_dm2;
    string name_basis=Input_commands.name_basis;
    threshold=Input_commands.threshold_in;
-   noreduce=(!Input_commands.reduce_terms);
    parallel=Input_commands.parallel;
    ////////////////
    //Check times //
@@ -1294,19 +1436,8 @@ int main(int argc, char *argv[])
      terms_dm2(name_dm2);
      dm2=new DM2[nterms];
      //Store the DM2
-     if(noreduce)
-     {
-      cout<<"Storage of the DM2"<<endl;
-     }
-     else
-     {
-      cout<<"Storage and reduction of repeated terms of the DM2"<<endl;
-     }
+     cout<<"Storage of the DM2"<<endl;
      fill_in_dm2(name_dm2);
-     if(!noreduce)
-     {
-      cout<<"Unique terms in DM2    : "<<setw(16)<<nterms<<endl;
-     }
      cout<<"Storage done!"<<endl;
      //Number of terms to compute
      cout<<"Total extracule points : "<<setw(17)<<nang*nrad<<endl;
@@ -1812,7 +1943,6 @@ int main(int argc, char *argv[])
    string name_dm2=Input_commands.name_dm2;
    string name_basis=Input_commands.name_basis;
    threshold=Input_commands.threshold_in;
-   noreduce=(!Input_commands.reduce_terms);
    parallel=Input_commands.parallel;
    // Read basis info
    ifstream open_basis;
@@ -1885,19 +2015,8 @@ int main(int argc, char *argv[])
      terms_dm2(name_dm2);
      dm2=new DM2[nterms];
      //Store the DM2
-     if(noreduce)
-     {
-      cout<<"Storage of the DM2"<<endl;
-     }
-     else
-     {
-      cout<<"Storage and reduction of repeated terms of the DM2"<<endl;
-     }
+     cout<<"Storage of the DM2"<<endl;
      fill_in_dm2(name_dm2);
-     if(!noreduce)
-     {
-      cout<<"Unique terms in DM2    : "<<setw(16)<<nterms<<endl;
-     }
      cout<<"Storage done!"<<endl;
      //Compute moments
      cout<<"#*****************************************************************************#";
@@ -2099,6 +2218,8 @@ int main(int argc, char *argv[])
   cout<<endl;
   cout<<endl;
  }
+if(ID==0)
+{
  /////////////////////
  // End clock       //
  /////////////////////
@@ -2163,6 +2284,10 @@ int main(int argc, char *argv[])
  cout<<" Normal termination of RHO2_OPS code          "<<endl;
  cout<<endl;
  cout<<"#################################################"<<endl;
+}
+#ifdef HAVE_MPI
+MPI::Finalize();
+#endif
  return 0;
 }
 
@@ -2205,16 +2330,20 @@ void terms_dm2(string name_file)
 //    {Trace=Trace+Dijkl;}
    }
   }
+if(ID==0)
+{
   cout<<"Number of terms in DM2 : "<<setw(17)<<nterms<<endl;
+}
   input_data.close();
  }
 }
 
 void fill_in_dm2(string name_file)
 {
- bool newterm;
- int i,element[2],element_prime[2];
+ int element[2],element_prime[2];
+ long int iterm=0,lnterms;
  double Dijkl;
+ lnterms=ID;
  element[0]=10;element[1]=10;element_prime[0]=10;element_prime[1]=10;
  ifstream input_data(name_file.c_str(), ios::binary);
  if(input_data.good())
@@ -2231,7 +2360,8 @@ void fill_in_dm2(string name_file)
    input_data.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
    if(abs(Dijkl)>=threshold)
    {
-    if(noreduce)
+    iterm++;
+    if((iterm-1)==lnterms)
     {
      dm2[nterms].indexes[0]=element[0]-1;
      dm2[nterms].indexes[1]=element[1]-1;
@@ -2239,61 +2369,7 @@ void fill_in_dm2(string name_file)
      dm2[nterms].indexes[3]=element_prime[1]-1;
      dm2[nterms].Dijkl=Dijkl;
      nterms++;
-    }
-    else
-    {
-     newterm=true;
-     if(nterms==0)
-     {
-      dm2[nterms].indexes[0]=element[0]-1;
-      dm2[nterms].indexes[1]=element[1]-1;
-      dm2[nterms].indexes[2]=element_prime[0]-1;
-      dm2[nterms].indexes[3]=element_prime[1]-1;
-      dm2[nterms].Dijkl=Dijkl;
-      nterms++;
-     }
-     else
-     {
-      for(i=0;i<nterms;i++)
-      {
-       if((dm2[i].indexes[0]==(element_prime[0]-1))&&(dm2[i].indexes[2]==(element[0]-1)))
-       {
-        if((dm2[i].indexes[1]==(element_prime[1]-1))&&(dm2[i].indexes[3]==(element[1]-1)))
-        {
-         newterm=false;
-         dm2[i].Dijkl=dm2[i].Dijkl+Dijkl;
-         i=nterms;
-        }
-       }
-       if((dm2[i].indexes[0]==(element_prime[0]-1))&&(dm2[i].indexes[2]==(element[0]-1)))
-       {
-        if((dm2[i].indexes[1]==(element[1]-1))&&(dm2[i].indexes[3]==(element_prime[1]-1)))
-        {
-         newterm=false;
-         dm2[i].Dijkl=dm2[i].Dijkl+Dijkl;
-         i=nterms;
-        }
-       }
-       if((dm2[i].indexes[0]==(element[0]-1))&&(dm2[i].indexes[2]==(element_prime[0]-1)))
-       {
-        if((dm2[i].indexes[1]==(element_prime[1]-1))&&(dm2[i].indexes[3]==(element[1]-1)))
-        {
-         newterm=false;
-         dm2[i].Dijkl=dm2[i].Dijkl+Dijkl;
-         i=nterms;
-        }
-       }
-      }
-      if(newterm)
-      {
-       dm2[nterms].indexes[0]=element[0]-1;
-       dm2[nterms].indexes[1]=element[1]-1;
-       dm2[nterms].indexes[2]=element_prime[0]-1;
-       dm2[nterms].indexes[3]=element_prime[1]-1;
-       dm2[nterms].Dijkl=Dijkl;
-       nterms++;
-      }
-     }
+     lnterms=lnterms+nproc;
     }
    }
   }
@@ -2595,7 +2671,10 @@ void grid_avail(int &Order)
   {
    Order = 5810;
   }
+if(ID==0)
+{
   cout<<"Angular grid available :"<<setw(18)<<Order<<endl;
+}
 }
 
 // User defined angular grid using Legendre Polinomials
@@ -2607,7 +2686,10 @@ void user_defined_angular(int &nang,int &nang2,double *x,double *y,double *z,dou
  temp_theta=new double[nang];
  temp_w2=new double[nang2];
  temp_phi=new double[nang2];
+if(ID==0)
+{
  cout<<"Angular grid set to    :"<<setw(18)<<nang*nang2<<endl;
+}
  //////////////
  //Theta Grid//
  //////////////

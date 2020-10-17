@@ -19,7 +19,7 @@ class Input
 {
  public:
  int order_ang,order_ang2,nthreads;
- bool intracule,extracule,second_moments,reduce_terms,legendre,parallel,time_intra,rweight,time_extra;
+ bool intracule,extracule,second_moments,legendre,parallel,time_intra,rweight,time_extra;
  double radial_Init,radial_Step,radial_Last,radial_grid,threshold_in,tau,lambda_rs,lambda_scr;
  string name_dm2,name_basis;
  Input();

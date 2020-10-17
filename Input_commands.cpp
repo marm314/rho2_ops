@@ -3,7 +3,7 @@ Input::Input(){cout<<"Not allowed default constructor"<<endl;}
 Input::Input(string I_in)
 {
  order_ang=0;order_ang2=0;nthreads=1;radial_Last=1e99;
- intracule=false;reduce_terms=false;legendre=false;parallel=false;
+ intracule=false;legendre=false;parallel=false;
  time_intra=false;second_moments=false;rweight=false;extracule=false;
  time_extra=false;
  tau=ZERO;
@@ -55,7 +55,6 @@ Input::Input(string I_in)
     I_input_file>>order_ang2;
    }
    else if(I_in=="$rweights"){rweight=true;}
-   else if(I_in=="$reduce"){reduce_terms=true;}
    else if(I_in=="$time"){time_intra=true;time_extra=true;}
    else{}
   }

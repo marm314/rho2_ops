@@ -1,6 +1,7 @@
 # Makefile for RHO2_OPS
 #
-CPP = g++
+#CPP = g++
+CPP = mpicxx -DHAVE_MPI
 CPPFLAGS = -O3 
 PARALLEL = -fopenmp 
 Cln = /bin/rm -rf

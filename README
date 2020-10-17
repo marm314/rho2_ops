@@ -39,7 +39,6 @@ $ANGULAR2          (Spherical average via Legendre theta & phi)
 50                 -> Phi
 $PARALLEL          (OpenMP parallelization of the intracule's evaluation [Only available for $LEGENDRE not for $RADIAL])
 4                  -> Number of THREADS to use. 
-$REDUCE            -> Only include this keyword if the symmetry reduction of the DM2 terms must be peformed (Optional: Recall i<=>k and j<=>l symm.).
 $INTRACULE         -> To compute the intracule (is incompatible with $MOMENTS but compatible with $EXTRACULE)
 $EXTRACULE         -> To compute the intracule (is incompatible with $MOMENTS but compatible with $INTRACULE)
 $MOMENTS           -> To compute second moments (x1x2, x1y2, etc.) Is incompatible with $INTRACULE and $EXTRACULE
