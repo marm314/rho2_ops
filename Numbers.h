@@ -5,8 +5,8 @@
 #ifndef a_o  //Bohr radius a.u.
 #define a_o 1.0e0
 #endif
-#ifndef e
-#define e exp(1.0e0) //euler constant
+#ifndef eul
+#define eul exp(1.0e0) //euler constant
 #endif
 #define HALF 0.5e0
 #define ONE_THIRD 1.0e0/3.0e0
