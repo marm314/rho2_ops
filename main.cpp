@@ -33,6 +33,7 @@ double Jab(double &expa, double &expb,int &lxa,int &lya,int &lza,int &lxb,
 int &lyb,int &lzb,double &Xa,double &Ya,double &Za,double &Xb,double &Yb,double &Zb);
 
 //Global variables
+bool iprint=true;
 long int nterms;
 int ID=0,nproc=1;
 double threshold,Rmax[5][5]={ZERO},DATE[2][4],localIr,globalIr;
@@ -2077,9 +2078,19 @@ if(ID==0)
   //////////////////
   if(Input_commands.second_moments)
   {
+   int idloc;
+   idloc=ID;     // Temporal id for printing with cout
+   ID=0;nproc=1; // For moments there is no parellelization and all procs compute all (TODO)
+if(idloc==0)
+{
    cout<<"#******************************************#"<<endl;
    cout<<"#          Compute Moments                 #"<<endl;
    cout<<"#******************************************#"<<endl;
+}
+else
+{
+ iprint=false; // Simply not print data from number terms on DM2 file if I am not master
+}
    string name_dm2=Input_commands.name_dm2;
    string name_basis=Input_commands.name_basis;
    threshold=Input_commands.threshold_in;
@@ -2114,17 +2125,25 @@ if(ID==0)
       Lmax=BASIS_INFO[i].nx;
      }
     }
+if(idloc==0)
+{
     cout<<"Lmax                   :"<<setw(17)<<Lmax<<endl;
+}
     //Create quadrature rule order
     Nroot_Lmax_plus_2=Lmax+2;
+if(idloc==0)
+{
     cout<<"Quadrature rule order  :"<<setw(17)<<Nroot_Lmax_plus_2<<endl;
     cout<<"[Quadrature for primitive integrals. Order = Lmax + 2 ]"<<endl;
+}
     alpha=ZERO;
     a=ZERO;
     b=ONE;
-    gauss_hermite_rule(name_basis.substr(0,name_basis.length()-6),alpha,a,b,Nroot_Lmax_plus_2);
     r_mom=new double[Nroot_Lmax_plus_2];
     w_mom=new double[Nroot_Lmax_plus_2];
+if(idloc==0)
+{
+    gauss_hermite_rule(name_basis.substr(0,name_basis.length()-6),alpha,a,b,Nroot_Lmax_plus_2);
     //Read quadrature info
     ifstream read_quad;
     // Read weights
@@ -2145,6 +2164,11 @@ if(ID==0)
     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+}
+#ifdef HAVE_MPI
+MPI_Bcast(w_mom,Nroot_Lmax_plus_2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+MPI_Bcast(r_mom,Nroot_Lmax_plus_2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+#endif
     ifstream open_dm2;
     open_dm2.open((name_dm2).c_str());
     if(open_dm2.good())
@@ -2155,14 +2179,24 @@ if(ID==0)
      terms_dm2(name_dm2);
      dm2=new DM2[nterms];
      //Store the DM2
+if(idloc==0)
+{
      cout<<"Storage of the DM2"<<endl;
+}
      fill_in_dm2(name_dm2);
+     ID=idloc;
+if(ID==0)
+{    
      cout<<"Storage done!"<<endl;
      //Compute moments
      cout<<"#*****************************************************************************#";
      cout<<endl;
+}
      for(i=0;i<16;i++){res[i]=ZERO;}
+if(ID==0)
+{
      cout<<"Running"<<setw(4)<<1<<" thread."<<endl;
+}
      for(i=0;i<nterms;i++)
      {
       Cnorm_4gauss=ONE;
@@ -2260,6 +2294,8 @@ if(ID==0)
       {res[i]=ZERO;}
      }
      Nelectrons=HALF*(ONE+sqrt(ONE+FOUR*res[0]));
+if(ID==0)
+{
      cout<<"#*****************************************************************************#";
      cout<<endl;
      cout<<setprecision(10)<<fixed<<scientific;
@@ -2284,6 +2320,7 @@ if(ID==0)
      cout<<"Total Position Spread  :"<<endl;
      cout<<"[O. Brea et al, J. Chem. Theory Comput., 9, 5286 (2013).]"<<endl;
      cout<<endl;
+}
      //xx
      TPS[0][0]=res[4]/(Nelectrons-ONE)+res[10]-res[1]*res[1]/pow(Nelectrons-ONE,TWO);
      //xy
@@ -2307,6 +2344,8 @@ if(ID==0)
       }
      }
      //Print TPS
+if(ID==0)
+{
      cout<<" ( "<<setw(18)<<TPS[0][0]<<" "<<setw(18)<<TPS[0][1]<<" ";
      cout<<setw(18)<<TPS[0][2]<<" )"<<endl;
      cout<<" ( "<<setw(18)<<TPS[1][0]<<" "<<setw(18)<<TPS[1][1]<<" ";
@@ -2315,14 +2354,21 @@ if(ID==0)
      cout<<setw(18)<<TPS[2][2]<<" )"<<endl;
      cout<<endl;
      cout<<endl;
+}
      delete[] dm2;
     }
     else
     {
+if(ID==0)
+{
      cout<<endl;
+}
      open_dm2.close();
+if(ID==0)
+{
      cout<<"Error! Could not open file: "<<name_dm2<<endl;
      cout<<endl;
+}
     }
     delete[] BASIS_INFO;
     delete[] r_mom;
@@ -2330,10 +2376,16 @@ if(ID==0)
    }
    else
    {
+if(ID==0)
+{
     cout<<endl;
+}
     open_basis.close();
+if(ID==0)
+{
     cout<<"Error! Could not open file: "<<name_basis<<endl;
     cout<<endl;
+}
    }
   }
   ////////////////////////////////////
@@ -2341,22 +2393,31 @@ if(ID==0)
   ////////////////////////////////////
   if(!Input_commands.second_moments && !Input_commands.intracule && !Input_commands.extracule)
   {
+if(ID==0)
+{
    cout<<"Please include either the $Intracule, $Extracule or $Moments keyword in the input!"<<endl;
+}
   }
   ////////////////
   //Check times //
   ////////////////
+if(ID==0)
+{
   if(Input_commands.time_extra){cout<<"Time 4 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+}
   ////////////////
   //End time    //
   ////////////////
  }
  else
  {
+if(ID==0)
+{
   cout<<endl;
   cout<<"Please include input commands file"<<endl;
   cout<<endl;
   cout<<endl;
+}
  }
 if(ID==0)
 {
@@ -2470,7 +2531,7 @@ void terms_dm2(string name_file)
 //    {Trace=Trace+Dijkl;}
    }
   }
-if(ID==0)
+if(ID==0 && iprint) // iprint for moments plays the role of ID==0
 {
   cout<<"Number of terms in DM2 : "<<setw(17)<<nterms<<endl;
 }
