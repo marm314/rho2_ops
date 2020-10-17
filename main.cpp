@@ -2829,7 +2829,6 @@ void user_defined_angular(int &nang,int &nang2,double *x,double *y,double *z,dou
 if(ID==0)
 {
  cout<<"Angular grid set to    :"<<setw(18)<<nang*nang2<<endl;
-}
  //////////////
  //Theta Grid//
  //////////////
@@ -2879,6 +2878,13 @@ if(ID==0)
  system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
  system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
  system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+}
+#ifdef HAVE_MPI
+MPI_Bcast(temp_w1,nang,MPI_DOUBLE,0,MPI_COMM_WORLD);
+MPI_Bcast(temp_theta,nang,MPI_DOUBLE,0,MPI_COMM_WORLD);
+MPI_Bcast(temp_w2,nang2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+MPI_Bcast(temp_phi,nang2,MPI_DOUBLE,0,MPI_COMM_WORLD);
+#endif
  //////////////
  //Super Grid//
  //////////////
