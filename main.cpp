@@ -1177,9 +1177,12 @@ if(ID==0)
   /////////////////////
   if(Input_commands.extracule)
   {
+if(ID==0)
+{
    cout<<"#******************************************#"<<endl;
    cout<<"#          Compute the Extracule           #"<<endl;
    cout<<"#******************************************#"<<endl;
+}
    Init=Input_commands.radial_Init;
    Step=Input_commands.radial_Step;
    Last=Input_commands.radial_Last;
@@ -1190,10 +1193,15 @@ if(ID==0)
    ////////////////
    //Check times //
    ////////////////
+if(ID==0)
+{
    if(Input_commands.time_extra){cout<<endl;cout<<"Time 1 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+}
    ////////////////
    //End time    //
    ////////////////
+if(ID==0)
+{
    if(parallel)
    {
     cout<<"OpenMP parallelized evaluations of the extracule will be done."<<endl;
@@ -1203,6 +1211,7 @@ if(ID==0)
     cout<<"Serial evaluations of the extracule will be done."<<endl;
    }
    cout<<"Threshold for DM2 terms:"<<setprecision(10)<<fixed<<scientific<<setw(18)<<Input_commands.threshold_in<<endl;
+}
    //We define the DMNfactor to correct from McWeeney Normalization [N(N-1)/2]2! to Lowdin N(N-1)/2 for the DMN matrix.
    DMNfact=HALF;
    //Create angular grid
@@ -1218,7 +1227,10 @@ if(ID==0)
    }
    else
    {
+if(ID==0)
+{
     cout<<"None angular grid chosen for spherical average"<<setw(17)<<endl;
+}
     nang=1;
    }
    x=new double[nang];
@@ -1301,6 +1313,11 @@ if(ID==0)
     {
      Last=ONE;
     }
+#ifdef HAVE_MPI
+MPI_Barrier(MPI_COMM_WORLD);
+#endif
+if(ID==0)
+{
     legendre_quadrature(name_basis.substr(0,name_basis.length()-6),nrad,Init,Last);
     //Read quadrature info
     ifstream read_rad_quad;
@@ -1322,9 +1339,17 @@ if(ID==0)
     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+}
+#ifdef HAVE_MPI
+MPI_Bcast(w_legendre,nrad,MPI_DOUBLE,0,MPI_COMM_WORLD);
+MPI_Bcast(r_legendre,nrad,MPI_DOUBLE,0,MPI_COMM_WORLD);
+#endif
     if(Input_commands.radial_Last==1e99)
     {
+if(ID==0)
+{
      cout<<"Superior lim. Legendre :         Infinity"<<endl;
+}
      for(i=0;i<nrad;i++)
      {
       for(j=0;j<5;j++)
@@ -1337,7 +1362,10 @@ if(ID==0)
     }
     else
     {
+if(ID==0)
+{
      cout<<"Superior lim. Legendre :"<<setprecision(10)<<fixed<<scientific<<setw(18)<<Last<<endl;
+}
      for(i=0;i<nrad;i++)
      {
       for(j=0;j<5;j++)
@@ -1369,10 +1397,16 @@ if(ID==0)
     }
     open_basis.close();
     //We use the number of primitives to compute threshold 2 and we also initialize Rmax matrix here
+if(ID==0)
+{
     cout<<"tau                    :"<<setprecision(10)<<fixed<<scientific<<setw(18)<<Input_commands.tau<<endl;
+}
     threshold2=TWO*Input_commands.tau/((double)nprims*((double)nprims+ONE));
+if(ID==0)
+{
     cout<<"2*tau/[Np(Np+1)]       :"<<setprecision(10)<<fixed<<scientific<<setw(18)<<threshold2<<endl;
     cout<<"[Np = Number of primitives]"<<endl;
+}
     initialize(Rmax);
     //Compute Nroot_2Lmax_plus_1
     Lmax=0;
@@ -1383,11 +1417,17 @@ if(ID==0)
       Lmax=BASIS_INFO[i].nx;
      }
     }
+if(ID==0)
+{
     cout<<"Lmax                   :"<<setw(18)<<Lmax<<endl;
+}
     //Create quadrature rule order
     Nroot_2Lmax_plus_1=2*Lmax+1;
+if(ID==0)
+{
     cout<<"Quadrature rule order  :"<<setw(18)<<Nroot_2Lmax_plus_1<<endl;
     cout<<"[Quadrature for primitive integrals. Order = 2 Lmax + 1 ]"<<endl;
+}
     alpha=ZERO;
     a=ZERO;
     b=ONE;
@@ -1408,6 +1448,14 @@ if(ID==0)
     for(i=0;i<Nroot_2Lmax_plus_1;i++)
     {
      j=i+1;
+#ifdef HAVE_MPI
+double *wtmp,*rtmp;
+wtmp=new double[j];
+rtmp=new double[j];
+MPI_Barrier(MPI_COMM_WORLD);
+#endif
+if(ID==0)
+{
      gauss_hermite_rule(name_basis.substr(0,name_basis.length()-6),alpha,a,b,j);
      // Read weights
      read_quad_w.open((name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
@@ -1417,6 +1465,10 @@ if(ID==0)
      {
       read_quad_w>>w_extrac[i][j];
       read_quad_r>>r_extrac[i][j];
+#ifdef HAVE_MPI
+wtmp[j]=w_extrac[i][j];
+rtmp[j]=r_extrac[i][j];
+#endif
      }
      read_quad_r.close();
      read_quad_w.close();
@@ -1424,6 +1476,18 @@ if(ID==0)
      system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
      system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
      system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+}
+#ifdef HAVE_MPI
+MPI_Bcast(wtmp,j,MPI_DOUBLE,0,MPI_COMM_WORLD);
+MPI_Bcast(rtmp,j,MPI_DOUBLE,0,MPI_COMM_WORLD);
+for(j=0;j<i+1;j++)
+{
+w_extrac[i][j]=wtmp[j];
+r_extrac[i][j]=rtmp[j];
+}
+delete[] wtmp;wtmp=NULL;
+delete[] rtmp;rtmp=NULL;
+#endif
     }
     //Read DM2  file
     ifstream open_dm2;
@@ -1434,10 +1498,22 @@ if(ID==0)
      nterms=0;
      //Check number of terms
      terms_dm2(name_dm2);
+#ifdef HAVE_MPI
+if(ID==0)
+{
+cout<<"Reducing the number of DM2 terms to "<<setw(8)<<nterms/nproc+1<<" per proc."<<endl;
+}
+nterms=nterms/nproc+1;
+#endif
      dm2=new DM2[nterms];
      //Store the DM2
+if(ID==0)
+{
      cout<<"Storage of the DM2"<<endl;
+}
      fill_in_dm2(name_dm2);
+if(ID==0)
+{
      cout<<"Storage done!"<<endl;
      //Number of terms to compute
      cout<<"Total extracule points : "<<setw(17)<<nang*nrad<<endl;
@@ -1455,11 +1531,15 @@ if(ID==0)
      ////////////////
      cout<<"#*****************************************************************************#";
      cout<<endl;
+}
      if(parallel)
      {
       if(Input_commands.nthreads>omp_get_max_threads())
       {Input_commands.nthreads=omp_get_max_threads();}
+if(ID==0)
+{
       cout<<"Running"<<setw(4)<<Input_commands.nthreads<<" threads."<<endl;
+}
       #pragma omp parallel num_threads(Input_commands.nthreads) \
        private(i,j,k,Point_extra,Xprime,Yprime,Zprime,Jik,Jjl,Cnorm_4gauss,Coord_atom, \
        nx_sum,ny_sum,nz_sum,order_ijkl,max_exp_ijkl,nx_exp,ny_exp,nz_exp,zeta_ik,zeta_jl, \
@@ -1632,13 +1712,23 @@ if(ID==0)
          }
          Tot_rad[i][0]=DMNfact*FOUR*PI*Integral;
          Shannon_rad[i]=DMNfact*FOUR*PI*Integral2;
+#ifdef HAVE_MPI
+globalIr=ZERO;
+localIr=Tot_rad[i][0];
+MPI_Reduce(&localIr,&globalIr,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+Tot_rad[i][0]=globalIr;
+Shannon_rad[i]=ZERO;
+#endif
         }
        }
       }
      }
      else
      {
+if(ID==0)
+{
       cout<<"Running"<<setw(4)<<1<<" thread."<<endl;
+}
       for(i=0;i<nterms;i++)
       {
        Cnorm_4gauss=ONE;
@@ -1762,6 +1852,8 @@ if(ID==0)
      ////////////////
      //Check times //
      ////////////////
+if(ID==0)
+{
      if(Input_commands.time_extra){cout<<"Time 3 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
      ////////////////
      //End time    //
@@ -1779,7 +1871,12 @@ if(ID==0)
      cout<<endl;
      cout<<"#*****************************************************************************#";
      cout<<endl;
+#ifdef HAVE_MPI
+     cout<<"#    U              E(U)                E(U)U^2"<<endl;
+#else
      cout<<"#    U              E(U)                E(U)U^2           S_M[E_3D(U,Omega_12)]"<<endl;
+#endif
+}
      for(i=0;i<6;i++){res[i]=ZERO;}
      rscan=Init;
      for(i=0;i<nrad;i++)
@@ -1798,21 +1895,42 @@ if(ID==0)
        }
        Tot_rad[i][0]=DMNfact*FOUR*PI*Integral;
        Shannon_rad[i]=DMNfact*FOUR*PI*Integral2;
+#ifdef HAVE_MPI
+globalIr=ZERO;
+localIr=Tot_rad[i][0];
+MPI_Reduce(&localIr,&globalIr,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+Tot_rad[i][0]=globalIr;
+Shannon_rad[i]=ZERO;
+#endif
       }
       if(abs(Tot_rad[i][0])<pow(TEN,-THREE*FIVE)){Tot_rad[i][0]=ZERO;}
       if(abs(Tot_rad[i][0])>ZERO)
       {
        if(legendre)
        {
+if(ID==0)
+{
         cout<<setprecision(8)<<fixed<<scientific<<r_legendre[i]<<setw(20)<<Tot_rad[i][0]<<setw(20);
+#ifdef HAVE_MPI
+        cout<<Tot_rad[i][0]*pow(r_legendre[i],TWO);
+#else
         cout<<Tot_rad[i][0]*pow(r_legendre[i],TWO)<<setw(20)<<Shannon_rad[i];
+#endif
         cout<<endl;
+}
        }
        else
        {
+if(ID==0)
+{
         cout<<setprecision(8)<<fixed<<scientific<<rscan<<setw(20)<<Tot_rad[i][0]<<setw(20);
+#ifdef HAVE_MPI
+        cout<<Tot_rad[i][0]*pow(rscan,TWO);
+#else
         cout<<Tot_rad[i][0]*pow(rscan,TWO)<<setw(20)<<Shannon_rad[i];
+#endif
         cout<<endl;
+}
        }
       }
       if(legendre)
@@ -1838,6 +1956,8 @@ if(ID==0)
       }
       rscan=rscan+Step;
      }
+if(ID==0)
+{
      cout<<endl;
      cout<<"#################################################"<<endl;
      cout<<endl;
@@ -1859,11 +1979,18 @@ if(ID==0)
      cout<<"[Trace is N(N-1)/2]"<<endl;
      cout<<"<  U  > per pair of e-   :"<<setw(18)<<res[3]/res[2]<<endl;
      cout<<"< U^2 > per pair of e-   :"<<setw(18)<<res[4]/res[2]<<endl;
+#ifndef HAVE_MPI
      cout<<"S_Norm[E_3D(U,Omega_12)] :"<<setw(18)<<(res[2]*log(res[2])+res[5])/res[2]<<endl;
+#endif
      cout<<"<U> and <U^2> are per pair of electrons to ensure that a PROBABILITY is used!"<<endl;
+#ifndef HAVE_MPI
      cout<<"S_Norm[E_3D(U,Omega_12)] = (M*Log[M]+S_M[E_3D(U,Omega_12)])/M where M = Tr[^2Dijkl] and S_M is normalized to M"<<endl;
+#endif
      cout<<endl;
+}
      delete[] dm2;
+if(ID==0)
+{
      if(Input_commands.rweight)
      {
       if(legendre)
@@ -1887,13 +2014,20 @@ if(ID==0)
        cout<<"No weights were generated for the radial scan"<<endl;
       }
      }
+}
     }
     else
     {
+if(ID==0)
+{
      cout<<endl;
+}
      open_dm2.close();
+if(ID==0)
+{
      cout<<"Error! Could not open file: "<<name_dm2<<endl;
      cout<<endl;
+}
     }
     delete[] BASIS_INFO;
     for(i=0;i<Nroot_2Lmax_plus_1;i++)
@@ -1906,10 +2040,16 @@ if(ID==0)
    }
    else
    {
+if(ID==0)
+{
     cout<<endl;
+}
     open_basis.close();
+if(ID==0)
+{
     cout<<"Error! Could not open file: "<<name_basis<<endl;
     cout<<endl;
+}
    }
    delete[] x;
    delete[] y;
