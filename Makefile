@@ -1,7 +1,7 @@
 # Makefile for RHO2_OPS
 #
-#CPP = g++
-CPP = mpicxx -DHAVE_MPI
+CPP = g++
+#CPP = mpicxx -DHAVE_MPI
 CPPFLAGS = -O3 
 PARALLEL = -fopenmp 
 Cln = /bin/rm -rf
@@ -13,6 +13,7 @@ OBJECTS=Input_commands.o main.o Mathematical_Functions.o String_ops.o gauss_quad
 all: 
 	make intrac
 	make chimpanC
+	make psi4int
 	make tar
  
 intrac: $(OBJECTS) $(SCR) Makefile README 
@@ -32,6 +33,9 @@ clean:
 
 chimpanC: chimpanC.cpp
 	$(CPP) $(CPPFLAGS) chimpanC.cpp -o chimpanC
+
+psi4int: psi4_interface.cpp
+	$(CPP) $(CPPFLAGS) psi4_interface.cpp -o psi4_interface
 
 tar:
 	tar -pczf RHO2_OPS.tar.gz *.cpp *.h Makefile README test dm2_hf 
