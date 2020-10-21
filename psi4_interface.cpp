@@ -14,8 +14,8 @@ using namespace std;
 void find_indices(int i,int j,int k,int l,int &element0,int &element1,int &element_prime0,int &element_prime1,int *order,int nbasis);
 int RECORD_DELIMITER_LENGTH=4;
 
-vector <string> MOsyms;
-vector <string> Calcsyms;
+vector<string>MOsyms;
+vector<string>Calcsyms;
 
 int main(int argc,char *argv[])
 {
@@ -42,10 +42,10 @@ int main(int argc,char *argv[])
  }
  bool read=true;
  int i,j,k,l,nth,nbasis,nsym=0;
- int N1,N2,N5col,Ndocc=0,Nuocc=0;
+ int N1,N2,N5col,Ndocc=0,Nuocc=0,Norb_act=0,Norb_act2;
  int *order_orbs,element[2],element_prime[2];
  long int ii,jj;
- double **DM2,Dijkl;
+ double **DM2,**DM1,Dijkl,Trace,Trace1dm,Nelect;
  nth=0;
  string line,subline;
  string name_out=argv[1];
@@ -65,6 +65,7 @@ int main(int argc,char *argv[])
      stringstream ss1(line.substr(20,9)); 
      ss1>>Ndocc;
      cout<<"Number of frozen orbitals   : "<<setw(12)<<Ndocc<<endl;
+     Norb_act=Norb_act-Ndocc;
     }
     else
     {
@@ -82,6 +83,7 @@ int main(int argc,char *argv[])
     ss>>nbasis;
     N1=nbasis;
     N2=N1*N1; 
+    Norb_act=Norb_act+N1;
     cout<<"Size of the basis read: "<<setw(12)<<nbasis<<endl;
    }
   }
@@ -132,6 +134,8 @@ int main(int argc,char *argv[])
    if(line.substr(5,13)=="MO-basis TPDM")
    {
     cout<<"TPDM found, proceed to read it"<<endl;
+    Norb_act2=Norb_act*Norb_act;
+    cout<<"Size of the DM2 matrix "<<setw(10)<<Norb_act2<<" x "<<setw(10)<<Norb_act2<<endl;
     getline(read_out,line);
     do
     {
@@ -142,7 +146,7 @@ int main(int argc,char *argv[])
      if(line.length()>0)
      {
       tmp_file<<line.substr(5,line.length()-5)<<endl;
-      for(i=0;i<N2-1;i++)
+      for(i=0;i<Norb_act2-1;i++)
       {
        getline(read_out,line);
        tmp_file<<line.substr(5,line.length()-5)<<endl;
@@ -185,7 +189,6 @@ int main(int argc,char *argv[])
  if(j!=0){cout<<endl;}
  cout<<endl;
  // Allocate order of orbs
- N1=nbasis; 
  order_orbs=new int[N1];
  k=0;
  for(i=0;i<Calcsyms.size();i++)
@@ -245,11 +248,11 @@ int main(int argc,char *argv[])
    DM2[i][j]=ZERO;
   }
  }
- k=0;N5col=N2/5;
+ k=0;N5col=Norb_act2/5;
  ifstream read_dm2("tmp_psi4.txt");
  for(l=0;l<N5col;l++)
  {
-  for(j=0;j<N2;j++)
+  for(j=0;j<Norb_act2;j++)
   {
    for(i=k;i<k+5;i++)
    {
@@ -258,16 +261,26 @@ int main(int argc,char *argv[])
   }
   k=k+5;
  }
- for(j=0;j<N2;j++)
+ for(j=0;j<Norb_act2;j++)
  {
-  for(i=k;i<N2;i++)
+  for(i=k;i<Norb_act2;i++)
   {
    read_dm2>>DM2[j][i];
   }
  }
- read_dm2.close();
+ read_dm2.close(); 
  system(("rm tmp_psi4.txt"));
- // Print the unformatted DM2 matrix
+ // Print the unformatted DM2 matrix and produce the spinless 1-RDM
+ DM1=new double*[N1];
+ for(i=0;i<N1;i++)
+ {
+  DM1[i]=new double[N1];
+  for(j=0;j<N1;j++)
+  {
+   DM1[i][j]=ZERO;
+  }
+ }
+ Trace=ZERO;
  ofstream dm2_out(name_dm2,ios::out | ios::binary);  
  for(i=0;i<N1;i++)
  {
@@ -285,6 +298,14 @@ int main(int argc,char *argv[])
       find_indices(i,j,k,l,element[0],element[1],element_prime[0],element_prime[1],order_orbs,N1);
       //cout<<"MRM: "<<element[0]+1<<" "<<element[1]+1<<" "<<element_prime[0]+1<<" "<<element_prime[1]+1<<" "<<Dijkl<<endl;
       //cout<<"MRM: "<<i<<" "<<j<<" "<<k<<" "<<l<<" "<<Dijkl<<endl;
+      if(element[1]==element_prime[1])
+      {
+       DM1[element[0]-1][element_prime[0]-1]=DM1[element[0]-1][element_prime[0]-1]+Dijkl;
+       if(element[0]==element_prime[0])
+       {
+        Trace=Trace+Dijkl;
+       }
+      }
       dm2_out.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
       dm2_out.write((char*) &element[0], sizeof(element[0]));
       dm2_out.write((char*) &nth, sizeof(nth));
@@ -319,14 +340,37 @@ int main(int argc,char *argv[])
  dm2_out.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
  dm2_out.close();
  cout<<endl;
+ cout<<endl;
+ cout<<"Trace of the printed 2-RDM (Lowdin): "<<setprecision(8)<<fixed<<setw(17)<<Trace<<endl;
+ Nelect=0.5e0*(1.0e0+sqrt(1.0e0+8.0e0*Trace));
+ Trace1dm=ZERO;
+ for(i=0;i<N1;i++)
+ {
+  for(j=0;j<N1;j++)
+  {
+   DM1[i][j]=2.0e0*DM1[i][j]/(Nelect-1.0e0); 
+   if(i==j)
+   {
+    Trace1dm=Trace1dm+DM1[i][i]; 
+   }
+  }
+ }
+ cout<<"Trace of the contracted 1-RDM      : "<<setprecision(8)<<fixed<<setw(17)<<Trace1dm<<endl;
+ cout<<endl;
  cout<<"File "<<name_dm2<<" prepared for chimpanC."<<endl;
- cout<<"Note: use the donof option in chimpanC."<<endl;
+ cout<<endl;
+ cout<<"Note: Use the donof option in chimpanC."<<endl;
  cout<<endl;
  // Deallocate all dynamic arrays
+ for(i=0;i<N1;i++)
+ {
+  delete[] DM1[i];DM1[i]=NULL;
+ }
  for(i=0;i<N2;i++)
  {
   delete[] DM2[i];DM2[i]=NULL;
  } 
+ delete[] DM1;DM1=NULL;
  delete[] DM2;DM2=NULL;
  delete[] order_orbs;order_orbs=NULL;
  // Print end of file
