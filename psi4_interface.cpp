@@ -40,8 +40,8 @@ int main(int argc,char *argv[])
   cout<<"----------------------------------------"<<endl;
   return 0;
  }
- bool read=true;
- int i,j,k,l,nth,nbasis,nsym=0;
+ bool read=true,*active_map;
+ int i,j,k,l,m,nth,nbasis,nsym=0;
  int N1,N2,N5col,Ndocc=0,Nuocc=0,Norb_act=0,Norb_act2;
  int *order_orbs,element[2],element_prime[2],*docc_orbs,*uocc_orbs,*active_orbs;
  long int ii,jj;
@@ -175,6 +175,11 @@ int main(int argc,char *argv[])
  read_out.close();
  tmp_file.close();
  // Frozen, active, and secondary orbitals
+ active_map=new bool[N2];
+ for(i=0;i<N2;i++)
+ {
+  active_map[i]=true;
+ }
  ifstream read_sym("tmp1.txt");
  for(i=0;i<Calcsyms.size();i++)
  {
@@ -224,6 +229,66 @@ int main(int argc,char *argv[])
  if(j!=0){cout<<endl;}
  cout<<endl;
  system("rm tmp1.txt");
+ l=0;
+ for(i=0;i<Calcsyms.size();i++)
+ {
+  for(j=0;j<docc_orbs[i];j++)
+  {
+   for(k=0;k<N1;k++)
+   {
+    active_map[l]=false;
+    l++;
+   }
+  }
+  for(j=0;j<active_orbs[i];j++)
+  {
+   for(k=0;k<Calcsyms.size();k++)
+   {
+    for(m=0;m<docc_orbs[k];m++)
+    {
+     active_map[l]=false;
+     l++;
+    }
+    for(m=0;m<active_orbs[k];m++)
+    {
+     l++;
+    }
+    for(m=0;m<uocc_orbs[k];m++)
+    {
+     active_map[l]=false;
+     l++;
+    }
+   }
+  }
+  for(j=0;j<uocc_orbs[i];j++)
+  {
+   for(k=0;k<N1;k++)
+   {
+    active_map[l]=false;
+    l++;
+   }
+  }
+ }
+ /*
+ // Print for debug the map with info about frozen, active, and secondary orbitals 
+ l=0;
+ for(i=0;i<N1;i++)
+ {
+  for(j=0;j<N1;j++)
+  {
+   if(active_map[l])
+   {
+    cout<<setw(5)<<" T ";
+   }
+   else
+   {
+    cout<<setw(5)<<" F ";
+   }
+   l++;
+  }
+  cout<<endl;
+ }
+ */  
  // Orb sym information
  cout<<endl;
  cout<<"Orbital symmetries used in the PSI4 calculation:"<<endl;
@@ -437,6 +502,7 @@ int main(int argc,char *argv[])
  delete[] order_orbs;order_orbs=NULL;
  delete[] docc_orbs;docc_orbs=NULL;
  delete[] uocc_orbs;uocc_orbs=NULL;
+ delete[] active_map;active_map=NULL;
  // Print end of file
  cout<<endl;
  cout<<"----------------------------------------"<<endl;
