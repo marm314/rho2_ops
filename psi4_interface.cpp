@@ -397,6 +397,38 @@ int main(int argc,char *argv[])
  }
  read_dm2.close(); 
  system("rm tmp_psi4.txt");
+ // Sort the 2-RDM
+ if(N2!=Norb_act2)
+ {
+  //Columns
+  k=Norb_act2;
+  for(i=N2-1;i>-1;i--)
+  {
+   if(active_map[i])
+   {
+    k--;
+    for(j=0;j<N2;j++)
+    {
+     DM2[j][i]=DM2[j][k];
+     DM2[j][k]=ZERO;
+    }
+   }
+  }
+  //Rows
+  k=Norb_act2;
+  for(i=N2-1;i>-1;i--)
+  {
+   if(active_map[i])
+   {
+    k--;
+    for(j=0;j<N2;j++)
+    {
+     DM2[i][j]=DM2[k][j];
+     DM2[k][j]=ZERO;
+    }
+   }
+  }
+ }
  // Print the unformatted DM2 matrix and produce the spinless 1-RDM
  DM1=new double*[N1];
  for(i=0;i<N1;i++)
