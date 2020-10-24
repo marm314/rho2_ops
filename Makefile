@@ -28,6 +28,7 @@ clean:
 	$(Cln) *.o
 	$(Cln) *RHO2_OPS
 	$(Cln) *chimpanC
+	$(Cln) *psi4_interface
 	$(Cln) *~
 	$(Cln) RHO2_OPS.tar.gz 
 
