@@ -43,7 +43,7 @@ int main(int argc,char *argv[])
  bool read=true;
  int i,j,k,l,nth,nbasis,nsym=0;
  int N1,N2,N5col,Ndocc=0,Nuocc=0,Norb_act=0,Norb_act2;
- int *order_orbs,element[2],element_prime[2];
+ int *order_orbs,element[2],element_prime[2],*docc_orbs,*uocc_orbs,*active_orbs;
  long int ii,jj;
  double **DM2,**DM1,Dijkl,Trace,Trace1dm,Nelect;
  nth=0;
@@ -54,6 +54,7 @@ int main(int argc,char *argv[])
  name_dm2=name_out.substr(0,(name_out.length()-3))+"dm2";
  ofstream tmp_file("tmp_psi4.txt");
  ifstream read_out(name_out);
+ ofstream prnt_sym("tmp1.txt");
  while(getline(read_out,line))
  {
   if(line.length()>30)
@@ -65,14 +66,25 @@ int main(int argc,char *argv[])
      stringstream ss1(line.substr(20,9)); 
      ss1>>Ndocc;
      cout<<"Number of frozen orbitals   : "<<setw(12)<<Ndocc<<endl;
-     Norb_act=Norb_act-Ndocc;
+     docc_orbs=new int[Calcsyms.size()];
+     prnt_sym<<line.substr(29,line.length()-29)<<endl;
     }
     else
     {
      stringstream ss2(line.substr(20,9)); 
      ss2>>Nuocc;
      cout<<"Number of secondary orbitals: "<<setw(12)<<Nuocc<<endl;
+     uocc_orbs=new int[Calcsyms.size()];
+     prnt_sym<<line.substr(29,line.length()-29)<<endl;
     }
+   }
+   if(line.substr(6,14)=="Active (total)")
+   {
+    stringstream ss3(line.substr(20,9)); 
+    ss3>>Norb_act;
+    cout<<"Number of active orbitals   : "<<setw(12)<<Norb_act<<endl;
+    active_orbs=new int[Calcsyms.size()];
+    prnt_sym<<line.substr(29,line.length()-29)<<endl;
    }
   }
   if(line.length()>29)
@@ -83,7 +95,6 @@ int main(int argc,char *argv[])
     ss>>nbasis;
     N1=nbasis;
     N2=N1*N1; 
-    Norb_act=Norb_act+N1;
     cout<<"Size of the basis read: "<<setw(12)<<nbasis<<endl;
    }
   }
@@ -160,8 +171,59 @@ int main(int argc,char *argv[])
    }
   }
  } 
+ prnt_sym.close();
  read_out.close();
  tmp_file.close();
+ // Frozen, active, and secondary orbitals
+ ifstream read_sym("tmp1.txt");
+ for(i=0;i<Calcsyms.size();i++)
+ {
+  read_sym>>docc_orbs[i];
+ }
+ for(i=0;i<Calcsyms.size();i++)
+ {
+  read_sym>>active_orbs[i];
+ }
+ for(i=0;i<Calcsyms.size();i++)
+ {
+  read_sym>>uocc_orbs[i];
+ }
+ read_sym.close();
+ cout<<endl;
+ cout<<"Frozen orbitals per-symmetry groups:"<<endl;
+ cout<<endl;
+ j=0;
+ for(i=0;i<Calcsyms.size();i++)
+ {
+  cout<<setw(5)<<docc_orbs[i];
+  j++;
+  if(j==9){cout<<endl;j=0;}
+ } 
+ if(j!=0){cout<<endl;}
+ cout<<endl;
+ cout<<"Active orbitals per-symmetry groups:"<<endl;
+ cout<<endl;
+ j=0;
+ for(i=0;i<Calcsyms.size();i++)
+ {
+  cout<<setw(5)<<active_orbs[i];
+  j++;
+  if(j==9){cout<<endl;j=0;}
+ } 
+ if(j!=0){cout<<endl;}
+ cout<<endl;
+ cout<<"Secondary orbitals per-symmetry groups:"<<endl;
+ cout<<endl;
+ j=0;
+ for(i=0;i<Calcsyms.size();i++)
+ {
+  cout<<setw(5)<<uocc_orbs[i];
+  j++;
+  if(j==9){cout<<endl;j=0;}
+ } 
+ if(j!=0){cout<<endl;}
+ cout<<endl;
+ system("rm tmp1.txt");
  // Orb sym information
  cout<<endl;
  cout<<"Orbital symmetries used in the PSI4 calculation:"<<endl;
@@ -269,7 +331,7 @@ int main(int argc,char *argv[])
   }
  }
  read_dm2.close(); 
- system(("rm tmp_psi4.txt"));
+ system("rm tmp_psi4.txt");
  // Print the unformatted DM2 matrix and produce the spinless 1-RDM
  DM1=new double*[N1];
  for(i=0;i<N1;i++)
@@ -373,6 +435,8 @@ int main(int argc,char *argv[])
  delete[] DM1;DM1=NULL;
  delete[] DM2;DM2=NULL;
  delete[] order_orbs;order_orbs=NULL;
+ delete[] docc_orbs;docc_orbs=NULL;
+ delete[] uocc_orbs;uocc_orbs=NULL;
  // Print end of file
  cout<<endl;
  cout<<"----------------------------------------"<<endl;
