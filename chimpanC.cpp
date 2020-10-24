@@ -16,6 +16,7 @@ void write_basis(FILE *pFile,string name_dm2,int &nucleous,double Atom_coord[3],
 //Global variables:
 int RECORD_DELIMITER_LENGTH=4;
 bool donofdm2=false; 
+bool int8alldm2=false; 
 
 int main(int argc, char *argv[])
 {
@@ -108,6 +109,15 @@ int main(int argc, char *argv[])
    if(y_or_n2=="donofr" || y_or_n2=="DONOFr" || y_or_n2=="donofR" || y_or_n2=="DONOFR")
    {
     donofdm2=true;
+    reduce=true;
+   }
+   if(y_or_n2=="i8all" || y_or_n2=="I8ALL")
+   {
+    int8alldm2=true; 
+   }
+   if(y_or_n2=="i8allr" || y_or_n2=="I8ALLr" || y_or_n2=="i8allR" || y_or_n2=="I8ALLR")
+   {
+    int8alldm2=true; 
     reduce=true;
    }
   }
@@ -549,7 +559,7 @@ int main(int argc, char *argv[])
     cout<<"Storing of the spinless 2RDM..."<<endl;
     {
      ifstream input_data(name_dm2.c_str(),ios::binary);
-     if(!donofdm2)
+     if(!donofdm2 && !int8alldm2)
      {
       while(element[0]!=0 || element[1]!=0 || element_prime[0]!=0 || element_prime[1]!=0)
       {
@@ -1202,11 +1212,15 @@ int main(int argc, char *argv[])
   cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) donof(2D elements are from DoNOF code)"<<endl;
   cout<<"or"<<endl;
+  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i8all(2D elements are from PSI4 code)"<<endl;
+  cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i4r(aa_2D^ii _ii terms and reduce p <-> r and q <-> s terms)"<<endl;
   cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) ar(all 2D elements are given and reduce p <-> r and q <-> s terms)"<<endl;
   cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) donofr(2D elements are from DoNOF code and reduce p <-> r and q <-> s terms)"<<endl;
+  cout<<endl;
+  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i8allr(2D elements are from PSI4 code and reduce p <-> r and q <-> s terms)"<<endl;
   cout<<endl;
   cout<<endl;
  }

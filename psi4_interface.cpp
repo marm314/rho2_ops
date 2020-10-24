@@ -518,7 +518,7 @@ int main(int argc,char *argv[])
  cout<<endl;
  cout<<"File "<<name_dm2<<" prepared for chimpanC."<<endl;
  cout<<endl;
- cout<<"Note: Use the donof option in chimpanC."<<endl;
+ cout<<"Note: Use the i8all option in chimpanC."<<endl;
  cout<<endl;
  // Deallocate all dynamic arrays
  for(i=0;i<N1;i++)
