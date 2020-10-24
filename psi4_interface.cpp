@@ -7,11 +7,12 @@
 #include<cmath>
 #include<sstream>
 #include<algorithm>
-#define ZERO 0.0e0
+#include"Numbers.h"
 
 using namespace std;
 
 void find_indices(int i,int j,int k,int l,int &element0,int &element1,int &element_prime0,int &element_prime1,int *order,int nbasis);
+double dm1_to_dm2_hfl(int &i, int &j, int &k, int &l, double **dm1);
 int RECORD_DELIMITER_LENGTH=4;
 
 vector<string>MOsyms;
@@ -45,13 +46,13 @@ int main(int argc,char *argv[])
  int N1,N2,N5col,Ndocc=0,Nuocc=0,Norb_act=0,Norb_act2;
  int *order_orbs,element[2],element_prime[2],*docc_orbs,*uocc_orbs,*active_orbs;
  long int ii,jj;
- double **DM2,**DM1,Dijkl,Trace,Trace1dm,Nelect;
- nth=0;
+ double **DM2,**DM1,**DM1spin,Dijkl,Trace,Trace1dm,Nelect;
  string line,subline;
  string name_out=argv[1];
  double threshold=atof(argv[2]);
- string name_dm2;
+ string name_dm2,name_dm1;
  name_dm2=name_out.substr(0,(name_out.length()-3))+"dm2";
+ name_dm1=name_out.substr(0,(name_out.length()-3))+"dm1";
  ofstream tmp_file("tmp_psi4.txt");
  ifstream read_out(name_out);
  ofstream prnt_sym("tmp1.txt");
@@ -228,7 +229,7 @@ int main(int argc,char *argv[])
  } 
  if(j!=0){cout<<endl;}
  cout<<endl;
- system("rm tmp1.txt");
+ nth=system("rm tmp1.txt");
  l=0;
  for(i=0;i<Calcsyms.size();i++)
  {
@@ -396,7 +397,7 @@ int main(int argc,char *argv[])
   }
  }
  read_dm2.close(); 
- system("rm tmp_psi4.txt");
+ nth=system("rm tmp_psi4.txt");
  // Sort the 2-RDM
  if(N2!=Norb_act2)
  {
@@ -440,6 +441,8 @@ int main(int argc,char *argv[])
   }
  }
  Trace=ZERO;
+  //Print the stored 2-RDM
+ nth=0;
  ofstream dm2_out(name_dm2,ios::out | ios::binary);  
  for(i=0;i<N1;i++)
  {
@@ -455,8 +458,6 @@ int main(int argc,char *argv[])
      {
       Dijkl=DM2[ii][jj];
       find_indices(i,j,k,l,element[0],element[1],element_prime[0],element_prime[1],order_orbs,N1);
-      //cout<<"MRM: "<<element[0]+1<<" "<<element[1]+1<<" "<<element_prime[0]+1<<" "<<element_prime[1]+1<<" "<<Dijkl<<endl;
-      //cout<<"MRM: "<<i<<" "<<j<<" "<<k<<" "<<l<<" "<<Dijkl<<endl;
       if(element[1]==element_prime[1])
       {
        DM1[element[0]-1][element_prime[0]-1]=DM1[element[0]-1][element_prime[0]-1]+Dijkl;
@@ -481,6 +482,122 @@ int main(int argc,char *argv[])
    }
   }
  }
+ for(i=0;i<N2;i++)
+ {
+  delete[] DM2[i];DM2[i]=NULL;
+ } 
+ delete[] DM2;DM2=NULL;
+  //Build 1-RDM and for closed-shell systems the spin-with 1-RDM 
+ if(N1!=Norb_act)
+ {
+  DM1spin=new double*[2*N1];
+  for(i=0;i<2*N1;i++)
+  {
+   DM1spin[i]=new double[2*N1];
+   for(j=0;j<2*N1;j++)
+   {
+    DM1spin[i][j]=ZERO;
+   }
+  }
+ }
+ Nelect=HALF*(ONE+sqrt(ONE+EIGHT*Trace));
+ Trace1dm=ZERO;
+ for(i=0;i<N1;i++)
+ {
+  for(j=0;j<N1;j++)
+  {
+   DM1[i][j]=TWO*DM1[i][j]/(Nelect-ONE); 
+   if(i==j)
+   {
+    if(N1!=Norb_act)
+    {
+     if(i<Ndocc)
+     {
+      DM1[i][i]=TWO; // Prepared for closed-shell
+     }
+    }
+    Trace1dm=Trace1dm+DM1[i][i]; 
+   }
+  }
+  if(N1!=Norb_act)
+  {
+   for(j=0;j<N1;j++)
+   {
+    k=2*i;
+    l=2*j;
+    DM1spin[k][l]=HALF*DM1[i][j];
+    k=2*i+1;
+    l=2*j+1;
+    DM1spin[k][l]=HALF*DM1[i][j];
+   }
+  }
+ }
+ if(N1!=Norb_act)
+ {
+  for(i=0;i<2*N1;i++)
+  {
+   for(j=0;j<2*N1;j++)
+   {
+    for(k=0;k<2*N1;k++)
+    {
+     for(l=0;l<2*N1;l++)
+     {
+      if(i%2==k%2 && j%2==l%2)
+      {
+       if(i<2*Ndocc || j<2*Ndocc || k<2*Ndocc || l<2*Ndocc) // Do HFL if at least one of them is fully occ (frozen with occ=1).
+       {
+        Dijkl=dm1_to_dm2_hfl(i,j,k,l,DM1spin);
+        if(i==k && j==l)
+        {
+         Trace=Trace+Dijkl;
+        }
+        if(i%2==0)
+        {
+         element[0]=i/2; 
+         element_prime[0]=k/2; 
+        }
+        else
+        {
+         element[0]=(i-1)/2; 
+         element_prime[0]=(k-1)/2; 
+        }
+        if(j%2==0)
+        {
+         element[1]=j/2; 
+         element_prime[1]=l/2; 
+        }
+        else
+        {
+         element[1]=(j-1)/2; 
+         element_prime[1]=(l-1)/2; 
+        }
+        element[0]=element[0]+1;
+        element[1]=element[1]+1;
+        element_prime[0]=element_prime[0]+1;
+        element_prime[1]=element_prime[1]+1;
+        dm2_out.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+        dm2_out.write((char*) &element[0], sizeof(element[0]));
+        dm2_out.write((char*) &nth, sizeof(nth));
+        dm2_out.write((char*) &element[1], sizeof(element[1]));
+        dm2_out.write((char*) &nth, sizeof(nth));
+        dm2_out.write((char*) &element_prime[0], sizeof(element_prime[0]));
+        dm2_out.write((char*) &nth, sizeof(nth));
+        dm2_out.write((char*) &element_prime[1], sizeof(element_prime[1]));
+        dm2_out.write((char*) &nth, sizeof(nth));
+        dm2_out.write((char*) &Dijkl, sizeof(Dijkl));
+        dm2_out.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+ cout<<endl;
+ cout<<endl;
+ cout<<"Trace of the printed 2-RDM (Lowdin): "<<setprecision(8)<<fixed<<setw(17)<<Trace<<endl;
+ cout<<"Trace of the contracted 1-RDM      : "<<setprecision(8)<<fixed<<setw(17)<<Trace1dm<<endl;
+ cout<<endl;
  element[0]=0;
  element[1]=0;
  element_prime[0]=0;
@@ -498,39 +615,24 @@ int main(int argc,char *argv[])
  dm2_out.write((char*) &Dijkl, sizeof(Dijkl));
  dm2_out.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
  dm2_out.close();
- cout<<endl;
- cout<<endl;
- cout<<"Trace of the printed 2-RDM (Lowdin): "<<setprecision(8)<<fixed<<setw(17)<<Trace<<endl;
- Nelect=0.5e0*(1.0e0+sqrt(1.0e0+8.0e0*Trace));
- Trace1dm=ZERO;
- for(i=0;i<N1;i++)
- {
-  for(j=0;j<N1;j++)
-  {
-   DM1[i][j]=2.0e0*DM1[i][j]/(Nelect-1.0e0); 
-   if(i==j)
-   {
-    Trace1dm=Trace1dm+DM1[i][i]; 
-   }
-  }
- }
- cout<<"Trace of the contracted 1-RDM      : "<<setprecision(8)<<fixed<<setw(17)<<Trace1dm<<endl;
- cout<<endl;
  cout<<"File "<<name_dm2<<" prepared for chimpanC."<<endl;
  cout<<endl;
  cout<<"Note: Use the i8all option in chimpanC."<<endl;
  cout<<endl;
  // Deallocate all dynamic arrays
+ if(N1!=Norb_act)
+ {
+  for(i=0;i<2*N1;i++)
+  {
+   delete[] DM1spin[i];DM1spin[i]=NULL;
+  }
+  delete[] DM1spin;DM1spin=NULL;
+ }
  for(i=0;i<N1;i++)
  {
   delete[] DM1[i];DM1[i]=NULL;
  }
- for(i=0;i<N2;i++)
- {
-  delete[] DM2[i];DM2[i]=NULL;
- } 
  delete[] DM1;DM1=NULL;
- delete[] DM2;DM2=NULL;
  delete[] order_orbs;order_orbs=NULL;
  delete[] docc_orbs;docc_orbs=NULL;
  delete[] uocc_orbs;uocc_orbs=NULL;
@@ -554,4 +656,11 @@ void find_indices(int i,int j,int k,int l,int &element0,int &element1,int &eleme
   if(k==order[index]){element_prime0=index+1;} 
   if(l==order[index]){element_prime1=index+1;} 
  }
+}
+
+double dm1_to_dm2_hfl(int &i, int &j, int &k, int &l, double **dm1)
+{
+ double Dijkl=ZERO;
+ Dijkl=dm1[i][k]*dm1[j][l]-dm1[i][l]*dm1[j][k];
+ return HALF*Dijkl; // Lowdin normalization
 }
