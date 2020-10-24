@@ -1,0 +1,116 @@
+##########################################################################
+##########################################################################
+# Evaluation of the Intracule, Extracule and Second Moments using the    #
+# DM2 in Primitives (in C++) written by M.Sc. Mauricio Rodriguez Mayorga #
+# email: marm3.14@gmail.com                                              #
+##########################################################################
+##########################################################################
+#*****************************************************************************#
+# Copyright (C) 2016 M.Sc. Mauricio A. Rodriguez Mayorga                      #
+# Ph.D. student at University of Girona (Girona) and DIPC                     #
+# for support and comments send an email to: marm3.14@gmail.com               #
+#*****************************************************************************#
+#  This program is free software: you can redistribute it and/or modify       #
+#  it under the terms of the GNU General Public License as published by       #
+#  the Free Software Foundation, either version 3 of the License, or          #
+#  (at your option) any later version.                                        #
+#  This program is distributed in the hope that it will be useful,            #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of             #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #
+#  GNU General Public License for more details.                               #
+#  You should have received a copy of the GNU General Public License          #
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.      #
+#*****************************************************************************#
+# See. J. Cioslowski and G. Liu, J. Chem. Phys., 105, 4151 (1996)             #
+#*****************************************************************************#
+#******************************************#
+#          Compute Moments                 #
+#******************************************#
+Lmax                   :                1
+Quadrature rule order  :                3
+[Quadrature for primitive integrals. Order = Lmax + 2 ]
+Number of terms in DM2 :             69111
+Storage of the DM2
+Storage done!
+#*****************************************************************************#
+Running   1 thread.
+#*****************************************************************************#
+int rho2(1,2)    d1 d2    :  2.9999999996e+01
+int rho2(1,2) x1 d1 d2    :  0.0000000000e+00
+int rho2(1,2) y1 d1 d2    :  0.0000000000e+00
+int rho2(1,2) z1 d1 d2    :  0.0000000000e+00
+int rho2(1,2) x1x1 d1 d2  :  5.6801972352e+01
+int rho2(1,2) x1y1 d1 d2  :  0.0000000000e+00
+int rho2(1,2) x1z1 d1 d2  :  0.0000000000e+00
+int rho2(1,2) y1y1 d1 d2  :  5.6801972352e+01
+int rho2(1,2) y1z1 d1 d2  :  0.0000000000e+00
+int rho2(1,2) z1z1 d1 d2  :  8.1251458280e+01
+int rho2(1,2) x1x2 d1 d2  : -4.3915689444e+00
+int rho2(1,2) x1y2 d1 d2  :  0.0000000000e+00
+int rho2(1,2) x1z2 d1 d2  :  0.0000000000e+00
+int rho2(1,2) y1y2 d1 d2  : -4.3915689444e+00
+int rho2(1,2) y1z2 d1 d2  :  0.0000000000e+00
+int rho2(1,2) z1z2 d1 d2  : -7.7050251497e+00
+int rho(1) d1             :  5.9999999997e+00
+
+Total Position Spread  :
+[O. Brea et al, J. Chem. Theory Comput., 9, 5286 (2013).]
+
+ (   6.9688255268e+00   0.0000000000e+00   0.0000000000e+00 )
+ (   0.0000000000e+00   6.9688255268e+00   0.0000000000e+00 )
+ (   0.0000000000e+00   0.0000000000e+00   8.5452665074e+00 )
+
+
+#################################################
+
+                             __...------------._
+                         ,-'                   `-.  
+  It is a Trap!       ,-'                         `.
+                    ,'                            ,-`.
+                   ;                              `-' `.
+                  ;                                 .-. \
+                 ;                           .-.    `-'  \
+                ;                            `-'          \
+               ;                                          `.
+               ;                                           :
+              ;                                            |
+             ;                                             ;
+            ;                            ___              ;
+           ;                        ,-;-','.`.__          |
+       _..;                      ,-' ;`,'.`,'.--`.        |
+      ///;           ,-'   `. ,-'   ;` ;`,','_.--=:      /
+     |'':          ,'        :     ;` ;,;,,-'_.-._`.   ,'
+     '  :         ;_.-.      `.    :' ;;;'.ee.    \|  /
+      \.'    _..-'/8o. `.     :    :! ' ':8888)   || /
+       ||`-''    \88o\ :     :    :! :  :`'    ;;/
+       ||         \"88o\;     `.    \ `. `.      ;,'
+       /)   ___    `."'/(--.._ `.    `.`.  `-..-' ;--.
+       \(.="""""==.. `'-'     `.|      `-`-..__.-' `. `.
+        |          `"==.__      )                    )  ;
+        |   ||           `"=== '                   .'  .'
+        /\,,||||  | |           \                .'   .'
+        | |||'|' |'|'           \|             .'   _.' \
+        | |' |  |           || ||           .'    .'    \
+        ' | \ ' |'  .   ``-- `| ||         .'    .'       \
+          '  |  ' |  .    ``-.._ |  ;    .'    .'          `.
+       _.--,;`.       .  --  ...._,'   .'    .'              `.__
+     ,'  ,';   `.     .   --..__..--'.'    .'                __/_\
+   ,'   ; ;     |    .   --..__.._.'     .'                ,'     `.
+  /    ; :     ;     .    -.. _.'     _.'                 /         `
+ /     :  `-._ |    .    _.--'     _.'                   |
+/       `.    `--....--''       _.'                      |
+          `._              _..-'                         |
+             `-..____...-''                              |
+                                                         |
+                               mGk                       |
+
+
+#################################################
+
+  It took    0 days    0 hours    0 min.    2 secs. 
+
+#################################################
+
+ Normal termination of RHO2_OPS code          
+
+#################################################

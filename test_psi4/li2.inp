@@ -1,0 +1,9 @@
+$MOMENTS
+$NAME_BASIS
+li2.basis
+$NAME_DM2
+Conv_li2.dm2
+$Threshold
+1e-12              
+$Tau
+1e-6              

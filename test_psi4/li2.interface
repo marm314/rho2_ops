@@ -1,0 +1,66 @@
+----------------------------------------
+----------------------------------------
+---   PSI4 INTERFACE FOR RHO2_OPS    ---
+----------------------------------------
+----------------------------------------
+-- Developed by: M. Rodriguez-Mayorga --
+--   email: marm3.14@gmail.com        --
+----------------------------------------
+----------------------------------------
+
+Size of the basis read:           18
+Size of the nsym  read:            8
+Number of frozen orbitals   :            0
+Number of active orbitals   :           18
+Number of secondary orbitals:            0
+TPDM found, proceed to read it
+Size of the DM2 matrix        324 x        324
+
+Frozen orbitals per-symmetry groups:
+
+    0    0    0    0    0    0    0    0
+
+Active orbitals per-symmetry groups:
+
+    5    0    2    2    0    5    2    2
+
+Secondary orbitals per-symmetry groups:
+
+    0    0    0    0    0    0    0    0
+
+
+Orbital symmetries used in the PSI4 calculation:
+
+   Ag  B1g  B2g  B3g   Au  B1u  B2u  B3u
+
+Orbital symmetries found in PSI4 output:
+
+   Ag  B1u   Ag  B3u  B2u  B1u   Ag  B3g  B2g
+  B1u  B3u  B2u   Ag  B1u   Ag  B3g  B2g  B1u
+
+
+Order of the orbitals attending to the symmetry (as used in DETCI):
+
+    1    3    7   13   15    9   17    8   16
+    2    6   10   14   18    5   12    4   11
+
+
+Numbering of the orbitals attending to the symmetry (as used in DETCI):
+
+    1   10    2   17   15   11    3    8    6
+   12   18   16    4   13    5    9    7   14
+
+
+
+Trace of the printed 2-RDM (Lowdin):       15.00000000
+Trace of the contracted 1-RDM      :        6.00000000
+
+File li2.dm2 prepared for chimpanC.
+
+Note: Use the i8all option in chimpanC.
+
+
+----------------------------------------
+--        Normal termination          --
+----------------------------------------
+----------------------------------------

@@ -39,4 +39,4 @@ psi4int: psi4_interface.cpp
 	$(CPP) $(CPPFLAGS) psi4_interface.cpp -o psi4_interface
 
 tar:
-	tar -pczf RHO2_OPS.tar.gz *.cpp *.h Makefile README test dm2_hf 
+	tar -pczf RHO2_OPS.tar.gz *.cpp *.h Makefile README test dm2_hf test_psi4 

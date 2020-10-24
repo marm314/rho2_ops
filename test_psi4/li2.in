@@ -1,0 +1,20 @@
+molecule li2 {
+Li
+Li 1 1.20
+}
+
+set {
+  basis 3-21g
+  print_MOs true
+  qc_module detci
+  opdm True
+  tpdm True
+}
+
+E,wfn = energy('cisd',return_wfn=True)
+opdm = wfn.get_opdm(-1,-1,"SUM",False)
+opdm_prt = opdm.print_out()
+tpdm = wfn.get_tpdm("SUM",False)
+tpdm_prt = tpdm.print_out()
+fchk_writer = psi4.core.FCHKWriter(wfn)
+fchk_writer.write('li2.fchk')
