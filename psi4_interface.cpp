@@ -547,45 +547,48 @@ int main(int argc,char *argv[])
        if(i<2*Ndocc || j<2*Ndocc || k<2*Ndocc || l<2*Ndocc) // Do HFL if at least one of them is fully occ (frozen with occ=1).
        {
         Dijkl=dm1_to_dm2_hfl(i,j,k,l,DM1spin);
-        if(i==k && j==l)
+        if(abs(Dijkl)>threshold)
         {
-         Trace=Trace+Dijkl;
+         if(i==k && j==l)
+         {
+          Trace=Trace+Dijkl;
+         }
+         if(i%2==0)
+         {
+          element[0]=i/2; 
+          element_prime[0]=k/2; 
+         }
+         else
+         {
+          element[0]=(i-1)/2; 
+          element_prime[0]=(k-1)/2; 
+         }
+         if(j%2==0)
+         {
+          element[1]=j/2; 
+          element_prime[1]=l/2; 
+         }
+         else
+         {
+          element[1]=(j-1)/2; 
+          element_prime[1]=(l-1)/2; 
+         }
+         element[0]=element[0]+1;
+         element[1]=element[1]+1;
+         element_prime[0]=element_prime[0]+1;
+         element_prime[1]=element_prime[1]+1;
+         dm2_out.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+         dm2_out.write((char*) &element[0], sizeof(element[0]));
+         dm2_out.write((char*) &nth, sizeof(nth));
+         dm2_out.write((char*) &element[1], sizeof(element[1]));
+         dm2_out.write((char*) &nth, sizeof(nth));
+         dm2_out.write((char*) &element_prime[0], sizeof(element_prime[0]));
+         dm2_out.write((char*) &nth, sizeof(nth));
+         dm2_out.write((char*) &element_prime[1], sizeof(element_prime[1]));
+         dm2_out.write((char*) &nth, sizeof(nth));
+         dm2_out.write((char*) &Dijkl, sizeof(Dijkl));
+         dm2_out.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
         }
-        if(i%2==0)
-        {
-         element[0]=i/2; 
-         element_prime[0]=k/2; 
-        }
-        else
-        {
-         element[0]=(i-1)/2; 
-         element_prime[0]=(k-1)/2; 
-        }
-        if(j%2==0)
-        {
-         element[1]=j/2; 
-         element_prime[1]=l/2; 
-        }
-        else
-        {
-         element[1]=(j-1)/2; 
-         element_prime[1]=(l-1)/2; 
-        }
-        element[0]=element[0]+1;
-        element[1]=element[1]+1;
-        element_prime[0]=element_prime[0]+1;
-        element_prime[1]=element_prime[1]+1;
-        dm2_out.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
-        dm2_out.write((char*) &element[0], sizeof(element[0]));
-        dm2_out.write((char*) &nth, sizeof(nth));
-        dm2_out.write((char*) &element[1], sizeof(element[1]));
-        dm2_out.write((char*) &nth, sizeof(nth));
-        dm2_out.write((char*) &element_prime[0], sizeof(element_prime[0]));
-        dm2_out.write((char*) &nth, sizeof(nth));
-        dm2_out.write((char*) &element_prime[1], sizeof(element_prime[1]));
-        dm2_out.write((char*) &nth, sizeof(nth));
-        dm2_out.write((char*) &Dijkl, sizeof(Dijkl));
-        dm2_out.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
        }
       }
      }
