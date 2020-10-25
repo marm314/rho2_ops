@@ -54,7 +54,7 @@ int main(int argc,char *argv[])
  name_dm2=name_out.substr(0,(name_out.length()-3))+"dm2";
  name_dm1=name_out.substr(0,(name_out.length()-3))+"dm1";
  ofstream tmp_file("tmp_psi4.txt");
- ifstream read_out(name_out);
+ ifstream read_out(name_out.c_str());
  ofstream prnt_sym("tmp1.txt");
  while(getline(read_out,line))
  {
@@ -443,7 +443,7 @@ int main(int argc,char *argv[])
  Trace=ZERO;
   //Print the stored 2-RDM
  nth=0;
- ofstream dm2_out(name_dm2,ios::out | ios::binary);  
+ ofstream dm2_out(name_dm2.c_str(),ios::out | ios::binary);  
  for(i=0;i<N1;i++)
  {
   for(k=0;k<N1;k++)

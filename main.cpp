@@ -57,8 +57,9 @@ DM2 *dm2;
 int main(int argc, char *argv[])
 {
 #ifdef HAVE_MPI
-MPI::Init();
-int id=MPI::COMM_WORLD.Get_rank();
+MPI_Init(NULL,NULL);
+int id;
+MPI_Comm_rank(MPI_COMM_WORLD, &id);
 ID=id;
 int npr[1];
 MPI_Comm_size(MPI_COMM_WORLD,npr);
@@ -2487,7 +2488,7 @@ if(ID==0)
  cout<<"#################################################"<<endl;
 }
 #ifdef HAVE_MPI
-MPI::Finalize();
+MPI_Finalize();
 #endif
  return 0;
 }
