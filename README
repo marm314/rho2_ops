@@ -41,7 +41,7 @@ $ANGULAR           (Spherical average via Sphere-Lebedev Rule)
 $ANGULAR2          (Spherical average via Legendre theta & phi)
 40                 -> Theta
 50                 -> Phi
-$PARALLEL          (OpenMP parallelization of the intracule's evaluation)
+$PARALLEL          (OpenMP parallelization of the intracules and extracules evaluation)
 4                  -> Number of THREADS to use. 
 $INTRACULE         -> To compute the intracule (is incompatible with $MOMENTS but compatible with $EXTRACULE)
 $EXTRACULE         -> To compute the intracule (is incompatible with $MOMENTS but compatible with $INTRACULE)
