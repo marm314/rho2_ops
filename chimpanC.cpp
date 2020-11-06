@@ -14,7 +14,7 @@ void line_fill(int &number, string line_read);
 void Quant_fill(int **Quant,int styp);
 void write_basis(FILE *pFile,string name_dm2,int &nucleous,double Atom_coord[3],double Exp,int nx,int ny,int nz);
 //Global variables:
-int RECORD_DELIMITER_LENGTH=4;
+int RECORD_DELIMITER_LENGTH=4,sys;
 bool donofdm2=false; 
 bool int8alldm2=false; 
 
@@ -843,7 +843,7 @@ int main(int argc, char *argv[])
       temp_dm2_2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
      }
      temp_dm2_2.close();
-     system("/bin/rm Temp.dm2");
+     sys=system("/bin/rm Temp.dm2");
      cout<<"l coefficient changed"<<endl;
     }
     //Change k:
@@ -893,7 +893,7 @@ int main(int argc, char *argv[])
       temp_dm2_2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
      }
      temp_dm2_2.close();
-     system("/bin/rm Temp.dm2");
+     sys=system("/bin/rm Temp.dm2");
      cout<<"k coefficient changed"<<endl;
     }
     //Change j:
@@ -944,7 +944,7 @@ int main(int argc, char *argv[])
       temp_dm2_2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
      }
      temp_dm2_2.close();
-     system("/bin/rm Temp.dm2");
+     sys=system("/bin/rm Temp.dm2");
      cout<<"j coefficient changed"<<endl;
     }
     //Change i:
@@ -996,7 +996,7 @@ int main(int argc, char *argv[])
       temp_dm2_2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
      }
      temp_dm2_2.close();
-     system("/bin/rm Temp.dm2");
+     sys=system("/bin/rm Temp.dm2");
      cout<<"i coefficient changed"<<endl;
     }
     if(two_dm2_mat)
@@ -1278,7 +1278,7 @@ void write_basis(FILE *pFile,string name_dm2,int &nucleous,double Atom_coord[3],
  temporal.close();
  ifstream temporal2;
  temporal2.open((temp).c_str());
- system(("rm "+temp).c_str());
+ sys=system(("rm "+temp).c_str());
  getline(temporal2,aux);
  fputs((aux+"\n").c_str(),pFile);
 }

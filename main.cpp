@@ -35,7 +35,7 @@ int &lyb,int &lzb,double &Xa,double &Ya,double &Za,double &Xb,double &Yb,double 
 //Global variables
 bool iprint=true;
 long int nterms;
-int ID=0,nproc=1;
+int ID=0,nproc=1,sys;
 double threshold,Rmax[5][5]={ZERO},DATE[2][4],localIr,globalIr;
 const int RECORD_DELIMITER_LENGTH=4;
 ifstream date_file;
@@ -113,11 +113,11 @@ if(ID==0)
  /////////////////////
  //Begin clock      //
  /////////////////////
- system("date +%j' '%H' '%M' '%S > date_intrac.date");
+ sys=system("date +%j' '%H' '%M' '%S > date_intrac.date");
  date_file.open("date_intrac.date");
  date_file>>DATE[0][0]>>DATE[0][1]>>DATE[0][2]>>DATE[0][3];
  date_file.close();
- system("rm date_intrac.date");
+ sys=system("rm date_intrac.date");
 }
  if(argc==2)
  {
@@ -156,7 +156,7 @@ if(ID==0)
    ////////////////
 if(ID==0)
 {
-   if(Input_commands.time_intra){cout<<endl;cout<<"Time 1 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+   if(Input_commands.time_intra){cout<<endl;cout<<"Time 1 (D H M S): "<<endl;sys=system("date +%j' '%H' '%M' '%S ");cout<<endl;}
 }
    ////////////////
    //End time    //
@@ -300,9 +300,9 @@ if(ID==0)
     }
     read_rad_quad.close();
     // Remove quadrature files
-    system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
-    system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
-    system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+    sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
+    sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
+    sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
 }
 #ifdef HAVE_MPI
 MPI_Bcast(w_legendre,nrad,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -437,9 +437,9 @@ rtmp[j]=r_intrac[i][j];
      read_quad_r.close();
      read_quad_w.close();
      // Remove quadrature files
-     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
-     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
-     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+     sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
+     sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
+     sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
 }
 #ifdef HAVE_MPI
 MPI_Bcast(wtmp,j,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -489,7 +489,7 @@ if(ID==0)
      ////////////////
      //Check times //
      ////////////////
-     if(Input_commands.time_intra){cout<<endl;cout<<"Time 2 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+     if(Input_commands.time_intra){cout<<endl;cout<<"Time 2 (D H M S): "<<endl;sys=system("date +%j' '%H' '%M' '%S ");cout<<endl;}
      ////////////////
      //End time    //
      ////////////////
@@ -916,7 +916,7 @@ if(ID==0)
      ////////////////
 if(ID==0)
 {
-     if(Input_commands.time_intra){cout<<"Time 3 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+     if(Input_commands.time_intra){cout<<"Time 3 (D H M S): "<<endl;sys=system("date +%j' '%H' '%M' '%S ");cout<<endl;}
      ////////////////
      //End time    //
      ////////////////
@@ -1197,7 +1197,7 @@ if(ID==0)
    ////////////////
 if(ID==0)
 {
-   if(Input_commands.time_extra){cout<<endl;cout<<"Time 1 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+   if(Input_commands.time_extra){cout<<endl;cout<<"Time 1 (D H M S): "<<endl;sys=system("date +%j' '%H' '%M' '%S ");cout<<endl;}
 }
    ////////////////
    //End time    //
@@ -1338,9 +1338,9 @@ if(ID==0)
     }
     read_rad_quad.close();
     // Remove quadrature files
-    system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
-    system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
-    system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+    sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
+    sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
+    sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
 }
 #ifdef HAVE_MPI
 MPI_Bcast(w_legendre,nrad,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -1475,9 +1475,9 @@ rtmp[j]=r_extrac[i][j];
      read_quad_r.close();
      read_quad_w.close();
      // Remove quadrature files
-     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
-     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
-     system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+     sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
+     sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
+     sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
 }
 #ifdef HAVE_MPI
 MPI_Bcast(wtmp,j,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -1527,7 +1527,7 @@ if(ID==0)
      ////////////////
      //Check times //
      ////////////////
-     if(Input_commands.time_extra){cout<<endl;cout<<"Time 2 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+     if(Input_commands.time_extra){cout<<endl;cout<<"Time 2 (D H M S): "<<endl;sys=system("date +%j' '%H' '%M' '%S ");cout<<endl;}
      ////////////////
      //End time    //
      ////////////////
@@ -1856,7 +1856,7 @@ if(ID==0)
      ////////////////
 if(ID==0)
 {
-     if(Input_commands.time_extra){cout<<"Time 3 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+     if(Input_commands.time_extra){cout<<"Time 3 (D H M S): "<<endl;sys=system("date +%j' '%H' '%M' '%S ");cout<<endl;}
      ////////////////
      //End time    //
      ////////////////
@@ -2162,9 +2162,9 @@ if(idloc==0)
     }
     read_quad.close();
     // Remove quadrature files
-    system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
-    system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
-    system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+    sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
+    sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
+    sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
 }
 #ifdef HAVE_MPI
 MPI_Bcast(w_mom,Nroot_Lmax_plus_2,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -2404,7 +2404,7 @@ if(ID==0)
   ////////////////
 if(ID==0)
 {
-  if(Input_commands.time_extra){cout<<"Time 4 (D H M S): "<<endl;system("date +%j' '%H' '%M' '%S ");cout<<endl;}
+  if(Input_commands.time_extra){cout<<"Time 4 (D H M S): "<<endl;sys=system("date +%j' '%H' '%M' '%S ");cout<<endl;}
 }
   ////////////////
   //End time    //
@@ -2425,11 +2425,11 @@ if(ID==0)
  /////////////////////
  // End clock       //
  /////////////////////
- system("date +%j' '%H' '%M' '%S>date_intrac.date");
+ sys=system("date +%j' '%H' '%M' '%S>date_intrac.date");
  date_file.open("date_intrac.date");
  date_file>>DATE[1][0]>>DATE[1][1]>>DATE[1][2]>>DATE[1][3];
  date_file.close();
- system("rm date_intrac.date");
+ sys=system("rm date_intrac.date");
  calc_time(DATE);
  cout<<"#################################################"<<endl;
  cout<<endl;
@@ -2913,9 +2913,9 @@ if(ID==0)
  }
  read_ang_quad.close();
  // Remove quadrature files
- system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
- system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
- system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+ sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
+ sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
+ sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
  ////////////
  //Phi Grid//
  ////////////
@@ -2937,9 +2937,9 @@ if(ID==0)
  }
  read_ang_quad.close();
  // Remove quadrature files
- system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
- system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
- system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
+ sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_r.txt").c_str());
+ sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_w.txt").c_str());
+ sys=system(("rm "+name_basis.substr(0,name_basis.length()-6)+"_x.txt").c_str());
 }
 #ifdef HAVE_MPI
 MPI_Bcast(temp_w1,nang,MPI_DOUBLE,0,MPI_COMM_WORLD);
