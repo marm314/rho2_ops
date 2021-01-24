@@ -150,3 +150,155 @@ CIWave: TPDM                        :      0.017u      0.000s      0.016w      1
 | CIWave: TPDM Reorder              :      0.017u      0.000s      0.009w      1 calls
 
 **************************************************************************************
+
+Host: marm314-laptop
+
+Timers On : Wed Nov  4 23:36:05 2020
+Timers Off: Wed Nov  4 23:36:06 2020
+
+Wall Time:        0.81 seconds
+
+                                                       Time (seconds)
+Module                                       User      System        Wall        Calls
+Total PK formation time             :      0.017u      0.000s      0.007w      1 calls
+HF: Form core H                     :      0.000u      0.000s      0.000w      1 calls
+HF: Form S/X                        :      0.000u      0.017s      0.001w      1 calls
+HF: Guess                           :      0.133u      0.250s      0.015w      1 calls
+SAD Guess                           :      0.133u      0.250s      0.015w      1 calls
+HF: Form G                          :      0.000u      0.000s      0.001w      9 calls
+JK: D                               :      0.000u      0.000s      0.000w      9 calls
+JK: USO2AO                          :      0.000u      0.000s      0.000w      9 calls
+JK: JK                              :      0.000u      0.000s      0.000w      9 calls
+PK computes JK                      :      0.000u      0.000s      0.000w      9 calls
+JK: AO2USO                          :      0.000u      0.000s      0.000w      9 calls
+HF: Form F                          :      0.000u      0.000s      0.000w      9 calls
+HF: Form D                          :      0.000u      0.000s      0.000w      9 calls
+HF: DIIS                            :      0.050u      0.050s      0.003w      8 calls
+DIISManager::add_entry              :      0.000u      0.000s      0.000w      8 calls
+DIISManager::extrapolate            :      0.000u      0.000s      0.000w      8 calls
+bMatrix setup                       :      0.000u      0.000s      0.000w      8 calls
+bMatrix pseudoinverse               :      0.000u      0.000s      0.000w      8 calls
+New vector                          :      0.000u      0.000s      0.000w      8 calls
+HF: Form C                          :      0.017u      0.017s      0.000w      8 calls
+CIWave: CIvect write                :      0.000u      0.000s      0.000w     14 calls
+CIWave: CIvect read                 :      0.000u      0.000s      0.000w     43 calls
+CIWave: s2                          :      0.000u      0.000s      0.000w     32 calls
+CIWave: s3                          :      0.000u      0.000s      0.001w    186 calls
+CIWave: s3_mt                       :      0.000u      0.000s      0.000w    230 calls
+CIWave: s1                          :      0.000u      0.000s      0.000w     38 calls
+CIWave: opdm                        :      0.000u      0.000s      0.000w      1 calls
+CIWave: TPDM                        :      0.000u      0.000s      0.002w      1 calls
+CIWave: TPDM Block                  :      0.000u      0.000s      0.001w    115 calls
+CIWave: TPDM Reorder                :      0.000u      0.000s      0.001w      1 calls
+
+--------------------------------------------------------------------------------------
+Total PK formation time             :      0.017u      0.000s      0.007w      1 calls
+HF: Form core H                     :      0.000u      0.000s      0.000w      1 calls
+HF: Form S/X                        :      0.000u      0.017s      0.001w      1 calls
+HF: Guess                           :      0.133u      0.250s      0.015w      1 calls
+| SAD Guess                         :      0.133u      0.250s      0.015w      1 calls
+HF: Form G                          :      0.000u      0.000s      0.001w      9 calls
+| JK: D                             :      0.000u      0.000s      0.000w      9 calls
+| JK: USO2AO                        :      0.000u      0.000s      0.000w      9 calls
+| JK: JK                            :      0.000u      0.000s      0.000w      9 calls
+| | PK computes JK                  :      0.000u      0.000s      0.000w      9 calls
+| JK: AO2USO                        :      0.000u      0.000s      0.000w      9 calls
+HF: Form F                          :      0.000u      0.000s      0.000w      9 calls
+HF: Form D                          :      0.000u      0.000s      0.000w      9 calls
+HF: DIIS                            :      0.050u      0.050s      0.003w      8 calls
+| DIISManager::add_entry            :      0.000u      0.000s      0.000w      8 calls
+| DIISManager::extrapolate          :      0.000u      0.000s      0.000w      8 calls
+| | bMatrix setup                   :      0.000u      0.000s      0.000w      8 calls
+| | bMatrix pseudoinverse           :      0.000u      0.000s      0.000w      8 calls
+| | New vector                      :      0.000u      0.000s      0.000w      8 calls
+HF: Form C                          :      0.017u      0.017s      0.000w      8 calls
+CIWave: CIvect write                :      0.000u      0.000s      0.000w     14 calls
+CIWave: CIvect read                 :      0.000u      0.000s      0.000w     39 calls
+CIWave: s2                          :      0.000u      0.000s      0.000w     32 calls
+CIWave: s3                          :      0.000u      0.000s      0.001w    186 calls
+| CIWave: s3_mt                     :      0.000u      0.000s      0.000w    230 calls
+CIWave: s1                          :      0.000u      0.000s      0.000w     38 calls
+CIWave: opdm                        :      0.000u      0.000s      0.000w      1 calls
+| CIWave: CIvect read               :      0.000u      0.000s      0.000w      2 calls
+CIWave: TPDM                        :      0.000u      0.000s      0.002w      1 calls
+| CIWave: CIvect read               :      0.000u      0.000s      0.000w      2 calls
+| CIWave: TPDM Block                :      0.000u      0.000s      0.001w    115 calls
+| CIWave: TPDM Reorder              :      0.000u      0.000s      0.001w      1 calls
+
+**************************************************************************************
+
+Host: marm314-laptop
+
+Timers On : Wed Nov  4 23:36:17 2020
+Timers Off: Wed Nov  4 23:36:17 2020
+
+Wall Time:        0.82 seconds
+
+                                                       Time (seconds)
+Module                                       User      System        Wall        Calls
+Total PK formation time             :      0.033u      0.000s      0.015w      1 calls
+HF: Form core H                     :      0.000u      0.000s      0.000w      1 calls
+HF: Form S/X                        :      0.000u      0.000s      0.000w      1 calls
+HF: Guess                           :      0.117u      0.367s      0.019w      1 calls
+SAD Guess                           :      0.117u      0.350s      0.018w      1 calls
+HF: Form G                          :      0.000u      0.017s      0.001w      9 calls
+JK: D                               :      0.000u      0.000s      0.000w      9 calls
+JK: USO2AO                          :      0.000u      0.017s      0.000w      9 calls
+JK: JK                              :      0.000u      0.000s      0.000w      9 calls
+PK computes JK                      :      0.000u      0.000s      0.000w      9 calls
+JK: AO2USO                          :      0.000u      0.000s      0.000w      9 calls
+HF: Form F                          :      0.000u      0.000s      0.000w      9 calls
+HF: Form D                          :      0.000u      0.000s      0.000w      9 calls
+HF: DIIS                            :      0.033u      0.033s      0.003w      8 calls
+DIISManager::add_entry              :      0.000u      0.000s      0.000w      8 calls
+DIISManager::extrapolate            :      0.017u      0.000s      0.000w      8 calls
+bMatrix setup                       :      0.000u      0.000s      0.000w      8 calls
+bMatrix pseudoinverse               :      0.017u      0.000s      0.000w      8 calls
+New vector                          :      0.000u      0.000s      0.000w      8 calls
+HF: Form C                          :      0.000u      0.000s      0.000w      8 calls
+CIWave: CIvect write                :      0.000u      0.000s      0.000w     14 calls
+CIWave: CIvect read                 :      0.000u      0.000s      0.000w     43 calls
+CIWave: s2                          :      0.000u      0.000s      0.000w     32 calls
+CIWave: s3                          :      0.000u      0.000s      0.001w    186 calls
+CIWave: s3_mt                       :      0.000u      0.000s      0.000w    230 calls
+CIWave: s1                          :      0.000u      0.000s      0.000w     38 calls
+CIWave: opdm                        :      0.000u      0.000s      0.000w      1 calls
+CIWave: TPDM                        :      0.000u      0.000s      0.002w      1 calls
+CIWave: TPDM Block                  :      0.000u      0.000s      0.001w    115 calls
+CIWave: TPDM Reorder                :      0.000u      0.000s      0.001w      1 calls
+
+--------------------------------------------------------------------------------------
+Total PK formation time             :      0.033u      0.000s      0.015w      1 calls
+HF: Form core H                     :      0.000u      0.000s      0.000w      1 calls
+HF: Form S/X                        :      0.000u      0.000s      0.000w      1 calls
+HF: Guess                           :      0.117u      0.367s      0.019w      1 calls
+| SAD Guess                         :      0.117u      0.350s      0.018w      1 calls
+HF: Form G                          :      0.000u      0.017s      0.001w      9 calls
+| JK: D                             :      0.000u      0.000s      0.000w      9 calls
+| JK: USO2AO                        :      0.000u      0.017s      0.000w      9 calls
+| JK: JK                            :      0.000u      0.000s      0.000w      9 calls
+| | PK computes JK                  :      0.000u      0.000s      0.000w      9 calls
+| JK: AO2USO                        :      0.000u      0.000s      0.000w      9 calls
+HF: Form F                          :      0.000u      0.000s      0.000w      9 calls
+HF: Form D                          :      0.000u      0.000s      0.000w      9 calls
+HF: DIIS                            :      0.033u      0.033s      0.003w      8 calls
+| DIISManager::add_entry            :      0.000u      0.000s      0.000w      8 calls
+| DIISManager::extrapolate          :      0.017u      0.000s      0.000w      8 calls
+| | bMatrix setup                   :      0.000u      0.000s      0.000w      8 calls
+| | bMatrix pseudoinverse           :      0.017u      0.000s      0.000w      8 calls
+| | New vector                      :      0.000u      0.000s      0.000w      8 calls
+HF: Form C                          :      0.000u      0.000s      0.000w      8 calls
+CIWave: CIvect write                :      0.000u      0.000s      0.000w     14 calls
+CIWave: CIvect read                 :      0.000u      0.000s      0.000w     39 calls
+CIWave: s2                          :      0.000u      0.000s      0.000w     32 calls
+CIWave: s3                          :      0.000u      0.000s      0.001w    186 calls
+| CIWave: s3_mt                     :      0.000u      0.000s      0.000w    230 calls
+CIWave: s1                          :      0.000u      0.000s      0.000w     38 calls
+CIWave: opdm                        :      0.000u      0.000s      0.000w      1 calls
+| CIWave: CIvect read               :      0.000u      0.000s      0.000w      2 calls
+CIWave: TPDM                        :      0.000u      0.000s      0.002w      1 calls
+| CIWave: CIvect read               :      0.000u      0.000s      0.000w      2 calls
+| CIWave: TPDM Block                :      0.000u      0.000s      0.001w    115 calls
+| CIWave: TPDM Reorder              :      0.000u      0.000s      0.001w      1 calls
+
+**************************************************************************************
