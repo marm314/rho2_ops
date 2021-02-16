@@ -52,7 +52,7 @@ int main(int argc,char *argv[])
  double threshold=atof(argv[2]);
  string name_dm2,name_dm1;
  name_dm2=name_out.substr(0,(name_out.length()-3))+"dm2";
- name_dm1=name_out.substr(0,(name_out.length()-3))+"dm1";
+ name_dm1=name_out.substr(0,(name_out.length()-3))+"dm1"; // TODO
  ofstream tmp_file("tmp_psi4.txt");
  ifstream read_out(name_out.c_str());
  ofstream prnt_sym("tmp1.txt");
