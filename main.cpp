@@ -672,7 +672,6 @@ if(ID==0)
               if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
               {
                Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
-               Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
                Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
                Zprime=pow(e_ijkl,HALF)*(Point_intra[2]+Rjl[2]-Rik[2]);
                Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[1];
