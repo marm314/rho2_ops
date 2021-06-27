@@ -25,10 +25,10 @@ void calc_time(double DATE[2][4]);
 double Sab(int &order, double *s, double *w,double &S_ab, double &Sa,double &Sb,double &exp_a,double &exp_b, int &nxa,int &nxb);
 double Mab(int &order, double *s, double *w,double &S_ab, double &Sa,double &Sb,double &exp_a,double &exp_b, int &nxa,int &nxb);
 double M2ab(int &order, double *s, double *w,double &S_ab, double &Sa,double &Sb,double &exp_a,double &exp_b, int &nxa,int &nxb);
-double Vint3D(double S_intra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl,double &zeta_ijkl,
-double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4]);
-double Vint3D_2(double S_extra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl,double &zeta_ijkl,
-double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4]);
+void Vint3D(double IntegQ[2], double S_intra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk, double &zeta_ijkl,
+double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red);
+void Vint3D_2(double IntegQ[2], double S_extra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk, double &zeta_ijkl,
+double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red);
 double Jab(double &expa, double &expb,int &lxa,int &lya,int &lza,int &lxb,
 int &lyb,int &lzb,double &Xa,double &Ya,double &Za,double &Xb,double &Yb,double &Zb);
 
@@ -70,15 +70,15 @@ if(ID==0)
  cout<<"##########################################################################"<<endl;
  cout<<"##########################################################################"<<endl;
  cout<<"# Evaluation of the Intracule, Extracule and Second Moments using the    #"<<endl;
- cout<<"# DM2 in Primitives (in C++) written by M.Sc. Mauricio Rodriguez Mayorga #"<<endl;
+ cout<<"# DM2 in Primitives (in C++) written by Dr. Mauricio Rodriguez Mayorga   #"<<endl;
  cout<<"# email: marm3.14@gmail.com                                              #"<<endl;
  cout<<"##########################################################################"<<endl;
  cout<<"##########################################################################"<<endl;
  cout<<"#*****************************************************************************#";
  cout<<endl;
- cout<<"# Copyright (C) 2016 M.Sc. Mauricio A. Rodriguez Mayorga                      #";
+ cout<<"# Copyright (C) 2016 Dr. Mauricio A. Rodriguez Mayorga                        #";
  cout<<endl;
- cout<<"# Ph.D. student at University of Girona (Girona) and DIPC                     #";
+ cout<<"# Postdoctoral reseracher at Vrije Universiteit Amsterdam                     #";
  cout<<endl;
  cout<<"# for support and comments send an email to: marm3.14@gmail.com               #";
  cout<<endl;
@@ -123,11 +123,11 @@ if(ID==0)
  {
   int i,j,k,nprims,Lmax,Nroot_2Lmax_plus_1,Nroot_Lmax_plus_2,nrad,order_ijkl,max_exp_ijkl,nx_sum,ny_sum,nz_sum,nang,nang2,counter=0;
   int nx_exp[4],ny_exp[4],nz_exp[4];
-  double Integral,Integral2,Init,Step,Last,rscan,DMNfact,alpha,a,b,zeta_ik,zeta_jl,zeta_ijkl,e_ijkl,alpha_ijkl,symmetry_omitted_terms=ZERO;
+  double Integral,Integral2,Init,Step,Last,rscan,DMNfact,alpha,a,b,zeta_ik,zeta_jl,zeta_ijkl,e_ijkl,alpha_ijkl,alpha_jilk,symmetry_omitted_terms=ZERO;
   double Nelectrons,threshold2,Jik,Jjl,Cnorm_4gauss,Cnorm_ang,Aijkl,Xprime,Yprime,Zprime,lambda_rs,lambda_scr;
-  double TPS[3][3],Coord_atom[4][3],res[16],Rik[3],Rjl[3],Rijkl[3],Sik[3],Sjl[3],Mik[3],Mjl[3],M2ik[3],Point_intra[3]={ZERO},Point_extra[3]={ZERO};
+  double TPS[3][3],Coord_atom[4][3],res[16],Rik[3],Rjl[3],Rijkl[3],Sik[3],Sjl[3],Mik[3],Mjl[3],M2ik[3],Point_intra[3]={ZERO},Point_extra[3]={ZERO},IntegQ[2]={ZERO};
   double **r_intrac,**w_intrac,**r_extrac,**w_extrac,*r_mom,*w_mom,**Tot_rad,*x,*y,*z,*w_theta_phi,*r_legendre,*w_legendre,**Jacobian_legendre,*Shannon_rad;
-  bool legendre=false,parallel=false;
+  bool legendre=false,parallel=false,sym_red=false;
   Step=ZERO;
   string aux(argv[1]);
   Input Input_commands(aux);
@@ -151,6 +151,7 @@ if(ID==0)
    string name_basis=Input_commands.name_basis;
    threshold=Input_commands.threshold_in;
    parallel=Input_commands.parallel;
+   sym_red=Input_commands.sym_red;
    ////////////////
    //Check times //
    ////////////////
@@ -485,6 +486,10 @@ if(ID==0)
      cout<<"Intracule points x DM2 : "<<setw(17)<<(double)nterms*(double)nang*(double)nrad<<endl;
      cout<<"[Intracule points x DM2 terms = Nterms DM2 x Order angular grid x Num radial points |u|.]"<<endl;
      cout<<"Note: If no angular grid was chosen, Order angular grid is equal to ONE."<<endl;
+     if(sym_red)
+     {
+      cout<<"Note2: Using symmetry to build the missing 2-RDM elements."<<endl;
+     }
      //Evaluate intracule
      ////////////////
      //Check times //
@@ -507,9 +512,9 @@ if(ID==0)
       #pragma omp parallel num_threads(Input_commands.nthreads) \
        private(i,j,k,Point_intra,Xprime,Yprime,Zprime,Jik,Jjl,Cnorm_4gauss,Coord_atom, \
        nx_sum,ny_sum,nz_sum,order_ijkl,max_exp_ijkl,nx_exp,ny_exp,nz_exp,zeta_ik,zeta_jl, \
-       zeta_ijkl,Aijkl,e_ijkl,Rik,Rjl,Rijkl,alpha_ijkl,rscan,Integral,Integral2) \
+       zeta_ijkl,Aijkl,e_ijkl,Rik,Rjl,Rijkl,alpha_ijkl,alpha_jilk,rscan,Integral,Integral2,IntegQ) \
        shared(BASIS_INFO,dm2,r_intrac,w_intrac,r_legendre,x,y,z,w_theta_phi,Tot_rad,Shannon_rad,nterms,nrad, \
-       nang,nang2) \
+       nang,nang2,sym_red) \
        reduction(+:symmetry_omitted_terms,counter)
       {
        //Variables that belong to each thread and are only needed here
@@ -599,6 +604,7 @@ if(ID==0)
           Rijkl[j]=(Rik[j]*zeta_ik+Rjl[j]*zeta_jl)/zeta_ijkl;
          }
          alpha_ijkl=(zeta_ik-zeta_jl)/(zeta_ijkl*TWO);
+         alpha_jilk=(zeta_jl-zeta_ik)/(zeta_ijkl*TWO);
          nx_sum=nx_exp[0]+nx_exp[1]+nx_exp[2]+nx_exp[3];
          ny_sum=ny_exp[0]+ny_exp[1]+ny_exp[2]+ny_exp[3];
          nz_sum=nz_exp[0]+nz_exp[1]+nz_exp[2]+nz_exp[3];
@@ -642,15 +648,36 @@ if(ID==0)
             {
              //If there is no angular grid Cnorm_ang=1 otherwise is 2 since z12<0 are not evaluated and the points are
              //symmetrically distributed on the unit sphere
-             Tot_rad_th[j][k]=Tot_rad_th[j][k]+Cnorm_ang*Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))
-                     *Vint3D(Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],
-                      Rijkl,alpha_ijkl,zeta_ijkl,Coord_atom,nx_exp,ny_exp,nz_exp);
+             Vint3D(IntegQ,Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+                    Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+             Tot_rad_th[j][k]=Tot_rad_th[j][k]+Cnorm_ang*Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
+             if(sym_red)
+             {
+              if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+              {
+               Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
+               Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
+               Zprime=pow(e_ijkl,HALF)*(Point_intra[2]+Rjl[2]-Rik[2]);
+               Tot_rad_th[j][k]=Tot_rad_th[j][k]+Cnorm_ang*Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[1];
+              }
+             }
             }
             else
             {
-             Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))
-                     *Vint3D(Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],
-                      Rijkl,alpha_ijkl,zeta_ijkl,Coord_atom,nx_exp,ny_exp,nz_exp);
+             Vint3D(IntegQ,Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+                    Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+             Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
+             if(sym_red)
+             {
+              if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+              {
+               Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
+               Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
+               Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
+               Zprime=pow(e_ijkl,HALF)*(Point_intra[2]+Rjl[2]-Rik[2]);
+               Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[1];
+              }
+             }
             }
            }
            else
@@ -676,9 +703,19 @@ if(ID==0)
              Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rik[0]-Rjl[0]);
              Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rik[1]-Rjl[1]);
              Zprime=pow(e_ijkl,HALF)*(Point_intra[2]+Rik[2]-Rjl[2]);
-             Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))
-                     *Vint3D(Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],
-                      Rijkl,alpha_ijkl,zeta_ijkl,Coord_atom,nx_exp,ny_exp,nz_exp);
+             Vint3D(IntegQ,Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+                    Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+             Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
+             if(sym_red)
+             {
+              if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+              {
+               Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
+               Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
+               Zprime=pow(e_ijkl,HALF)*(Point_intra[2]+Rjl[2]-Rik[2]);
+               Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[1];
+              }
+             }
             }
            }
           }
@@ -823,6 +860,7 @@ if(ID==0)
          Rijkl[j]=(Rik[j]*zeta_ik+Rjl[j]*zeta_jl)/zeta_ijkl;
         }
         alpha_ijkl=(zeta_ik-zeta_jl)/(zeta_ijkl*TWO);
+        alpha_jilk=(zeta_jl-zeta_ik)/(zeta_ijkl*TWO);
         nx_sum=nx_exp[0]+nx_exp[1]+nx_exp[2]+nx_exp[3];
         ny_sum=ny_exp[0]+ny_exp[1]+ny_exp[2]+ny_exp[3];
         nz_sum=nz_exp[0]+nz_exp[1]+nz_exp[2]+nz_exp[3];
@@ -866,15 +904,35 @@ if(ID==0)
            {
             //If there is no angular grid Cnorm_ang=1 otherwise is 2 since z12<0 are not evaluated and the points are
             //symmetrically distributed in the unit sphere
-            Tot_rad[j][k]=Tot_rad[j][k]+Cnorm_ang*Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*
-            Vint3D(Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],Rijkl,alpha_ijkl,zeta_ijkl,
-            Coord_atom,nx_exp,ny_exp,nz_exp);
+            Vint3D(IntegQ,Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+                   Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+            Tot_rad[j][k]=Tot_rad[j][k]+Cnorm_ang*Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
+            if(sym_red)
+            {
+             if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+             {
+              Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
+              Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
+              Zprime=pow(e_ijkl,HALF)*(Point_intra[2]+Rjl[2]-Rik[2]);
+              Tot_rad[j][k]=Tot_rad[j][k]+Cnorm_ang*Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[1];
+             }
+            }
            }
            else
            {
-            Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*
-            Vint3D(Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],Rijkl,alpha_ijkl,zeta_ijkl,
-            Coord_atom,nx_exp,ny_exp,nz_exp);
+            Vint3D(IntegQ,Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+                   Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+            Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
+            if(sym_red)
+            {
+             if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+             {
+              Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
+              Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
+              Zprime=pow(e_ijkl,HALF)*(Point_intra[2]+Rjl[2]-Rik[2]);
+              Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[1];
+             }
+            }
            }
           }
           else
@@ -900,9 +958,19 @@ if(ID==0)
             Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rik[0]-Rjl[0]);
             Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rik[1]-Rjl[1]);
             Zprime=pow(e_ijkl,HALF)*(Point_intra[2]+Rik[2]-Rjl[2]);
-            Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*
-            Vint3D(Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],Rijkl,alpha_ijkl,zeta_ijkl,
-            Coord_atom,nx_exp,ny_exp,nz_exp);
+            Vint3D(IntegQ,Point_intra,order_ijkl,r_intrac[order_ijkl-1],w_intrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+                   Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+            Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
+            if(sym_red)
+            {
+             if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+             {
+              Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
+              Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
+              Zprime=pow(e_ijkl,HALF)*(Point_intra[2]+Rjl[2]-Rik[2]);
+              Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[1];
+             }
+            }
            }
           }
          }
@@ -1545,9 +1613,9 @@ if(ID==0)
       #pragma omp parallel num_threads(Input_commands.nthreads) \
        private(i,j,k,Point_extra,Xprime,Yprime,Zprime,Jik,Jjl,Cnorm_4gauss,Coord_atom, \
        nx_sum,ny_sum,nz_sum,order_ijkl,max_exp_ijkl,nx_exp,ny_exp,nz_exp,zeta_ik,zeta_jl, \
-       zeta_ijkl,Aijkl,e_ijkl,Rik,Rjl,Rijkl,alpha_ijkl,rscan,Integral,Integral2) \
+       zeta_ijkl,Aijkl,e_ijkl,Rik,Rjl,Rijkl,alpha_ijkl,alpha_jilk,rscan,Integral,Integral2,IntegQ) \
        shared(BASIS_INFO,dm2,r_extrac,w_extrac,r_legendre,x,y,z,w_theta_phi,Tot_rad,Shannon_rad, \
-       nterms,nrad,nang) \
+       nterms,nrad,nang,sym_red) \
        reduction(+:symmetry_omitted_terms,counter)
       {
        //Variables that belong to each thread and are only needed here
@@ -1637,6 +1705,7 @@ if(ID==0)
           Rijkl[j]=(-Rik[j]*zeta_ik+Rjl[j]*zeta_jl)/zeta_ijkl;
          }
          alpha_ijkl=(zeta_ik-zeta_jl)/(zeta_ijkl*TWO);
+         alpha_jilk=(zeta_jl-zeta_ik)/(zeta_ijkl*TWO);
          nx_sum=nx_exp[0]+nx_exp[1]+nx_exp[2]+nx_exp[3];
          ny_sum=ny_exp[0]+ny_exp[1]+ny_exp[2]+ny_exp[3];
          nz_sum=nz_exp[0]+nz_exp[1]+nz_exp[2]+nz_exp[3];
@@ -1674,9 +1743,9 @@ if(ID==0)
            Xprime=TWO*pow(e_ijkl,HALF)*(Point_extra[0]-HALF*(Rik[0]+Rjl[0]));
            Yprime=TWO*pow(e_ijkl,HALF)*(Point_extra[1]-HALF*(Rik[1]+Rjl[1]));
            Zprime=TWO*pow(e_ijkl,HALF)*(Point_extra[2]-HALF*(Rik[2]+Rjl[2]));
-           Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))
-                     *Vint3D_2(Point_extra,order_ijkl,r_extrac[order_ijkl-1],w_extrac[order_ijkl-1],
-                      Rijkl,alpha_ijkl,zeta_ijkl,Coord_atom,nx_exp,ny_exp,nz_exp);
+           Vint3D_2(IntegQ,Point_extra,order_ijkl,r_extrac[order_ijkl-1],w_extrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+                    Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+           Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*(IntegQ[0]+IntegQ[1]);
           }
           rscan=rscan+Step;
          }
@@ -1805,6 +1874,7 @@ if(ID==0)
          Rijkl[j]=(-Rik[j]*zeta_ik+Rjl[j]*zeta_jl)/zeta_ijkl;
         }
         alpha_ijkl=(zeta_ik-zeta_jl)/(zeta_ijkl*TWO);
+        alpha_jilk=(zeta_jl-zeta_ik)/(zeta_ijkl*TWO);
         nx_sum=nx_exp[0]+nx_exp[1]+nx_exp[2]+nx_exp[3];
         ny_sum=ny_exp[0]+ny_exp[1]+ny_exp[2]+ny_exp[3];
         nz_sum=nz_exp[0]+nz_exp[1]+nz_exp[2]+nz_exp[3];
@@ -1842,9 +1912,9 @@ if(ID==0)
           Xprime=TWO*pow(e_ijkl,HALF)*(Point_extra[0]-HALF*(Rik[0]+Rjl[0]));
           Yprime=TWO*pow(e_ijkl,HALF)*(Point_extra[1]-HALF*(Rik[1]+Rjl[1]));
           Zprime=TWO*pow(e_ijkl,HALF)*(Point_extra[2]-HALF*(Rik[2]+Rjl[2]));
-          Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))
-                     *Vint3D_2(Point_extra,order_ijkl,r_extrac[order_ijkl-1],w_extrac[order_ijkl-1],
-                      Rijkl,alpha_ijkl,zeta_ijkl,Coord_atom,nx_exp,ny_exp,nz_exp);
+          Vint3D_2(IntegQ,Point_extra,order_ijkl,r_extrac[order_ijkl-1],w_extrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+                   Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+          Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*(IntegQ[0]+IntegQ[1]);
          }
          rscan=rscan+Step;
         }
@@ -2579,7 +2649,7 @@ void fill_in_dm2(string name_file)
  }
 }
 
-//Vijkl(S) is the exact integrated (in s coord.) value of the polinomyal (Eq. 16 in Cioslowski's paper)
+//Vijkl(S) is the exact integrated (in s coord.) value of the polynomial (Eq. 16 in Cioslowski's paper)
 /*double Vint(double &S, int &order, double *s, double *w,double &Sijkl, double &alpha_ijkl,double &zeta_ijkl,
 double &Si,double &Sj,double &Sk, double &Sl, int &nxi,int &nxj,int &nxk,int &nxl)
 {
@@ -2597,8 +2667,8 @@ double &Si,double &Sj,double &Sk, double &Sl, int &nxi,int &nxj,int &nxk,int &nx
 }*/
 
 //Vijkl(S) is the exact integrated (in s coord.) value of the polinomyal (Eq. 16 in Cioslowski's paper) 3D version.
-double Vint3D(double S_intra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl,double &zeta_ijkl,
-double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4])
+void Vint3D(double IntegQ[2], double S_intra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk,double &zeta_ijkl,
+double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red)
 {
  int i,j;
  double res[3]={ZERO},zeta_ijkl_minus_half,zeta_ijkl_minus_half_s,alpha_ijkl_min_half,alpha_ijkl_plus_half;
@@ -2606,40 +2676,96 @@ double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4])
  zeta_ijkl_minus_half=pow(zeta_ijkl,-HALF);
  alpha_ijkl_min_half=alpha_ijkl-HALF;
  alpha_ijkl_plus_half=alpha_ijkl+HALF;
- for(i=0;i<order;i++)
+ if(sym_red)
  {
-  zeta_ijkl_minus_half_s=zeta_ijkl_minus_half*s[i];
-  for(j=0;j<3;j++)
+  double res2[3]={ZERO},alpha_jilk_min_half,alpha_jilk_plus_half;
+  double alpha_jilk_min_half_S[3],alpha_jilk_plus_half_S[3];
+  alpha_jilk_min_half=alpha_jilk-HALF;
+  alpha_jilk_plus_half=alpha_jilk+HALF;
+  for(i=0;i<order;i++)
   {
-   alpha_ijkl_min_half_S[j]=alpha_ijkl_min_half*S_intra[j];
-   alpha_ijkl_plus_half_S[j]=alpha_ijkl_plus_half*S_intra[j];
+   zeta_ijkl_minus_half_s=zeta_ijkl_minus_half*s[i];
+   for(j=0;j<3;j++)
+   {
+    alpha_ijkl_min_half_S[j]=alpha_ijkl_min_half*S_intra[j];
+    alpha_ijkl_plus_half_S[j]=alpha_ijkl_plus_half*S_intra[j];
+    alpha_jilk_min_half_S[j]=alpha_jilk_min_half*S_intra[j];
+    alpha_jilk_plus_half_S[j]=alpha_jilk_plus_half*S_intra[j];
+   }
+   //The point s where the quadrature is evaluated is fixed for all
+   // This are Vijkl(X) and Vjilk(X)
+   res[0]=res[0]+w[i]
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[0] +(Sijkl[0]-Primitive_coords[0][0]),(double)nsx_ijkl[0])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[0]+(Sijkl[0]-Primitive_coords[1][0]),(double)nsx_ijkl[1])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[0] +(Sijkl[0]-Primitive_coords[2][0]),(double)nsx_ijkl[2])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[0]+(Sijkl[0]-Primitive_coords[3][0]),(double)nsx_ijkl[3]);
+   res2[0]=res2[0]+w[i]
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_min_half_S[0] +(Sijkl[0]-Primitive_coords[1][0]),(double)nsx_ijkl[1])
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[0]+(Sijkl[0]-Primitive_coords[0][0]),(double)nsx_ijkl[0])
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_min_half_S[0] +(Sijkl[0]-Primitive_coords[3][0]),(double)nsx_ijkl[3])
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[0]+(Sijkl[0]-Primitive_coords[2][0]),(double)nsx_ijkl[2]);
+   // This are Vijkl(Y) and Vjilk(Y)
+   res[1]=res[1]+w[i]
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[1] +(Sijkl[1]-Primitive_coords[0][1]),(double)nsy_ijkl[0])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[1]+(Sijkl[1]-Primitive_coords[1][1]),(double)nsy_ijkl[1])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[1] +(Sijkl[1]-Primitive_coords[2][1]),(double)nsy_ijkl[2])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[1]+(Sijkl[1]-Primitive_coords[3][1]),(double)nsy_ijkl[3]);
+   res2[1]=res2[1]+w[i]
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_min_half_S[1] +(Sijkl[1]-Primitive_coords[1][1]),(double)nsy_ijkl[1])
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[1]+(Sijkl[1]-Primitive_coords[0][1]),(double)nsy_ijkl[0])
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_min_half_S[1] +(Sijkl[1]-Primitive_coords[3][1]),(double)nsy_ijkl[3])
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[1]+(Sijkl[1]-Primitive_coords[2][1]),(double)nsy_ijkl[2]);
+   // This are Vijkl(Z) and Vjilk(Z)
+   res[2]=res[2]+w[i]
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[2] +(Sijkl[2]-Primitive_coords[0][2]),(double)nsz_ijkl[0])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[2]+(Sijkl[2]-Primitive_coords[1][2]),(double)nsz_ijkl[1])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[2] +(Sijkl[2]-Primitive_coords[2][2]),(double)nsz_ijkl[2])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[2]+(Sijkl[2]-Primitive_coords[3][2]),(double)nsz_ijkl[3]);
+   res2[2]=res2[2]+w[i]
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_min_half_S[2] +(Sijkl[2]-Primitive_coords[1][2]),(double)nsz_ijkl[1])
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[2]+(Sijkl[2]-Primitive_coords[0][2]),(double)nsz_ijkl[0])
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_min_half_S[2] +(Sijkl[2]-Primitive_coords[3][2]),(double)nsz_ijkl[3])
+      *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[2]+(Sijkl[2]-Primitive_coords[2][2]),(double)nsz_ijkl[2]);
   }
-  //The point s where the quadrature is evaluated is fixed for all
-  // This is Vijkl(X)
-  res[0]=res[0]+w[i]
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[0] +(Sijkl[0]-Primitive_coords[0][0]),(double)nsx_ijkl[0])
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[0]+(Sijkl[0]-Primitive_coords[1][0]),(double)nsx_ijkl[1])
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[0] +(Sijkl[0]-Primitive_coords[2][0]),(double)nsx_ijkl[2])
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[0]+(Sijkl[0]-Primitive_coords[3][0]),(double)nsx_ijkl[3]);
-  // This is  Vijkl(Y)
-  res[1]=res[1]+w[i]
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[1] +(Sijkl[1]-Primitive_coords[0][1]),(double)nsy_ijkl[0])
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[1]+(Sijkl[1]-Primitive_coords[1][1]),(double)nsy_ijkl[1])
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[1] +(Sijkl[1]-Primitive_coords[2][1]),(double)nsy_ijkl[2])
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[1]+(Sijkl[1]-Primitive_coords[3][1]),(double)nsy_ijkl[3]);
-  // This is  Vijkl(Z)
-  res[2]=res[2]+w[i]
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[2] +(Sijkl[2]-Primitive_coords[0][2]),(double)nsz_ijkl[0])
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[2]+(Sijkl[2]-Primitive_coords[1][2]),(double)nsz_ijkl[1])
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[2] +(Sijkl[2]-Primitive_coords[2][2]),(double)nsz_ijkl[2])
-     *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[2]+(Sijkl[2]-Primitive_coords[3][2]),(double)nsz_ijkl[3]);
+  IntegQ[1]=res2[0]*res2[1]*res2[2];
  }
- return res[0]*res[1]*res[2];
+ else
+ {
+  for(i=0;i<order;i++)
+  {
+   zeta_ijkl_minus_half_s=zeta_ijkl_minus_half*s[i];
+   for(j=0;j<3;j++)
+   {
+    alpha_ijkl_min_half_S[j]=alpha_ijkl_min_half*S_intra[j];
+    alpha_ijkl_plus_half_S[j]=alpha_ijkl_plus_half*S_intra[j];
+   }
+   //The point s where the quadrature is evaluated is fixed for all
+   // This is Vijkl(X)
+   res[0]=res[0]+w[i]
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[0] +(Sijkl[0]-Primitive_coords[0][0]),(double)nsx_ijkl[0])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[0]+(Sijkl[0]-Primitive_coords[1][0]),(double)nsx_ijkl[1])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[0] +(Sijkl[0]-Primitive_coords[2][0]),(double)nsx_ijkl[2])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[0]+(Sijkl[0]-Primitive_coords[3][0]),(double)nsx_ijkl[3]);
+   // This is  Vijkl(Y)
+   res[1]=res[1]+w[i]
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[1] +(Sijkl[1]-Primitive_coords[0][1]),(double)nsy_ijkl[0])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[1]+(Sijkl[1]-Primitive_coords[1][1]),(double)nsy_ijkl[1])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[1] +(Sijkl[1]-Primitive_coords[2][1]),(double)nsy_ijkl[2])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[1]+(Sijkl[1]-Primitive_coords[3][1]),(double)nsy_ijkl[3]);
+   // This is  Vijkl(Z)
+   res[2]=res[2]+w[i]
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[2] +(Sijkl[2]-Primitive_coords[0][2]),(double)nsz_ijkl[0])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[2]+(Sijkl[2]-Primitive_coords[1][2]),(double)nsz_ijkl[1])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[2] +(Sijkl[2]-Primitive_coords[2][2]),(double)nsz_ijkl[2])
+      *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[2]+(Sijkl[2]-Primitive_coords[3][2]),(double)nsz_ijkl[3]);
+  }
+ }
+ IntegQ[0]=res[0]*res[1]*res[2];
 }
 
-//Vijkl2(S) is the exact integrated (in s coord.) value of the polinomyal (Eq. 16 in Cioslowski's paper) 3D version.
-double Vint3D_2(double S_extra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl,double &zeta_ijkl,
-double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4])
+//Vijkl2(S) is the exact integrated (in s coord.) value of the polinomyal (Eq. 30 in Cioslowski's paper) 3D version.
+void Vint3D_2(double IntegQ[2], double S_extra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk, double &zeta_ijkl,
+double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4], bool &sym_red)
 {
  int i,j;
  double res[3]={ZERO},zeta_ijkl_minus_half,zeta_ijkl_minus_half_s,minus_two_alpha_ijkl_plus_one,two_alpha_ijkl_plus_one;
@@ -2675,7 +2801,7 @@ double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4])
      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[2]-(Sijkl[2]+Primitive_coords[2][2]),(double)nsz_ijkl[2])
      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[2]    +(Sijkl[2]-Primitive_coords[3][2]),(double)nsz_ijkl[3]);
  }
- return res[0]*res[1]*res[2];
+ IntegQ[0]=res[0]*res[1]*res[2];
 }
 
 //Jab is the upper bound function defined by A8 in Cioslowski's the paper.

@@ -1,14 +1,14 @@
 ##########################################################################
 ##########################################################################
 # Conversion of DM2 from MO to Primitives (Program in C++)               #
-# written by M.Sc. Mauricio Rodríguez M email: marm3.14@gmail.com       #
+# written by Dr. Mauricio Rodriguez M email: marm3.14@gmail.com          #
 ##########################################################################
 ##########################################################################
 
 
 #*****************************************************************************#
-# Copyright (C) 2016 M.Sc. Mauricio A. Rodríguez Mayorga                     #
-# Ph.D. student at University of the Basque Country (Donostia) EHU/UPV        #
+# Copyright (C) 2016 Dr. Mauricio A. Rodriguez Mayorga                        #
+# Ph.D. student at Donostia International Physics Center (DIPC)               #
 # for support and comments send an email to: marm314@gmail.com                #
 #*****************************************************************************#
 #  This program is free software: you can redistribute it and/or modify       #
@@ -28,7 +28,7 @@ Computing the product of coefficients matrix.
 
 The size of the basis in cartesian primitives is: 10
 
-Storing of the spinless 2RMD...
+Storing of the spinless 2RDM...
 Storing done!
 
 Trace of the 2RDM stored:  2.0000000000e+00

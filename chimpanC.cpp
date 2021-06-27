@@ -6,6 +6,7 @@
 #include<vector>
 #include<sstream>
 #include"Numbers.h"
+#include"String_ops.h"
 
 using namespace std;
 
@@ -23,14 +24,14 @@ int main(int argc, char *argv[])
  cout<<"##########################################################################"<<endl;
  cout<<"##########################################################################"<<endl;
  cout<<"# Conversion of DM2 from MO to Primitives (Program in C++)               #"<<endl;
- cout<<"# written by M.Sc. Mauricio Rodríguez M email: marm3.14@gmail.com       #"<<endl;
+ cout<<"# written by Dr. Mauricio Rodriguez M email: marm3.14@gmail.com          #"<<endl;
  cout<<"##########################################################################"<<endl;
  cout<<"##########################################################################"<<endl;
  cout<<endl;
  cout<<endl;
  cout<<"#*****************************************************************************#";
  cout<<endl;
- cout<<"# Copyright (C) 2016 M.Sc. Mauricio A. Rodríguez Mayorga                     #";
+ cout<<"# Copyright (C) 2016 Dr. Mauricio A. Rodriguez Mayorga                        #";
  cout<<endl;
  cout<<"# Ph.D. student at Donostia International Physics Center (DIPC)               #";
  cout<<endl;
@@ -62,7 +63,7 @@ int main(int argc, char *argv[])
  cout<<endl;
  if(argc==5 || argc==6)
  {
-  bool contractSP=false,use_dm2_iiii_aa=false,two_dm2_mat=false,reduce=false,all_dm2_are_given=false;
+  bool contractSP=false,use_dm2_iiii_aa=false,two_dm2_mat=false,reduce=false,all_dm2_are_given=false,red_sym=false;
   int i,j,k,l,AO,nbasis,nbasis2,nprim_shell,stype,contr_coef,spcontr_coef,iprim,iprim_tot,smap,prim_exp,natoms;
   int *shelltype,*nprim_per_shell,*shell_to_atom,*Atomic_Z,nucleous,**Quant;
   int pivot,element[2]={10},element_prime[2]={10};
@@ -80,45 +81,69 @@ int main(int argc, char *argv[])
   if(argc==6)
   {
    string y_or_n2(argv[5]);
-   if(y_or_n2=="i4" || y_or_n2=="I4")
+   lowercase(y_or_n2);
+   if(y_or_n2=="i4")
    {
     use_dm2_iiii_aa=true;
    }
-   if(y_or_n2=="r" || y_or_n2=="R")
+   if(y_or_n2=="r")
    {
     reduce=true;
    }
-   if(y_or_n2=="i4r" || y_or_n2=="i4R" || y_or_n2=="I4r" || y_or_n2=="I4R")
+   if(y_or_n2=="rs")
+   {
+    reduce=true;
+    red_sym=true;
+   }
+   if(y_or_n2=="i4r")
    {
     use_dm2_iiii_aa=true;
     reduce=true;
    }
-   if(y_or_n2=="a" || y_or_n2=="A")
+   if(y_or_n2=="a")
    {
     all_dm2_are_given=true;
    }
-   if(y_or_n2=="ar" || y_or_n2=="Ar" || y_or_n2=="aR" || y_or_n2=="AR")
+   if(y_or_n2=="ar")
    {
     all_dm2_are_given=true;
     reduce=true;
    }
-   if(y_or_n2=="donof" || y_or_n2=="DONOF")
+   if(y_or_n2=="ars")
+   {
+    all_dm2_are_given=true;
+    reduce=true;
+    red_sym=true;
+   }
+   if(y_or_n2=="donof")
    {
     donofdm2=true;
    }
-   if(y_or_n2=="donofr" || y_or_n2=="DONOFr" || y_or_n2=="donofR" || y_or_n2=="DONOFR")
+   if(y_or_n2=="donofr")
    {
     donofdm2=true;
     reduce=true;
    }
-   if(y_or_n2=="i8all" || y_or_n2=="I8ALL")
+   if(y_or_n2=="donofrs")
+   {
+    donofdm2=true;
+    reduce=true;
+    red_sym=true;
+   }
+   if(y_or_n2=="i8all")
    {
     int8alldm2=true; 
    }
-   if(y_or_n2=="i8allr" || y_or_n2=="I8ALLr" || y_or_n2=="i8allR" || y_or_n2=="I8ALLR")
+   if(y_or_n2=="i8allr")
    {
     int8alldm2=true; 
     reduce=true;
+   }
+   if(y_or_n2=="i8allrs")
+   {
+    int8alldm2=true; 
+    reduce=true;
+    red_sym=true;
    }
   }
   string line;
@@ -1106,6 +1131,10 @@ int main(int argc, char *argv[])
     {
      cout<<endl;
      cout<<"Reduce the p <-> r and q <-> s terms"<<endl;
+     if(red_sym)
+     {
+      cout<<"also keep only one term among orb_p(1) orb_q(2) orb_r(1) orb_s(2) = orb_q(2) orb_p(1) orb_s(2) orb_r(1)"<<endl;
+     }
      cout<<endl;
      for(ii=0;ii<N5;ii++)
      {
@@ -1136,6 +1165,16 @@ int main(int argc, char *argv[])
         Dijkl_term[ii]=Dijkl_term[ii]
                       +Dijkl_term[Ired+Lred*N2+Kred*N3+Jred*N4];
         Dijkl_term[Ired+Lred*N2+Kred*N3+Jred*N4]=ZERO;
+       }
+       if(!(Ired==Jred && Jred==Kred && Kred==Lred))
+       {
+        if(Ired>Jred || Kred>Lred)
+        {
+         if(red_sym)
+         {
+          Dijkl_term[ii]=ZERO;
+         }
+        }
        }
       }
      }

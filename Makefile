@@ -21,8 +21,6 @@ intrac: $(OBJECTS) $(SCR) Makefile README
 
 %.o: %.cpp   
 	$(CPP) $(CPPFLAGS) $(PARALLEL) -c $*.cpp 
-%.o: %.c
-	$(CPP) -c $*.c 
 
 clean:
 	$(Cln) *.o
@@ -32,8 +30,8 @@ clean:
 	$(Cln) *~
 	$(Cln) RHO2_OPS.tar.gz 
 
-chimpanC: chimpanC.cpp
-	$(CPP) $(CPPFLAGS) chimpanC.cpp -o chimpanC
+chimpanC: String_ops.cpp chimpanC.cpp
+	$(CPP) $(CPPFLAGS) String_ops.cpp chimpanC.cpp -o chimpanC
 
 psi4int: psi4_interface.cpp
 	$(CPP) $(CPPFLAGS) psi4_interface.cpp -o psi4_interface

@@ -5,7 +5,7 @@ Input::Input(string I_in)
  order_ang=0;order_ang2=0;nthreads=1;radial_Last=1e99;
  intracule=false;legendre=false;parallel=false;
  time_intra=false;second_moments=false;rweight=false;extracule=false;
- time_extra=false;
+ time_extra=false;sym_red=false;
  tau=ZERO;
  lambda_rs=1.0e99; 
  lambda_scr=0.0e0; 
@@ -33,6 +33,7 @@ Input::Input(string I_in)
    else if(I_in=="$intracule"){intracule=true;second_moments=false;}
    else if(I_in=="$moments"){second_moments=true;intracule=false;extracule=false;}
    else if(I_in=="$extracule"){extracule=true;second_moments=false;}
+   else if(I_in=="$symred"){sym_red=true;}
    else if(I_in=="$threshold"){I_input_file>>threshold_in;}
    else if(I_in=="$rangesep"){I_input_file>>lambda_rs;}
    else if(I_in=="$screening"){I_input_file>>lambda_scr;}
