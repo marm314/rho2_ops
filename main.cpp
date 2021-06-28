@@ -653,7 +653,8 @@ if(ID==0)
              Tot_rad_th[j][k]=Tot_rad_th[j][k]+Cnorm_ang*Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
              if(sym_red)
              {
-              if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+              if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3])
+                && !(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[2]==dm2[i].indexes[3]))
               {
                Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
                Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
@@ -669,7 +670,8 @@ if(ID==0)
              Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
              if(sym_red)
              {
-              if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+              if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3])
+                && !(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[2]==dm2[i].indexes[3]))
               {
                Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
                Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
@@ -707,7 +709,8 @@ if(ID==0)
              Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
              if(sym_red)
              {
-              if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+              if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3])
+                && !(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[2]==dm2[i].indexes[3]))
               {
                Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
                Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
@@ -908,7 +911,8 @@ if(ID==0)
             Tot_rad[j][k]=Tot_rad[j][k]+Cnorm_ang*Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
             if(sym_red)
             {
-             if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+             if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3])
+               && !(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[2]==dm2[i].indexes[3]))
              {
               Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
               Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
@@ -924,7 +928,8 @@ if(ID==0)
             Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
             if(sym_red)
             {
-             if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+             if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3])
+               && !(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[2]==dm2[i].indexes[3]))
              {
               Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
               Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);
@@ -962,7 +967,8 @@ if(ID==0)
             Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*IntegQ[0];
             if(sym_red)
             {
-             if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+             if(!(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3])
+               && !(dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[2]==dm2[i].indexes[3]))
              {
               Xprime=pow(e_ijkl,HALF)*(Point_intra[0]+Rjl[0]-Rik[0]);
               Yprime=pow(e_ijkl,HALF)*(Point_intra[1]+Rjl[1]-Rik[1]);

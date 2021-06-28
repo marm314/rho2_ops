@@ -1186,10 +1186,6 @@ int main(int argc, char *argv[])
       {
        Dijkl_term[element[0]+element[1]*N2+element_prime[0]*N3+element_prime[1]*N4]=ZERO;
        Dijkl_term[element[1]+element[0]*N2+element_prime[1]*N3+element_prime[0]*N4]=ZERO;
-       if(element[0]==element[1] && element_prime[0]==element_prime[1])
-       {
-        Dijkl=HALF*Dijkl;
-       }
       } 
       element[0]++;element[1]++;element_prime[0]++;element_prime[1]++;
       dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
