@@ -1166,16 +1166,6 @@ int main(int argc, char *argv[])
                       +Dijkl_term[Ired+Lred*N2+Kred*N3+Jred*N4];
         Dijkl_term[Ired+Lred*N2+Kred*N3+Jred*N4]=ZERO;
        }
-       if(!(Ired==Jred && Jred==Kred && Kred==Lred))
-       {
-        if(Ired>Jred || Kred>Lred)
-        {
-         if(red_sym)
-         {
-          Dijkl_term[ii]=ZERO;
-         }
-        }
-       }
       }
      }
     }
@@ -1192,6 +1182,15 @@ int main(int argc, char *argv[])
       element_prime[0]=(int)((ii-element_prime[1]*N4)/N3);
       element[1]=(int)((ii-element_prime[0]*N3-element_prime[1]*N4)/N2);
       element[0]=(int)(ii-element[1]*N2-element_prime[0]*N3-element_prime[1]*N4);
+      if(!(element[0]==element[1] && element[1]==element_prime[0] && element_prime[0]==element_prime[1]) && (reduce && red_sym))
+      {
+       Dijkl_term[element[0]+element[1]*N2+element_prime[0]*N3+element_prime[1]*N4]=ZERO;
+       Dijkl_term[element[1]+element[0]*N2+element_prime[1]*N3+element_prime[0]*N4]=ZERO;
+       if(element[0]==element[1] && element_prime[0]==element_prime[1])
+       {
+        Dijkl=HALF*Dijkl;
+       }
+      } 
       element[0]++;element[1]++;element_prime[0]++;element_prime[1]++;
       dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
       dm2_file.write((char*) &element[0], sizeof(element[0]));

@@ -25,8 +25,8 @@ void calc_time(double DATE[2][4]);
 double Sab(int &order, double *s, double *w,double &S_ab, double &Sa,double &Sb,double &exp_a,double &exp_b, int &nxa,int &nxb);
 double Mab(int &order, double *s, double *w,double &S_ab, double &Sa,double &Sb,double &exp_a,double &exp_b, int &nxa,int &nxb);
 double M2ab(int &order, double *s, double *w,double &S_ab, double &Sa,double &Sb,double &exp_a,double &exp_b, int &nxa,int &nxb);
-void Vint3D(double IntegQ[2], double S_intra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk, double &zeta_ijkl,
-double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red);
+void Vint3D(double IntegQ[2], double S_intra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk, 
+double &zeta_ijkl,double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red);
 void Vint3D_2(double IntegQ[2], double S_extra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk, double &zeta_ijkl,
 double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red);
 double Jab(double &expa, double &expb,int &lxa,int &lya,int &lza,int &lxb,
@@ -2692,7 +2692,7 @@ double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],b
     alpha_jilk_plus_half_S[j]=alpha_jilk_plus_half*S_intra[j];
    }
    //The point s where the quadrature is evaluated is fixed for all
-   // This are Vijkl(X) and Vjilk(X)
+   // These are Vijkl(X) and Vjilk(X)
    res[0]=res[0]+w[i]
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[0] +(Sijkl[0]-Primitive_coords[0][0]),(double)nsx_ijkl[0])
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[0]+(Sijkl[0]-Primitive_coords[1][0]),(double)nsx_ijkl[1])
@@ -2703,7 +2703,7 @@ double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],b
       *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[0]+(Sijkl[0]-Primitive_coords[0][0]),(double)nsx_ijkl[0])
       *pow(zeta_ijkl_minus_half_s+alpha_jilk_min_half_S[0] +(Sijkl[0]-Primitive_coords[3][0]),(double)nsx_ijkl[3])
       *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[0]+(Sijkl[0]-Primitive_coords[2][0]),(double)nsx_ijkl[2]);
-   // This are Vijkl(Y) and Vjilk(Y)
+   // These are Vijkl(Y) and Vjilk(Y)
    res[1]=res[1]+w[i]
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[1] +(Sijkl[1]-Primitive_coords[0][1]),(double)nsy_ijkl[0])
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[1]+(Sijkl[1]-Primitive_coords[1][1]),(double)nsy_ijkl[1])
@@ -2714,7 +2714,7 @@ double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],b
       *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[1]+(Sijkl[1]-Primitive_coords[0][1]),(double)nsy_ijkl[0])
       *pow(zeta_ijkl_minus_half_s+alpha_jilk_min_half_S[1] +(Sijkl[1]-Primitive_coords[3][1]),(double)nsy_ijkl[3])
       *pow(zeta_ijkl_minus_half_s+alpha_jilk_plus_half_S[1]+(Sijkl[1]-Primitive_coords[2][1]),(double)nsy_ijkl[2]);
-   // This are Vijkl(Z) and Vjilk(Z)
+   // These are Vijkl(Z) and Vjilk(Z)
    res[2]=res[2]+w[i]
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[2] +(Sijkl[2]-Primitive_coords[0][2]),(double)nsz_ijkl[0])
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[2]+(Sijkl[2]-Primitive_coords[1][2]),(double)nsz_ijkl[1])
