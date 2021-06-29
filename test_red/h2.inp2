@@ -1,0 +1,17 @@
+$EXTRACULE
+$NAME_BASIS
+h2.basis
+$NAME_DM2
+Conv_h2.dm2
+$Threshold
+1e-12              
+$Tau
+1e-6              
+$Legendre
+250
+20
+$Angular
+200
+$Parallel 
+4
+$SYMRED
