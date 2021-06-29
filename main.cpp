@@ -27,8 +27,8 @@ double Mab(int &order, double *s, double *w,double &S_ab, double &Sa,double &Sb,
 double M2ab(int &order, double *s, double *w,double &S_ab, double &Sa,double &Sb,double &exp_a,double &exp_b, int &nxa,int &nxb);
 void Vint3D(double IntegQ[2], double S_intra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk, 
 double &zeta_ijkl,double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red);
-void Vint3D_2(double IntegQ[2], double S_extra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk, double &zeta_ijkl,
-double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red);
+void Vint3D_2(double IntegQ[2], double S_extra[3], int &order, double *s, double *w,double Sijkl[3],double Sijkl2[3], 
+double &alpha_ijkl, double &alpha_jilk, double &zeta_ijkl,double Primitive_coords[4][3],int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red);
 double Jab(double &expa, double &expb,int &lxa,int &lya,int &lza,int &lxb,
 int &lyb,int &lzb,double &Xa,double &Ya,double &Za,double &Xb,double &Yb,double &Zb);
 
@@ -125,8 +125,10 @@ if(ID==0)
   int nx_exp[4],ny_exp[4],nz_exp[4];
   double Integral,Integral2,Init,Step,Last,rscan,DMNfact,alpha,a,b,zeta_ik,zeta_jl,zeta_ijkl,e_ijkl,alpha_ijkl,alpha_jilk,symmetry_omitted_terms=ZERO;
   double Nelectrons,threshold2,Jik,Jjl,Cnorm_4gauss,Cnorm_ang,Aijkl,Xprime,Yprime,Zprime,lambda_rs,lambda_scr;
-  double TPS[3][3],Coord_atom[4][3],res[16],Rik[3],Rjl[3],Rijkl[3],Sik[3],Sjl[3],Mik[3],Mjl[3],M2ik[3],Point_intra[3]={ZERO},Point_extra[3]={ZERO},IntegQ[2]={ZERO};
-  double **r_intrac,**w_intrac,**r_extrac,**w_extrac,*r_mom,*w_mom,**Tot_rad,*x,*y,*z,*w_theta_phi,*r_legendre,*w_legendre,**Jacobian_legendre,*Shannon_rad;
+  double TPS[3][3],Coord_atom[4][3],res[16],Rik[3],Rjl[3],Rijkl[3],Rijkl2[3],Sik[3],Sjl[3],Mik[3],Mjl[3],M2ik[3];
+  double Point_intra[3]={ZERO},Point_extra[3]={ZERO},IntegQ[2]={ZERO};
+  double **r_intrac,**w_intrac,**r_extrac,**w_extrac,*r_mom,*w_mom,**Tot_rad,*x,*y,*z,*w_theta_phi,*r_legendre,*w_legendre;
+  double **Jacobian_legendre,*Shannon_rad;
   bool legendre=false,parallel=false,sym_red=false;
   Step=ZERO;
   string aux(argv[1]);
@@ -1265,6 +1267,7 @@ if(ID==0)
    string name_basis=Input_commands.name_basis;
    threshold=Input_commands.threshold_in;
    parallel=Input_commands.parallel;
+   sym_red=Input_commands.sym_red;
    ////////////////
    //Check times //
    ////////////////
@@ -1618,7 +1621,7 @@ if(ID==0)
       #pragma omp parallel num_threads(Input_commands.nthreads) \
        private(i,j,k,Point_extra,Xprime,Yprime,Zprime,Jik,Jjl,Cnorm_4gauss,Coord_atom, \
        nx_sum,ny_sum,nz_sum,order_ijkl,max_exp_ijkl,nx_exp,ny_exp,nz_exp,zeta_ik,zeta_jl, \
-       zeta_ijkl,Aijkl,e_ijkl,Rik,Rjl,Rijkl,alpha_ijkl,alpha_jilk,rscan,Integral,Integral2,IntegQ) \
+       zeta_ijkl,Aijkl,e_ijkl,Rik,Rjl,Rijkl,Rijkl2,alpha_ijkl,alpha_jilk,rscan,Integral,Integral2,IntegQ) \
        shared(BASIS_INFO,dm2,r_extrac,w_extrac,r_legendre,x,y,z,w_theta_phi,Tot_rad,Shannon_rad, \
        nterms,nrad,nang,sym_red) \
        reduction(+:symmetry_omitted_terms,counter)
@@ -1708,6 +1711,7 @@ if(ID==0)
           Rik[j]=(BASIS_INFO[dm2[i].indexes[0]].Expon*Coord_atom[0][j]+BASIS_INFO[dm2[i].indexes[2]].Expon*Coord_atom[2][j])/zeta_ik;
           Rjl[j]=(BASIS_INFO[dm2[i].indexes[1]].Expon*Coord_atom[1][j]+BASIS_INFO[dm2[i].indexes[3]].Expon*Coord_atom[3][j])/zeta_jl;
           Rijkl[j]=(-Rik[j]*zeta_ik+Rjl[j]*zeta_jl)/zeta_ijkl;
+          Rijkl2[j]=(-Rjl[j]*zeta_jl+Rik[j]*zeta_ik)/zeta_ijkl;
          }
          alpha_ijkl=(zeta_ik-zeta_jl)/(zeta_ijkl*TWO);
          alpha_jilk=(zeta_jl-zeta_ik)/(zeta_ijkl*TWO);
@@ -1748,8 +1752,16 @@ if(ID==0)
            Xprime=TWO*pow(e_ijkl,HALF)*(Point_extra[0]-HALF*(Rik[0]+Rjl[0]));
            Yprime=TWO*pow(e_ijkl,HALF)*(Point_extra[1]-HALF*(Rik[1]+Rjl[1]));
            Zprime=TWO*pow(e_ijkl,HALF)*(Point_extra[2]-HALF*(Rik[2]+Rjl[2]));
-           Vint3D_2(IntegQ,Point_extra,order_ijkl,r_extrac[order_ijkl-1],w_extrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+           Vint3D_2(IntegQ,Point_extra,order_ijkl,r_extrac[order_ijkl-1],w_extrac[order_ijkl-1],Rijkl,Rijkl2,alpha_ijkl,alpha_jilk,zeta_ijkl,
                     Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+           if(sym_red)
+           {
+            if((dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]) 
+              || (dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+            {
+             IntegQ[1]=ZERO;
+            }
+           }
            Tot_rad_th[j][k]=Tot_rad_th[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*(IntegQ[0]+IntegQ[1]);
           }
           rscan=rscan+Step;
@@ -1877,6 +1889,7 @@ if(ID==0)
          Rik[j]=(BASIS_INFO[dm2[i].indexes[0]].Expon*Coord_atom[0][j]+BASIS_INFO[dm2[i].indexes[2]].Expon*Coord_atom[2][j])/zeta_ik;
          Rjl[j]=(BASIS_INFO[dm2[i].indexes[1]].Expon*Coord_atom[1][j]+BASIS_INFO[dm2[i].indexes[3]].Expon*Coord_atom[3][j])/zeta_jl;
          Rijkl[j]=(-Rik[j]*zeta_ik+Rjl[j]*zeta_jl)/zeta_ijkl;
+         Rijkl2[j]=(-Rjl[j]*zeta_jl+Rik[j]*zeta_ik)/zeta_ijkl;
         }
         alpha_ijkl=(zeta_ik-zeta_jl)/(zeta_ijkl*TWO);
         alpha_jilk=(zeta_jl-zeta_ik)/(zeta_ijkl*TWO);
@@ -1917,8 +1930,16 @@ if(ID==0)
           Xprime=TWO*pow(e_ijkl,HALF)*(Point_extra[0]-HALF*(Rik[0]+Rjl[0]));
           Yprime=TWO*pow(e_ijkl,HALF)*(Point_extra[1]-HALF*(Rik[1]+Rjl[1]));
           Zprime=TWO*pow(e_ijkl,HALF)*(Point_extra[2]-HALF*(Rik[2]+Rjl[2]));
-          Vint3D_2(IntegQ,Point_extra,order_ijkl,r_extrac[order_ijkl-1],w_extrac[order_ijkl-1],Rijkl,alpha_ijkl,alpha_jilk,zeta_ijkl,
+          Vint3D_2(IntegQ,Point_extra,order_ijkl,r_extrac[order_ijkl-1],w_extrac[order_ijkl-1],Rijkl,Rijkl2,alpha_ijkl,alpha_jilk,zeta_ijkl,
                    Coord_atom,nx_exp,ny_exp,nz_exp,sym_red);
+          if(sym_red)
+          {
+           if((dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[1]==dm2[i].indexes[2] && dm2[i].indexes[2]==dm2[i].indexes[3]) 
+             || (dm2[i].indexes[0]==dm2[i].indexes[1] && dm2[i].indexes[2]==dm2[i].indexes[3]))
+           {
+            IntegQ[1]=ZERO;
+           }
+          }
           Tot_rad[j][k]=Tot_rad[j][k]+Aijkl*exp(-(pow(Xprime,TWO)+pow(Yprime,TWO)+pow(Zprime,TWO)))*(IntegQ[0]+IntegQ[1]);
          }
          rscan=rscan+Step;
@@ -2672,8 +2693,8 @@ double &Si,double &Sj,double &Sk, double &Sl, int &nxi,int &nxj,int &nxk,int &nx
 }*/
 
 //Vijkl(S) is the exact integrated (in s coord.) value of the polinomyal (Eq. 16 in Cioslowski's paper) 3D version.
-void Vint3D(double IntegQ[2], double S_intra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk,double &zeta_ijkl,
-double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red)
+void Vint3D(double IntegQ[2], double S_intra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk,
+double &zeta_ijkl, double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],bool &sym_red)
 {
  int i,j;
  double res[3]={ZERO},zeta_ijkl_minus_half,zeta_ijkl_minus_half_s,alpha_ijkl_min_half,alpha_ijkl_plus_half;
@@ -2751,13 +2772,13 @@ double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],b
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[0]+(Sijkl[0]-Primitive_coords[1][0]),(double)nsx_ijkl[1])
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[0] +(Sijkl[0]-Primitive_coords[2][0]),(double)nsx_ijkl[2])
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[0]+(Sijkl[0]-Primitive_coords[3][0]),(double)nsx_ijkl[3]);
-   // This is  Vijkl(Y)
+   // This is Vijkl(Y)
    res[1]=res[1]+w[i]
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[1] +(Sijkl[1]-Primitive_coords[0][1]),(double)nsy_ijkl[0])
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[1]+(Sijkl[1]-Primitive_coords[1][1]),(double)nsy_ijkl[1])
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[1] +(Sijkl[1]-Primitive_coords[2][1]),(double)nsy_ijkl[2])
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[1]+(Sijkl[1]-Primitive_coords[3][1]),(double)nsy_ijkl[3]);
-   // This is  Vijkl(Z)
+   // This is Vijkl(Z)
    res[2]=res[2]+w[i]
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_min_half_S[2] +(Sijkl[2]-Primitive_coords[0][2]),(double)nsz_ijkl[0])
       *pow(zeta_ijkl_minus_half_s+alpha_ijkl_plus_half_S[2]+(Sijkl[2]-Primitive_coords[1][2]),(double)nsz_ijkl[1])
@@ -2769,8 +2790,8 @@ double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4],b
 }
 
 //Vijkl2(S) is the exact integrated (in s coord.) value of the polinomyal (Eq. 30 in Cioslowski's paper) 3D version.
-void Vint3D_2(double IntegQ[2], double S_extra[3], int &order, double *s, double *w,double Sijkl[3], double &alpha_ijkl, double &alpha_jilk, double &zeta_ijkl,
-double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4], bool &sym_red)
+void Vint3D_2(double IntegQ[2], double S_extra[3], int &order, double *s, double *w,double Sijkl[3],double Sijkl2[3], 
+double &alpha_ijkl, double &alpha_jilk,double &zeta_ijkl, double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4], bool &sym_red)
 {
  int i,j;
  double res[3]={ZERO},zeta_ijkl_minus_half,zeta_ijkl_minus_half_s,minus_two_alpha_ijkl_plus_one,two_alpha_ijkl_plus_one;
@@ -2778,33 +2799,89 @@ double Primitive_coords[4][3], int nsx_ijkl[4],int nsy_ijkl[4],int nsz_ijkl[4], 
  zeta_ijkl_minus_half=pow(zeta_ijkl,-HALF);
  minus_two_alpha_ijkl_plus_one=-TWO*alpha_ijkl+ONE;
  two_alpha_ijkl_plus_one=TWO*alpha_ijkl+ONE;
- for(i=0;i<order;i++)
+ if(sym_red)
  {
-  zeta_ijkl_minus_half_s=zeta_ijkl_minus_half*s[i];
-  for(j=0;j<3;j++)
+  double res2[3]={ZERO},minus_two_alpha_jilk_plus_one,two_alpha_jilk_plus_one;
+  double min_two_alpha_jilk_plus_one_S[3],two_alpha_jilk_plus_one_S[3];
+  minus_two_alpha_jilk_plus_one=-TWO*alpha_jilk+ONE;
+  two_alpha_jilk_plus_one=TWO*alpha_jilk+ONE;
+  for(i=0;i<order;i++)
   {
-   min_two_alpha_ijkl_plus_one_S[j]=minus_two_alpha_ijkl_plus_one*S_extra[j];
-   two_alpha_ijkl_plus_one_S[j]=two_alpha_ijkl_plus_one*S_extra[j];
+   zeta_ijkl_minus_half_s=zeta_ijkl_minus_half*s[i];
+   for(j=0;j<3;j++)
+   {
+    min_two_alpha_ijkl_plus_one_S[j]=minus_two_alpha_ijkl_plus_one*S_extra[j];
+    two_alpha_ijkl_plus_one_S[j]=two_alpha_ijkl_plus_one*S_extra[j];
+    min_two_alpha_jilk_plus_one_S[j]=minus_two_alpha_jilk_plus_one*S_extra[j];
+    two_alpha_jilk_plus_one_S[j]=two_alpha_jilk_plus_one*S_extra[j];
+   }
+   //The point s where the quadrature is evaluated is fixed for all
+   // These are Vijkl(X) and Vjilk(X)
+   res[0]=res[0]+w[i]
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[0]-(Sijkl[0]+Primitive_coords[0][0]),(double)nsx_ijkl[0])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[0]    +(Sijkl[0]-Primitive_coords[1][0]),(double)nsx_ijkl[1])
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[0]-(Sijkl[0]+Primitive_coords[2][0]),(double)nsx_ijkl[2])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[0]    +(Sijkl[0]-Primitive_coords[3][0]),(double)nsx_ijkl[3]);
+   res2[0]=res2[0]+w[i]
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_jilk_plus_one_S[0]-(Sijkl2[0]+Primitive_coords[1][0]),(double)nsx_ijkl[1])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_jilk_plus_one_S[0]    +(Sijkl2[0]-Primitive_coords[0][0]),(double)nsx_ijkl[0])
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_jilk_plus_one_S[0]-(Sijkl2[0]+Primitive_coords[3][0]),(double)nsx_ijkl[3])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_jilk_plus_one_S[0]    +(Sijkl2[0]-Primitive_coords[2][0]),(double)nsx_ijkl[2]);
+   // These are Vijkl(Y) and Vjilk(Y)
+   res[1]=res[1]+w[i]
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[1]-(Sijkl[1]+Primitive_coords[0][1]),(double)nsy_ijkl[0])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[1]    +(Sijkl[1]-Primitive_coords[1][1]),(double)nsy_ijkl[1])
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[1]-(Sijkl[1]+Primitive_coords[2][1]),(double)nsy_ijkl[2])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[1]    +(Sijkl[1]-Primitive_coords[3][1]),(double)nsy_ijkl[3]);
+   res2[1]=res2[1]+w[i]
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_jilk_plus_one_S[1]-(Sijkl2[1]+Primitive_coords[1][1]),(double)nsy_ijkl[1])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_jilk_plus_one_S[1]    +(Sijkl2[1]-Primitive_coords[0][1]),(double)nsy_ijkl[0])
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_jilk_plus_one_S[1]-(Sijkl2[1]+Primitive_coords[3][1]),(double)nsy_ijkl[3])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_jilk_plus_one_S[1]    +(Sijkl2[1]-Primitive_coords[2][1]),(double)nsy_ijkl[2]);
+   // These are Vijkl(Z) and Vjilk(Z)
+   res[2]=res[2]+w[i]
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[2]-(Sijkl[2]+Primitive_coords[0][2]),(double)nsz_ijkl[0])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[2]    +(Sijkl[2]-Primitive_coords[1][2]),(double)nsz_ijkl[1])
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[2]-(Sijkl[2]+Primitive_coords[2][2]),(double)nsz_ijkl[2])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[2]    +(Sijkl[2]-Primitive_coords[3][2]),(double)nsz_ijkl[3]);
+   res2[2]=res2[2]+w[i]
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_jilk_plus_one_S[2]-(Sijkl2[2]+Primitive_coords[1][2]),(double)nsz_ijkl[1])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_jilk_plus_one_S[2]    +(Sijkl2[2]-Primitive_coords[0][2]),(double)nsz_ijkl[0])
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_jilk_plus_one_S[2]-(Sijkl2[2]+Primitive_coords[3][2]),(double)nsz_ijkl[3])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_jilk_plus_one_S[2]    +(Sijkl2[2]-Primitive_coords[2][2]),(double)nsz_ijkl[2]);
+  }  
+  IntegQ[1]=res2[0]*res2[1]*res2[2];
+ }
+ else
+ {
+  for(i=0;i<order;i++)
+  {
+   zeta_ijkl_minus_half_s=zeta_ijkl_minus_half*s[i];
+   for(j=0;j<3;j++)
+   {
+    min_two_alpha_ijkl_plus_one_S[j]=minus_two_alpha_ijkl_plus_one*S_extra[j];
+    two_alpha_ijkl_plus_one_S[j]=two_alpha_ijkl_plus_one*S_extra[j];
+   }
+   //The point s where the quadrature is evaluated is fixed for all
+   // This is Vijkl(X)
+   res[0]=res[0]+w[i]
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[0]-(Sijkl[0]+Primitive_coords[0][0]),(double)nsx_ijkl[0])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[0]    +(Sijkl[0]-Primitive_coords[1][0]),(double)nsx_ijkl[1])
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[0]-(Sijkl[0]+Primitive_coords[2][0]),(double)nsx_ijkl[2])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[0]    +(Sijkl[0]-Primitive_coords[3][0]),(double)nsx_ijkl[3]);
+   // This is Vijkl(Y)
+   res[1]=res[1]+w[i]
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[1]-(Sijkl[1]+Primitive_coords[0][1]),(double)nsy_ijkl[0])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[1]    +(Sijkl[1]-Primitive_coords[1][1]),(double)nsy_ijkl[1])
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[1]-(Sijkl[1]+Primitive_coords[2][1]),(double)nsy_ijkl[2])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[1]    +(Sijkl[1]-Primitive_coords[3][1]),(double)nsy_ijkl[3]);
+   // This is Vijkl(Z)
+   res[2]=res[2]+w[i]
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[2]-(Sijkl[2]+Primitive_coords[0][2]),(double)nsz_ijkl[0])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[2]    +(Sijkl[2]-Primitive_coords[1][2]),(double)nsz_ijkl[1])
+      *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[2]-(Sijkl[2]+Primitive_coords[2][2]),(double)nsz_ijkl[2])
+      *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[2]    +(Sijkl[2]-Primitive_coords[3][2]),(double)nsz_ijkl[3]);
   }
-  //The point s where the quadrature is evaluated is fixed for all
-  // This is Vijkl(X)
-  res[0]=res[0]+w[i]
-     *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[0]-(Sijkl[0]+Primitive_coords[0][0]),(double)nsx_ijkl[0])
-     *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[0]    +(Sijkl[0]-Primitive_coords[1][0]),(double)nsx_ijkl[1])
-     *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[0]-(Sijkl[0]+Primitive_coords[2][0]),(double)nsx_ijkl[2])
-     *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[0]    +(Sijkl[0]-Primitive_coords[3][0]),(double)nsx_ijkl[3]);
-  // This is  Vijkl(Y)
-  res[1]=res[1]+w[i]
-     *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[1]-(Sijkl[1]+Primitive_coords[0][1]),(double)nsy_ijkl[0])
-     *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[1]    +(Sijkl[1]-Primitive_coords[1][1]),(double)nsy_ijkl[1])
-     *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[1]-(Sijkl[1]+Primitive_coords[2][1]),(double)nsy_ijkl[2])
-     *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[1]    +(Sijkl[1]-Primitive_coords[3][1]),(double)nsy_ijkl[3]);
-  // This is  Vijkl(Z)
-  res[2]=res[2]+w[i]
-     *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[2]-(Sijkl[2]+Primitive_coords[0][2]),(double)nsz_ijkl[0])
-     *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[2]    +(Sijkl[2]-Primitive_coords[1][2]),(double)nsz_ijkl[1])
-     *pow(-zeta_ijkl_minus_half_s+min_two_alpha_ijkl_plus_one_S[2]-(Sijkl[2]+Primitive_coords[2][2]),(double)nsz_ijkl[2])
-     *pow( zeta_ijkl_minus_half_s+two_alpha_ijkl_plus_one_S[2]    +(Sijkl[2]-Primitive_coords[3][2]),(double)nsz_ijkl[3]);
  }
  IntegQ[0]=res[0]*res[1]*res[2];
 }

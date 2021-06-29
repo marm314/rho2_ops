@@ -51,4 +51,4 @@ $RANGESEP          -> To select a lambda_rs value for the intracule integration:
 $SCREENING         -> To select a lambda_scr value for the intracule integration: Int I(u) exp[-lambda_scr*u] u^n du (Optional: Default lambda_scr=0.0e0)
 0.5                -> lambda_scr
 $RWEIGHTS          -> To print the radial weights. Recall that Integral = radial_val times weight
-$SYMRED            -> Only the elements  i j k l are given but the j i l k must be produced by the code
+$SYMRED            -> Only the elements 2D_ij,kl are given but the 2D_ji,lk must be produced by the code (do not use with $MOMENTS)
