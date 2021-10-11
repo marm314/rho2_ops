@@ -1,0 +1,11 @@
+gauss_quad.o
+Input_commands.o
+legendre_quadrature.o
+main.o
+Mathematical_Functions.o
+sphere_lebedev_rule.o
+String_ops.o
+RHO2_OPS
+chimpanC
+psi4_interface
+RHO2_OPS.tar.gz
