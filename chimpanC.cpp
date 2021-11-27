@@ -100,6 +100,12 @@ int main(int argc, char *argv[])
     use_dm2_iiii_aa=true;
     reduce=true;
    }
+   if(y_or_n2=="i4rs")
+   {
+    use_dm2_iiii_aa=true;
+    reduce=true;
+    red_sym=true;
+   }
    if(y_or_n2=="a")
    {
     all_dm2_are_given=true;
@@ -1242,6 +1248,8 @@ int main(int argc, char *argv[])
   cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) r(reduce p <-> r and q <-> s terms)"<<endl;
   cout<<"or"<<endl;
+  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) rs(reduce p <-> r, q <-> s terms and symmetry)"<<endl;
+  cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) a(all 2D elements are given)"<<endl;
   cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) donof(2D elements are from DoNOF code)"<<endl;
@@ -1250,11 +1258,19 @@ int main(int argc, char *argv[])
   cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i4r(aa_2D^ii _ii terms and reduce p <-> r and q <-> s terms)"<<endl;
   cout<<"or"<<endl;
+  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i4rs(aa_2D^ii _ii terms and reduce p <-> r, q <-> s terms and symm)"<<endl;
+  cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) ar(all 2D elements are given and reduce p <-> r and q <-> s terms)"<<endl;
+  cout<<"or"<<endl;
+  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) ars(all 2D elements are given and reduce p <-> r, q <-> s terms and symm)"<<endl;
   cout<<"or"<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) donofr(2D elements are from DoNOF code and reduce p <-> r and q <-> s terms)"<<endl;
   cout<<endl;
+  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) donofrs(2D elements are from DoNOF code and reduce p <-> r, q <-> s terms and symm)"<<endl;
+  cout<<endl;
   cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i8allr(2D elements are from PSI4 code and reduce p <-> r and q <-> s terms)"<<endl;
+  cout<<endl;
+  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i8allrs(2D elements are from PSI4 code and reduce p <-> r, q <-> s terms and symm)"<<endl;
   cout<<endl;
   cout<<endl;
  }
