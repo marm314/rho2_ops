@@ -9,3 +9,6 @@ RHO2_OPS
 chimpanC
 psi4_interface
 RHO2_OPS.tar.gz
+gitver.cpp
+gitver.h
+gitver.o

@@ -7,6 +7,7 @@
 #include"Input_commands.h"
 #include"Numbers.h"
 #include"Mathematical_Functions.h"
+#include"gitver.h"
 #ifdef HAVE_MPI
 #include<mpi.h>
 #endif
@@ -33,6 +34,7 @@ double Jab(double &expa, double &expb,int &lxa,int &lya,int &lza,int &lxb,
 int &lyb,int &lzb,double &Xa,double &Ya,double &Za,double &Xb,double &Yb,double &Zb);
 
 //Global variables
+string sha;
 bool iprint=true;
 long int nterms;
 int ID=0,nproc=1,sys;
@@ -110,6 +112,10 @@ if(ID==0)
  cout<<endl;
  cout<<"#*****************************************************************************#";
  cout<<endl;
+ /////////////////////
+ //Get git sha      //
+ gitversion(sha);
+ /////////////////////
  /////////////////////
  //Begin clock      //
  /////////////////////
@@ -2576,6 +2582,8 @@ if(ID==0)
  cout<<setprecision(0)<<fixed;
  cout<<"  It took "<<setw(4)<<DATE[0][0]<<" days "<<setw(4)<<DATE[0][1]<<" hours "<<setw(4)<<DATE[0][2]<<" min. ";
  cout<<setw(4)<<DATE[0][3]<<" secs. "<<endl;
+ cout<<endl;
+ cout<<" Git sha: "<<sha<<endl;
  cout<<endl;
  cout<<"#################################################"<<endl;
  cout<<endl;
