@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
  cout<<endl;
  cout<<"#*****************************************************************************#";
  cout<<endl;
- if(argc==5 || argc==6)
+ if(argc==5 || argc==6 || argc==7)
  {
   bool contractSP=false,use_dm2_iiii_aa=false,two_dm2_mat=false,reduce=false,all_dm2_are_given=false,red_sym=false;
   int i,j,k,l,AO,nbasis,nbasis2,nprim_shell,stype,contr_coef,spcontr_coef,iprim,iprim_tot,smap,prim_exp,natoms;
@@ -790,24 +790,28 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////
 /// Print spinless DM2                                                       //
 ///////////////////////////////////////////////////////////////////////////////
-/*
-    for(ii=0;ii<N2;ii++)
+    if(argc==7)
     {
-     for(jj=0;jj<N2;jj++)
-     {   
-      for(kk=0;kk<N2;kk++)
-      {
-       for(ll=0;ll<N2;ll++)
-       {  
-        if(abs(Dijkl_term[ii+jj*N2+kk*N3+ll*N4])>=threshold)
+     ofstream spilss_2rdm("sl-2RDM");
+     spilss_2rdm<<setprecision(10)<<fixed<<scientific;
+     for(ii=0;ii<N2;ii++)
+     {
+      for(jj=0;jj<N2;jj++)
+      {   
+       for(kk=0;kk<N2;kk++)
+       {
+        for(ll=0;ll<N2;ll++)
         {  
-         cout<<setw(4)<<ii+1<<setw(4)<<jj+1<<setw(4)<<kk+1<<setw(4)<<ll+1<<setw(12)<<Dijkl_term[ii+jj*N2+kk*N3+ll*N4]<<endl; 
+         if(abs(Dijkl_term[ii+jj*N2+kk*N3+ll*N4])>=threshold)
+         {  
+          spilss_2rdm<<setw(4)<<ii+1<<setw(4)<<jj+1<<setw(4)<<kk+1<<setw(4)<<ll+1<<setw(21)<<Dijkl_term[ii+jj*N2+kk*N3+ll*N4]<<endl; 
+         }
         }
        }
       }
      }
+     spilss_2rdm.close();
     }
-*/
 //////////////////////////////////////////////////////////////////////////////// 
     for(ii=0;ii<N2;ii++)
     {
