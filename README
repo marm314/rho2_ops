@@ -52,3 +52,4 @@ $SCREENING         -> To select a lambda_scr value for the intracule integration
 0.5                -> lambda_scr
 $RWEIGHTS          -> To print the radial weights. Recall that Integral = radial_val times weight
 $SYMRED            -> Only the elements 2D_ij,kl are given but the 2D_ji,lk must be produced by the code (do not use with $MOMENTS)
+$CNORM1            -> The elements 2D_ij,kl also contain the normalization of the gaussian functions (like in WFN files)
