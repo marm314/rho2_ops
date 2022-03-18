@@ -5,7 +5,7 @@ Input::Input(string I_in)
  order_ang=0;order_ang2=0;nthreads=1;radial_Last=1e99;
  intracule=false;legendre=false;parallel=false;
  time_intra=false;second_moments=false;rweight=false;extracule=false;
- time_extra=false;sym_red=false;
+ time_extra=false;sym_red=false;cnorm1=false;
  tau=ZERO;
  lambda_rs=1.0e99; 
  lambda_scr=0.0e0; 
@@ -56,6 +56,7 @@ Input::Input(string I_in)
     I_input_file>>order_ang2;
    }
    else if(I_in=="$rweights"){rweight=true;}
+   else if(I_in=="$cnorm1"){cnorm1=true;}
    else if(I_in=="$time"){time_intra=true;time_extra=true;}
    else{}
   }

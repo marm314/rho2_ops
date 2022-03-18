@@ -135,7 +135,7 @@ if(ID==0)
   double Point_intra[3]={ZERO},Point_extra[3]={ZERO},IntegQ[2]={ZERO};
   double **r_intrac,**w_intrac,**r_extrac,**w_extrac,*r_mom,*w_mom,**Tot_rad,*x,*y,*z,*w_theta_phi,*r_legendre,*w_legendre;
   double **Jacobian_legendre,*Shannon_rad;
-  bool legendre=false,parallel=false,sym_red=false;
+  bool legendre=false,parallel=false,sym_red=false;cnorm1=false;
   Step=ZERO;
   string aux(argv[1]);
   Input Input_commands(aux);
@@ -160,6 +160,7 @@ if(ID==0)
    threshold=Input_commands.threshold_in;
    parallel=Input_commands.parallel;
    sym_red=Input_commands.sym_red;
+   cnorm1=Input_commands.cnorm1;
    ////////////////
    //Check times //
    ////////////////
@@ -522,7 +523,7 @@ if(ID==0)
        nx_sum,ny_sum,nz_sum,order_ijkl,max_exp_ijkl,nx_exp,ny_exp,nz_exp,zeta_ik,zeta_jl, \
        zeta_ijkl,Aijkl,e_ijkl,Rik,Rjl,Rijkl,alpha_ijkl,alpha_jilk,rscan,Integral,Integral2,IntegQ) \
        shared(BASIS_INFO,dm2,r_intrac,w_intrac,r_legendre,x,y,z,w_theta_phi,Tot_rad,Shannon_rad,nterms,nrad, \
-       nang,nang2,sym_red) \
+       nang,nang2,sym_red,cnorm1) \
        reduction(+:symmetry_omitted_terms,counter)
       {
        //Variables that belong to each thread and are only needed here
@@ -544,11 +545,14 @@ if(ID==0)
         for(j=0;j<4;j++)
         {
          //Compute the normalization factor of the gaussians (ijkl)
-         Cnorm_4gauss=Cnorm_4gauss*
-                     normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
-                               BASIS_INFO[dm2[i].indexes[j]].nx,
-                               BASIS_INFO[dm2[i].indexes[j]].ny,
-                               BASIS_INFO[dm2[i].indexes[j]].nz);
+         if(!cnorm1)
+         {
+          Cnorm_4gauss=Cnorm_4gauss*
+                      normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
+                                BASIS_INFO[dm2[i].indexes[j]].nx,
+                                BASIS_INFO[dm2[i].indexes[j]].ny,
+                                BASIS_INFO[dm2[i].indexes[j]].nz);
+         }
          //Take the coord. of this 4 gaussians
          Coord_atom[j][0]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[0];
          Coord_atom[j][1]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[1];
@@ -802,11 +806,14 @@ if(ID==0)
        for(j=0;j<4;j++)
        {
         //Compute the normalization factor of the gaussians (ijkl)
-        Cnorm_4gauss=Cnorm_4gauss*
-                    normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
-                              BASIS_INFO[dm2[i].indexes[j]].nx,
-                              BASIS_INFO[dm2[i].indexes[j]].ny,
-                              BASIS_INFO[dm2[i].indexes[j]].nz);
+        if(!cnorm1)
+        {
+         Cnorm_4gauss=Cnorm_4gauss*
+                     normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
+                               BASIS_INFO[dm2[i].indexes[j]].nx,
+                               BASIS_INFO[dm2[i].indexes[j]].ny,
+                               BASIS_INFO[dm2[i].indexes[j]].nz);
+        }
         //Take the coord. of this 4 gaussians
         Coord_atom[j][0]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[0];
         Coord_atom[j][1]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[1];
@@ -1274,6 +1281,7 @@ if(ID==0)
    threshold=Input_commands.threshold_in;
    parallel=Input_commands.parallel;
    sym_red=Input_commands.sym_red;
+   cnorm1=Input_commands.cnorm1;
    ////////////////
    //Check times //
    ////////////////
@@ -1629,7 +1637,7 @@ if(ID==0)
        nx_sum,ny_sum,nz_sum,order_ijkl,max_exp_ijkl,nx_exp,ny_exp,nz_exp,zeta_ik,zeta_jl, \
        zeta_ijkl,Aijkl,e_ijkl,Rik,Rjl,Rijkl,Rijkl2,alpha_ijkl,alpha_jilk,rscan,Integral,Integral2,IntegQ) \
        shared(BASIS_INFO,dm2,r_extrac,w_extrac,r_legendre,x,y,z,w_theta_phi,Tot_rad,Shannon_rad, \
-       nterms,nrad,nang,sym_red) \
+       nterms,nrad,nang,sym_red,cnorm1) \
        reduction(+:symmetry_omitted_terms,counter)
       {
        //Variables that belong to each thread and are only needed here
@@ -1651,11 +1659,14 @@ if(ID==0)
         for(j=0;j<4;j++)
         {
          //Compute the normalization factor of the gaussians (ijkl)
-         Cnorm_4gauss=Cnorm_4gauss*
-                     normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
-                               BASIS_INFO[dm2[i].indexes[j]].nx,
-                               BASIS_INFO[dm2[i].indexes[j]].ny,
-                               BASIS_INFO[dm2[i].indexes[j]].nz);
+         if(!cnorm1)
+         {
+          Cnorm_4gauss=Cnorm_4gauss*
+                      normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
+                                BASIS_INFO[dm2[i].indexes[j]].nx,
+                                BASIS_INFO[dm2[i].indexes[j]].ny,
+                                BASIS_INFO[dm2[i].indexes[j]].nz);
+         }
          //Take the coord. of this 4 gaussians
          Coord_atom[j][0]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[0];
          Coord_atom[j][1]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[1];
@@ -1829,11 +1840,14 @@ if(ID==0)
        for(j=0;j<4;j++)
        {
         //Compute the normalization factor of the gaussians (ijkl)
-        Cnorm_4gauss=Cnorm_4gauss*
-                    normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
-                              BASIS_INFO[dm2[i].indexes[j]].nx,
-                              BASIS_INFO[dm2[i].indexes[j]].ny,
-                              BASIS_INFO[dm2[i].indexes[j]].nz);
+        if(!cnorm1)
+        {
+         Cnorm_4gauss=Cnorm_4gauss*
+                     normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
+                               BASIS_INFO[dm2[i].indexes[j]].nx,
+                               BASIS_INFO[dm2[i].indexes[j]].ny,
+                               BASIS_INFO[dm2[i].indexes[j]].nz);
+        }
         //Take the coord. of this 4 gaussians
         Coord_atom[j][0]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[0];
         Coord_atom[j][1]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[1];
@@ -2198,6 +2212,7 @@ else
    string name_basis=Input_commands.name_basis;
    threshold=Input_commands.threshold_in;
    parallel=Input_commands.parallel;
+   cnorm1=Input_commands.cnorm1;
    // Read basis info
    ifstream open_basis;
    open_basis.open((name_basis).c_str());
@@ -2306,11 +2321,14 @@ if(ID==0)
       for(j=0;j<4;j++)
       {
        //Compute the normalization factor of the gaussians (ijkl)
-       Cnorm_4gauss=Cnorm_4gauss*
-                    normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
-                              BASIS_INFO[dm2[i].indexes[j]].nx,
-                              BASIS_INFO[dm2[i].indexes[j]].ny,
-                              BASIS_INFO[dm2[i].indexes[j]].nz);
+       if(!cnorm1)
+       {
+        Cnorm_4gauss=Cnorm_4gauss*
+                     normGauss(BASIS_INFO[dm2[i].indexes[j]].Expon,
+                               BASIS_INFO[dm2[i].indexes[j]].nx,
+                               BASIS_INFO[dm2[i].indexes[j]].ny,
+                               BASIS_INFO[dm2[i].indexes[j]].nz);
+        }
         //Take the coord. of this 4 gaussians
         Coord_atom[j][0]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[0];
         Coord_atom[j][1]=BASIS_INFO[dm2[i].indexes[j]].Cart_cord[1];
