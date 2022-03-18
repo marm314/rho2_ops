@@ -135,7 +135,7 @@ if(ID==0)
   double Point_intra[3]={ZERO},Point_extra[3]={ZERO},IntegQ[2]={ZERO};
   double **r_intrac,**w_intrac,**r_extrac,**w_extrac,*r_mom,*w_mom,**Tot_rad,*x,*y,*z,*w_theta_phi,*r_legendre,*w_legendre;
   double **Jacobian_legendre,*Shannon_rad;
-  bool legendre=false,parallel=false,sym_red=false;cnorm1=false;
+  bool legendre=false,parallel=false,sym_red=false,cnorm1=false;
   Step=ZERO;
   string aux(argv[1]);
   Input Input_commands(aux);
