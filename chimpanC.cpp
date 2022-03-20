@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
  cout<<endl;
  cout<<"#*****************************************************************************#";
  cout<<endl;
- cout<<"# Copyright (C) 2016 Dr. Mauricio A. Rodriguez Mayorga                        #";
+ cout<<"# Copyright (C) 2022 Dr. Mauricio A. Rodriguez Mayorga                        #";
  cout<<endl;
  cout<<"# Ph.D. student at Donostia International Physics Center (DIPC)               #";
  cout<<endl;
