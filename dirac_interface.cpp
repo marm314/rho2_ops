@@ -12,10 +12,10 @@
 
 using namespace std;
 
-void print_basis_file(string name);
-void read_dirac_out(string name_out);
+void print_basis_file();
+void read_dirac_out();
 void clean_shell2aos();
-void print_wfn();
+void print_wfx();
 
 int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ;
 struct Shell2AOs
@@ -28,6 +28,7 @@ Shell2AOs *shell2aos;
 double Quaternion_coef[4];
 double *OCCs,**Prim2AO_Coef;
 complex<double> **AO2MO_Coef,**Prim2MO_Coef;
+string dirac_output_name,dirac_output_file;
 
 int main(int argc, char *argv[])
 {
@@ -44,7 +45,7 @@ int main(int argc, char *argv[])
  if(argc!=2)
  {
   cout<<endl;
-  cout<<"Please, Include the name of the DIRAC program output as an argument."<<endl;
+  cout<<"Please, Include the name of the DIRAC program as an argument."<<endl;
   cout<<endl;
   cout<<"----------------------------------------"<<endl;
   cout<<"--        Normal termination          --"<<endl;
@@ -55,10 +56,9 @@ int main(int argc, char *argv[])
  bool repeated_prims;
  int ishell,ishell1,iprim,iprim1,iaos,iaos1,imos,imos1;
  int naos;
- string name,name_out;
- name_out=argv[1];
- name=name_out.substr(0,name_out.length()-3);
- read_dirac_out(name_out);
+ dirac_output_file=argv[1];
+ dirac_output_name=dirac_output_file.substr(0,dirac_output_file.length()-3);
+ read_dirac_out();
  // Find repeated shells ("pairing")
  for(ishell=0;ishell<Nshell-1;ishell++)
  {
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
   }
  }
  // Print .basis file with unique primitives information
- print_basis_file(name);
+ print_basis_file();
  cout<<"Number of primitives : "<<setw(12)<<Nprimitives<<endl;
  // Find the total number of AOs and allocate indexing arrays
  naos=0;
@@ -208,8 +208,8 @@ int main(int argc, char *argv[])
  delete[] Prim2AO_Coef;Prim2AO_Coef=NULL;
  // Print the Prim2MO_Coef matrix (coefficients are rows). 
  // WARNING! WARNING! Overwrite the positronic states with the electronic states ("sort electronic states")!
- ofstream coefs_file((name+"coef").c_str());
- ofstream coefs_file_pos((name+"coef_pos").c_str());
+ ofstream coefs_file((dirac_output_name+"coef").c_str());
+ ofstream coefs_file_pos((dirac_output_name+"coef_pos").c_str());
  imos1=0;
  coefs_file<<setprecision(12)<<fixed<<scientific;
  coefs_file_pos<<setprecision(12)<<fixed<<scientific;
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
  cout<<"Num. of occ MO 2(L+S): "<<setw(12)<<NMOs_occ<<endl;
  // Read 2-RDM (binary)
  // TODO: Check that 1st MOs states are electronic! read the 2-RDM and symmetrize it AND transform it to 4component (expand indices!) and print it
- print_wfn();
+ print_wfx();
  
 
  // Deallocate arrays Primitive to MO coefs (rows).
@@ -257,14 +257,14 @@ int main(int argc, char *argv[])
 }
 
 // Function used to read DIRAC output
-void read_dirac_out(string name_out)
+void read_dirac_out()
 {
  bool electronic;
  int ishell,iprim,imos,iaos,Nbasis_int;
  int imos1,imos2,imos3,imos4,imos5,imos6,imos7,imos8;
  double occ;
  string line;
- ifstream Dirac_file(name_out);
+ ifstream Dirac_file(dirac_output_file);
  while(getline(Dirac_file,line))
  {
   if(line.length()>8)
@@ -533,10 +533,10 @@ void read_dirac_out(string name_out)
 
 
 // Function used to print the basis file and check how many unique primitives we used in the calc.
-void print_basis_file(string name)
+void print_basis_file()
 {
  int ishell,iprim;
- ofstream outbasis((name+"basis").c_str());
+ ofstream outbasis((dirac_output_name+"basis").c_str());
  outbasis<<"# N              X_A                     Y_A                     Z_A                    Exp                      Quant(nx,ny,nz)"<<endl;
  Nprimitives=0;
  for(ishell=0;ishell<Nshell;ishell++)
@@ -829,7 +829,15 @@ void clean_shell2aos()
  delete[] shell2aos;shell2aos=NULL;
 }
 
-void print_wfn()
+void print_wfx()
 {
- cout<<"here"<<endl; 
+ string line;
+ ofstream real_wfx((dirac_output_name+"RE.wfx").c_str());
+ ofstream imag_wfx((dirac_output_name+"IM.wfx").c_str());
+ line="<Number of Nuclei>";
+ real_wfx<<line<<endl; 
+ imag_wfx<<line<<endl; 
+
+ imag_wfx.close(); 
+ real_wfx.close(); 
 }
