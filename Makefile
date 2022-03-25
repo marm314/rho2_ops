@@ -37,5 +37,8 @@ chimpanC: String_ops.cpp chimpanC.cpp
 psi4int: psi4_interface.cpp
 	$(CPP) $(CPPFLAGS) psi4_interface.cpp -o psi4_interface
 
+psi4int: dirac_interface.cpp
+	$(CPP) $(CPPFLAGS) dirac_interface.cpp -o dirac_interface
+
 tar:
 	tar -pczf RHO2_OPS.tar.gz *.cpp *.h Makefile README test dm2_hf test_psi4 

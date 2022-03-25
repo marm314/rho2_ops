@@ -12,3 +12,4 @@ RHO2_OPS.tar.gz
 gitver.cpp
 gitver.h
 gitver.o
+dirac_interface
