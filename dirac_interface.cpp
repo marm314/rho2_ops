@@ -29,6 +29,9 @@ double Quaternion_coef[4];
 double *OCCs,**Prim2AO_Coef;
 complex<double> **AO2MO_Coef,**Prim2MO_Coef;
 string dirac_output_name,dirac_output_file;
+vector<int>shell_types;
+vector<double>prim_exponents;
+vector<double>MOsLS_occ;
 
 int main(int argc, char *argv[])
 {
@@ -229,6 +232,7 @@ int main(int argc, char *argv[])
     Prim2MO_Coef[imos1][iprim]=Prim2MO_Coef[imos][iprim];
     coefs_file<<setw(20)<<Prim2MO_Coef[imos1][iprim].real()<<setw(20)<<Prim2MO_Coef[imos1][iprim].imag();
    }
+   MOsLS_occ.push_back(OCCs[imos]);
    imos1++;
   }
  }
@@ -236,9 +240,10 @@ int main(int argc, char *argv[])
  coefs_file.close();
  coefs_file_pos.close();
  cout<<"Num. of occ MO 2(L+S): "<<setw(12)<<NMOs_occ<<endl;
+ // Print a WFX file for RHO_OPS (currently only available for ATOMS)
+ print_wfx();
  // Read 2-RDM (binary)
  // TODO: Check that 1st MOs states are electronic! read the 2-RDM and symmetrize it AND transform it to 4component (expand indices!) and print it
- print_wfx();
  
 
  // Deallocate arrays Primitive to MO coefs (rows).
@@ -552,6 +557,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<0<<"\t"<<0<<endl;
+      shell_types.push_back(1);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      break;
     case 1:
@@ -562,6 +569,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<0<<"\t"<<0<<endl;
+      shell_types.push_back(2);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 1 0 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -569,6 +578,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<1<<"\t"<<0<<endl;
+      shell_types.push_back(3);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 0 1 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -576,6 +587,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<0<<"\t"<<1<<endl;
+      shell_types.push_back(4);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      break;
     case -2:
@@ -586,6 +599,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<2<<"\t"<<0<<"\t"<<0<<endl;
+      shell_types.push_back(5);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 1 1 0 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -593,6 +608,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<1<<"\t"<<0<<endl;
+      shell_types.push_back(8);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 1 0 1 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -600,6 +617,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<0<<"\t"<<1<<endl;
+      shell_types.push_back(9);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 2 0 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -607,6 +626,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<2<<"\t"<<0<<endl;
+      shell_types.push_back(6);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 1 1 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -614,6 +635,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<1<<"\t"<<1<<endl;
+      shell_types.push_back(10);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 0 2 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -621,6 +644,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<0<<"\t"<<2<<endl;
+      shell_types.push_back(7);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      break;
     case -3:
@@ -631,6 +656,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<3<<"\t"<<0<<"\t"<<0<<endl;
+      shell_types.push_back(11);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 2 1 0 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -638,6 +665,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<2<<"\t"<<1<<"\t"<<0<<endl;
+      shell_types.push_back(14);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 2 0 1 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -645,6 +674,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<2<<"\t"<<0<<"\t"<<1<<endl;
+      shell_types.push_back(15);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 1 2 0 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -652,6 +683,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<2<<"\t"<<0<<endl;
+      shell_types.push_back(17);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 1 1 1 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -659,6 +692,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<1<<"\t"<<1<<endl;
+      shell_types.push_back(20);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 1 0 2 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -666,6 +701,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<0<<"\t"<<2<<endl;
+      shell_types.push_back(18);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 3 0 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -673,6 +710,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<3<<"\t"<<0<<endl;
+      shell_types.push_back(12);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 2 1 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -680,6 +719,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<2<<"\t"<<1<<endl;
+      shell_types.push_back(16);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 1 2 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -687,6 +728,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<1<<"\t"<<2<<endl;
+      shell_types.push_back(19);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 0 3 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -694,6 +737,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<0<<"\t"<<3<<endl;
+      shell_types.push_back(13);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      break;
     case -4:
@@ -704,6 +749,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<4<<"\t"<<0<<"\t"<<0<<endl;
+      shell_types.push_back(21);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 3 1 0
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -711,6 +758,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<3<<"\t"<<1<<"\t"<<0<<endl;
+      shell_types.push_back(24);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 3 0 1
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -718,6 +767,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<3<<"\t"<<0<<"\t"<<1<<endl;
+      shell_types.push_back(25);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 2 2 0
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -725,6 +776,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<2<<"\t"<<2<<"\t"<<0<<endl;
+      shell_types.push_back(30);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 2 1 1
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -732,6 +785,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<2<<"\t"<<1<<"\t"<<1<<endl;
+      shell_types.push_back(33);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 2 0 2
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -739,6 +794,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<2<<"\t"<<0<<"\t"<<2<<endl;
+      shell_types.push_back(31);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 1 3 0
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -746,6 +803,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<3<<"\t"<<0<<endl;
+      shell_types.push_back(26);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 1 2 1
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -753,6 +812,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<2<<"\t"<<1<<endl;
+      shell_types.push_back(34);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 1 1 2
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -760,6 +821,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<1<<"\t"<<2<<endl;
+      shell_types.push_back(35);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 1 0 3
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -767,6 +830,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<1<<"\t"<<0<<"\t"<<3<<endl;
+      shell_types.push_back(28);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 4 0
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -774,6 +839,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<4<<"\t"<<0<<endl;
+      shell_types.push_back(22);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 3 1
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -781,6 +848,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<3<<"\t"<<1<<endl;
+      shell_types.push_back(27);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 2 2
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -788,6 +857,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<2<<"\t"<<2<<endl;
+      shell_types.push_back(32);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 1 3
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -795,6 +866,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<1<<"\t"<<3<<endl;
+      shell_types.push_back(29);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      // 0 0 4
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -802,6 +875,8 @@ void print_basis_file()
       outbasis<<setw(3)<<1<<"\t"<<setprecision(15)<<fixed<<scientific<<shell2aos[ishell].Coord[0]<<"\t"<<shell2aos[ishell].Coord[1];
       outbasis<<"\t"<<shell2aos[ishell].Coord[2]<<"\t"<<shell2aos[ishell].Expon[iprim];
       outbasis<<"\t\t"<<0<<"\t"<<0<<"\t"<<4<<endl;
+      shell_types.push_back(23);
+      prim_exponents.push_back(shell2aos[ishell].Expon[iprim]);
      }
      break;
     default:
@@ -829,15 +904,104 @@ void clean_shell2aos()
  delete[] shell2aos;shell2aos=NULL;
 }
 
+// Currently, only available for ATOMS
 void print_wfx()
 {
+ int iprim,imos;
  string line;
  ofstream real_wfx((dirac_output_name+"RE.wfx").c_str());
  ofstream imag_wfx((dirac_output_name+"IM.wfx").c_str());
+ real_wfx<<setprecision(12)<<fixed<<scientific;
+ imag_wfx<<setprecision(12)<<fixed<<scientific;
  line="<Number of Nuclei>";
  real_wfx<<line<<endl; 
  imag_wfx<<line<<endl; 
-
+ real_wfx<<1<<endl; 
+ imag_wfx<<1<<endl; 
+ line="<Number of Occupied Molecular Orbitals>";
+ real_wfx<<line<<endl; 
+ imag_wfx<<line<<endl; 
+ real_wfx<<NMOs_occ<<endl; 
+ imag_wfx<<NMOs_occ<<endl; 
+ line="<Electronic Spin Multiplicity>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ real_wfx<<1<<endl; 
+ imag_wfx<<1<<endl; 
+ line="<Nuclear Charges>"; // Faked
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ real_wfx<<0<<endl; 
+ imag_wfx<<0<<endl; 
+ line="<Nuclear Cartesian Coordinates>"; 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ real_wfx<<ZERO<<endl; // x
+ imag_wfx<<ZERO<<endl; 
+ real_wfx<<ZERO<<endl; // y
+ imag_wfx<<ZERO<<endl; 
+ real_wfx<<ZERO<<endl; // z
+ imag_wfx<<ZERO<<endl; 
+ line="<Number of Primitives>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ real_wfx<<Nprimitives<<endl;
+ imag_wfx<<Nprimitives<<endl;
+ line="<Primitive Centers>"; 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(iprim=0;iprim<Nprimitives;iprim++)
+ {
+  real_wfx<<1<<endl;
+  imag_wfx<<1<<endl;
+ }
+ line="<Primitive Types>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(iprim=0;iprim<Nprimitives;iprim++)
+ {
+  real_wfx<<shell_types[iprim]<<endl;
+  imag_wfx<<shell_types[iprim]<<endl;
+ }
+ line="<Primitive Exponents>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(iprim=0;iprim<Nprimitives;iprim++)
+ {
+  real_wfx<<prim_exponents[iprim]<<endl;
+  imag_wfx<<prim_exponents[iprim]<<endl;
+ }
+ line="<Molecular Orbital Occupation Numbers>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(imos=0;imos<NMOs_occ;imos++)
+ {
+  real_wfx<<MOsLS_occ[imos]<<endl;
+  imag_wfx<<MOsLS_occ[imos]<<endl;
+ }
+ line="<Molecular Orbital Spin Types>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(imos=0;imos<NMOs_occ;imos++)
+ {
+  line=" Alpha";
+  real_wfx<<line<<endl;
+  imag_wfx<<line<<endl;
+ }
+ line="<Molecular Orbital Primitive Coefficients>"; 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(imos=0;imos<NMOs_occ;imos++)
+ {
+  line="</MO Number>";
+  real_wfx<<line<<endl;
+  imag_wfx<<line<<endl;
+  for(iprim=0;iprim<Nprimitives;iprim++)
+  {
+   real_wfx<<Prim2MO_Coef[imos][iprim].real()<<endl;
+   imag_wfx<<Prim2MO_Coef[imos][iprim].imag()<<endl;
+  }
+ }
  imag_wfx.close(); 
  real_wfx.close(); 
 }
