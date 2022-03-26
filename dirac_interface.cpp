@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
  }
  delete[] Prim2AO_Coef;Prim2AO_Coef=NULL;
  // Print the Prim2MO_Coef matrix (coefficients are rows). 
- // WARNING! Below we may overwrite the positronic states (initial ones) with the occ. electronic states (i.e. put them 1st")!
+ // WARNING! Below we may overwrite the positronic states (initial ones) with the occ. electronic states (i.e. put them on top of the list)!
  ofstream coefs_file((dirac_output_name+"coef").c_str());
  ofstream coefs_file_pos((dirac_output_name+"coef_pos").c_str());
  imos1=0;
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
   }
  }
  // Read 2-RDM (binary)
- // TODO: Check that 1st MOs states are electronic! read the 2-RDM and symmetrize it AND transform it to 4component (expand indices!) and print it
+ // TODO: Read the 2-RDM and (anti)symmetrize it. Then, transform it to 4component (expand indices to scalars).
  
 
  // Deallocate arrays Primitive to MO coefs (rows).
