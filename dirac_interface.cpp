@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
  {
   OneMO_wfx=atoi(argv[2]);
   OneMO_wfx=(OneMO_wfx-1)*4; // even->unbar, odd->bar
-  cout<<"Orbital selection is swittched on. LS Orbitals to print in the WFX file: "<<setw(5)<<OneMO_wfx+1<<" to "<<setw(5)<<OneMO_wfx+4<<endl;
+  cout<<"Orbital selection is swittched on. Scalar (LS) orbitals to print in the WFX file: "<<setw(5)<<OneMO_wfx+1<<" to "<<setw(5)<<OneMO_wfx+4<<endl;
  }
  // Read Dirac output
  read_dirac_out();
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
  }
  // Print .basis file with unique primitives information
  print_basis_file();
- cout<<"Number of primitives : "<<setw(12)<<Nprimitives<<endl;
+ cout<<"Number of Primitives : "<<setw(12)<<Nprimitives<<endl;
  // Find the total number of AOs and allocate indexing arrays
  naos=0;
  for(ishell=0;ishell<Nshell;ishell++)
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
   } 
  }
  // Organize Prim 2 AO Coefs matrix using index_min2max
- cout<<"AO to primitives map (per shell):"<<endl;
+ cout<<"AO to Primitives map (per shell):"<<endl;
  iaos1=1;
  for(ishell=0;ishell<Nshell;ishell++)
  {
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
  // Deallocate arrays that are not used anymore
  clean_shell2aos();
  // Compute Primitives to MO coefficients
- cout<<"Building Matrix Prim2MO_Coefs[imos][iprim] (4MO x 2(L+S)) = AO2MO_Coef[imos][iaos]*Prim2AO_Coef[iaos][iprim]"<<endl;
+ cout<<"Building the matrix Prim2MO_Coefs[MO][Primitives] ((2x4MO) x 2(L+S)) = AO2MO_Coef[MO][AO]*Prim2AO_Coef[AO][Primitives]"<<endl;
  Prim2MO_Coef=new complex<double>*[NMOs_LS]; 
  for(imos=0;imos<NMOs_LS;imos++)
  {
@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
    }
   }
  }
- cout<<"Matrix Prim2MO_Coefs[imos][iprim] built."<<endl;
+ cout<<"Matrix Prim2MO_Coefs[MO][Primitives] for bar and unbar orbs. built."<<endl;
  // Deallocate arrays related to AOs
  for(imos=0;imos<NMOs_LS;imos++)
  {
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
      One_Prim2MO_Coef_IM.push_back(Prim2MO_Coef[imos+imos2][iprim].imag());
     }
    }
-   cout<<"Orbitals selected for the WFX file from "<<setw(5)<<imos+1<<" to "<<setw(5)<<imos+4<<endl; 
+   cout<<"Scalar (LS) orbitals selected for the WFX file from "<<setw(5)<<imos+1<<" to "<<setw(5)<<imos+4<<endl; 
   }
  }
  NMOs_occ=imos1;
@@ -266,7 +266,21 @@ int main(int argc, char *argv[])
  coefs_file_pos.close();
  cout<<"Num. of occ MO 2(L+S): "<<setw(12)<<NMOs_occ<<endl;
  // Print a WFX file for RHO_OPS (currently only available for ATOMS)
- print_wfx();
+ if(OneMO_wfx==-1)
+ {
+  print_wfx();
+ }
+ else
+ {
+  if(OneMO_wfx+4<=NMOs_LS)
+  {
+   print_wfx();
+  }
+  else
+  {
+   cout<<"Unable to print the (un)bar MO orb: "<<setw(5)<<(OneMO_wfx/4)+1<<" is not present."<<endl;
+  }
+ }
  // Read 2-RDM (binary)
  // TODO: Check that 1st MOs states are electronic! read the 2-RDM and symmetrize it AND transform it to 4component (expand indices!) and print it
  
@@ -501,7 +515,7 @@ void read_dirac_out()
     {
      cout<<"Warning! Nbasis read is not equal to the calculated value."<<endl;
     }
-    cout<<"Number of quat. MOs  : "<<setw(12)<<NMOs<<endl;
+    cout<<"Number of Quat. MOs  : "<<setw(12)<<NMOs<<endl;
     NMOs_LS=NMOs*8;
     cout<<"Number of 2(L+S) MOs : "<<setw(12)<<NMOs_LS<<endl;
     cout<<"Number of AOs (read) : "<<setw(12)<<Nbasis_int<<endl;
@@ -520,7 +534,7 @@ void read_dirac_out()
     for(imos=0;imos<NMOs;imos++)
     {
      imos1=imos*8;imos2=imos1+1;imos3=imos2+1;imos4=imos3+1;imos5=imos4+1;imos6=imos5+1;imos7=imos6+1;imos8=imos7+1;
-     cout<<"Quaternion to Large component MOs transformation for MO"<<setw(5)<<imos+1<<endl;
+     //cout<<"Quaternion to Large component MOs transformation for MO"<<setw(5)<<imos+1<<endl;
      for(iaos=0;iaos<Nbasis_L;iaos++)
      {
       Dirac_file>>Quaternion_coef[0]>>Quaternion_coef[1]>>Quaternion_coef[2]>>Quaternion_coef[3];
@@ -534,7 +548,7 @@ void read_dirac_out()
       AO2MO_Coef[imos5][iaos]=ztmp2; // bar alpha L
       AO2MO_Coef[imos6][iaos]=ztmp3; // bar beta L
      }
-     cout<<"Quaternion to Small component MOs transformation for MO"<<setw(5)<<imos+1<<endl;
+     //cout<<"Quaternion to Small component MOs transformation for MO"<<setw(5)<<imos+1<<endl;
      for(iaos=Nbasis_L;iaos<Nbasis;iaos++)
      {
       Dirac_file>>Quaternion_coef[0]>>Quaternion_coef[1]>>Quaternion_coef[2]>>Quaternion_coef[3];
