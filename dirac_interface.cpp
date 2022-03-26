@@ -17,7 +17,7 @@ void read_dirac_out();
 void clean_shell2aos();
 void print_wfx();
 
-int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ;
+int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,OneMO_wfx=-1;
 struct Shell2AOs
 {
  int styp,atom,nprim,naos,paired2=-1;
@@ -32,6 +32,8 @@ string dirac_output_name,dirac_output_file;
 vector<int>shell_types;
 vector<double>prim_exponents;
 vector<double>MOsLS_occ;
+vector<double>One_Prim2MO_Coef_RE;
+vector<double>One_Prim2MO_Coef_IM;
 
 int main(int argc, char *argv[])
 {
@@ -45,10 +47,14 @@ int main(int argc, char *argv[])
  cout<<"----------------------------------------"<<endl;
  cout<<"----------------------------------------"<<endl;
  cout<<endl;
- if(argc!=2)
+ if(argc!=2 && argc!=3)
  {
   cout<<endl;
   cout<<"Please, Include the name of the DIRAC program as an argument."<<endl;
+  cout<<endl;
+  cout<<"name_name.out"<<endl;
+  cout<<"or"<<endl;
+  cout<<"name_name.out one_mo_wfx(integer optional)"<<endl;
   cout<<endl;
   cout<<"----------------------------------------"<<endl;
   cout<<"--        Normal termination          --"<<endl;
@@ -57,10 +63,17 @@ int main(int argc, char *argv[])
   return -1;
  }
  bool repeated_prims;
- int ishell,ishell1,iprim,iprim1,iaos,iaos1,imos,imos1;
+ int ishell,ishell1,iprim,iprim1,iaos,iaos1,imos,imos1,imos2;
  int naos;
  dirac_output_file=argv[1];
  dirac_output_name=dirac_output_file.substr(0,dirac_output_file.length()-3);
+ if(argc==3)
+ {
+  OneMO_wfx=atoi(argv[2]);
+  OneMO_wfx=(OneMO_wfx-1)*4; // even->unbar, odd->bar
+  cout<<"Orbital selection is swittched on. LS Orbitals to print in the WFX file: "<<setw(5)<<OneMO_wfx+1<<" to "<<setw(5)<<OneMO_wfx+4<<endl;
+ }
+ // Read Dirac output
  read_dirac_out();
  // Find repeated shells ("pairing")
  for(ishell=0;ishell<Nshell-1;ishell++)
@@ -210,7 +223,7 @@ int main(int argc, char *argv[])
  }
  delete[] Prim2AO_Coef;Prim2AO_Coef=NULL;
  // Print the Prim2MO_Coef matrix (coefficients are rows). 
- // WARNING! WARNING! Overwrite the positronic states with the electronic states ("sort electronic states")!
+ // WARNING! Below we may overwrite the positronic states (initial ones) with the occ. electronic states (i.e. put them 1st")!
  ofstream coefs_file((dirac_output_name+"coef").c_str());
  ofstream coefs_file_pos((dirac_output_name+"coef_pos").c_str());
  imos1=0;
@@ -234,6 +247,18 @@ int main(int argc, char *argv[])
    }
    MOsLS_occ.push_back(OCCs[imos]);
    imos1++;
+  }
+  if(OneMO_wfx!=-1 && OneMO_wfx==imos)
+  {
+   for(imos2=0;imos2<4;imos2++)
+   {
+    for(iprim=0;iprim<Nprimitives;iprim++)
+    {
+     One_Prim2MO_Coef_RE.push_back(Prim2MO_Coef[imos+imos2][iprim].real());
+     One_Prim2MO_Coef_IM.push_back(Prim2MO_Coef[imos+imos2][iprim].imag());
+    }
+   }
+   cout<<"Orbitals selected for the WFX file from "<<setw(5)<<imos+1<<" to "<<setw(5)<<imos+4<<endl; 
   }
  }
  NMOs_occ=imos1;
@@ -264,7 +289,7 @@ int main(int argc, char *argv[])
 // Function used to read DIRAC output
 void read_dirac_out()
 {
- bool electronic;
+ bool electronic,first_ao2mos_coefs=true;
  int ishell,iprim,imos,iaos,Nbasis_int;
  int imos1,imos2,imos3,imos4,imos5,imos6,imos7,imos8;
  double occ;
@@ -466,8 +491,9 @@ void read_dirac_out()
   // Read quaternion MO coefs
   if(line.length()>7)
   {
-   if(line.substr(0,7)==" NBasis")
+   if(line.substr(0,7)==" NBasis" && first_ao2mos_coefs)
    {
+    first_ao2mos_coefs=false;
     line=line.substr(7,line.length()-7);
     stringstream ss(line);
     ss>>Nbasis_int;
@@ -907,12 +933,12 @@ void clean_shell2aos()
 // Currently, only available for ATOMS
 void print_wfx()
 {
- int iprim,imos;
+ int iprim,imos,imos1;
  string line;
- ofstream real_wfx((dirac_output_name+"RE.wfx").c_str());
- ofstream imag_wfx((dirac_output_name+"IM.wfx").c_str());
- real_wfx<<setprecision(12)<<fixed<<scientific;
- imag_wfx<<setprecision(12)<<fixed<<scientific;
+ ofstream real_wfx(("dirac_"+dirac_output_name+"RE.wfx").c_str());
+ ofstream imag_wfx(("dirac_"+dirac_output_name+"IM.wfx").c_str());
+ real_wfx<<setprecision(15)<<fixed<<scientific;
+ imag_wfx<<setprecision(15)<<fixed<<scientific;
  line="<Number of Nuclei>";
  real_wfx<<line<<endl; 
  imag_wfx<<line<<endl; 
@@ -921,8 +947,16 @@ void print_wfx()
  line="<Number of Occupied Molecular Orbitals>";
  real_wfx<<line<<endl; 
  imag_wfx<<line<<endl; 
- real_wfx<<NMOs_occ<<endl; 
- imag_wfx<<NMOs_occ<<endl; 
+ if(OneMO_wfx==-1)
+ {
+  real_wfx<<NMOs_occ<<endl; 
+  imag_wfx<<NMOs_occ<<endl;
+ } 
+ else
+ {
+  real_wfx<<4<<endl; 
+  imag_wfx<<4<<endl;
+ } 
  line="<Electronic Spin Multiplicity>";
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
@@ -974,32 +1008,74 @@ void print_wfx()
  line="<Molecular Orbital Occupation Numbers>";
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
- for(imos=0;imos<NMOs_occ;imos++)
+ if(OneMO_wfx==-1)
  {
-  real_wfx<<MOsLS_occ[imos]<<endl;
-  imag_wfx<<MOsLS_occ[imos]<<endl;
+  for(imos=0;imos<NMOs_occ;imos++)
+  {
+   real_wfx<<MOsLS_occ[imos]<<endl;
+   imag_wfx<<MOsLS_occ[imos]<<endl;
+  }
+ }
+ else
+ {
+  for(imos=0;imos<4;imos++)
+  {
+   real_wfx<<ONE<<endl;
+   imag_wfx<<ONE<<endl;
+  }
  }
  line="<Molecular Orbital Spin Types>";
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
- for(imos=0;imos<NMOs_occ;imos++)
+ if(OneMO_wfx==-1)
  {
-  line=" Alpha";
-  real_wfx<<line<<endl;
-  imag_wfx<<line<<endl;
+  for(imos=0;imos<NMOs_occ;imos++)
+  {
+   line=" Alpha";
+   real_wfx<<line<<endl;
+   imag_wfx<<line<<endl;
+  }
+ }
+ else
+ {
+  for(imos=0;imos<4;imos++)
+  {
+   line=" Alpha";
+   real_wfx<<line<<endl;
+   imag_wfx<<line<<endl;
+  }
  }
  line="<Molecular Orbital Primitive Coefficients>"; 
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
- for(imos=0;imos<NMOs_occ;imos++)
+ if(OneMO_wfx==-1)
  {
-  line="</MO Number>";
-  real_wfx<<line<<endl;
-  imag_wfx<<line<<endl;
-  for(iprim=0;iprim<Nprimitives;iprim++)
+  for(imos=0;imos<NMOs_occ;imos++)
   {
-   real_wfx<<Prim2MO_Coef[imos][iprim].real()<<endl;
-   imag_wfx<<Prim2MO_Coef[imos][iprim].imag()<<endl;
+   line="</MO Number>";
+   real_wfx<<line<<endl;
+   imag_wfx<<line<<endl;
+   for(iprim=0;iprim<Nprimitives;iprim++)
+   {
+    real_wfx<<Prim2MO_Coef[imos][iprim].real()<<endl;
+    imag_wfx<<Prim2MO_Coef[imos][iprim].imag()<<endl;
+   }
+  }
+ }
+ else
+ {
+  imos1=0;
+  for(imos=0;imos<4;imos++)
+  {
+   line="</MO Number>";
+   real_wfx<<line<<endl;
+   imag_wfx<<line<<endl;
+   for(iprim=0;iprim<Nprimitives;iprim++)
+   {
+    real_wfx<<One_Prim2MO_Coef_RE[imos1]<<endl;
+    imag_wfx<<One_Prim2MO_Coef_IM[imos1]<<endl;
+    imos1++;
+   }
   }
  }
  imag_wfx.close(); 
