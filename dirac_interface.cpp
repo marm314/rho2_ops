@@ -231,24 +231,7 @@ int main(int argc, char *argv[])
  coefs_file_pos<<setprecision(12)<<fixed<<scientific;
  for(imos=0;imos<NMOs_LS;imos++)
  {
-  if(OCCs[imos]==-TEN) // Write positronic states
-  {
-   for(iprim=0;iprim<Nprimitives;iprim++)
-   {
-    coefs_file_pos<<setw(20)<<Prim2MO_Coef[imos][iprim].real()<<setw(20)<<Prim2MO_Coef[imos][iprim].imag();
-   }
-  }
-  if(OCCs[imos]>pow(TEN,-EIGHT)) // Overwrite positronic with electronic states
-  {
-   for(iprim=0;iprim<Nprimitives;iprim++)
-   {
-    Prim2MO_Coef[imos1][iprim]=Prim2MO_Coef[imos][iprim];
-    coefs_file<<setw(20)<<Prim2MO_Coef[imos1][iprim].real()<<setw(20)<<Prim2MO_Coef[imos1][iprim].imag();
-   }
-   MOsLS_occ.push_back(OCCs[imos]);
-   imos1++;
-  }
-  if(OneMO_wfx!=-1 && OneMO_wfx==imos)
+  if(OneMO_wfx!=-1 && OneMO_wfx==imos) // Check if we have to store this particular MO (plus the rest of components) for the WFX file
   {
    for(imos2=0;imos2<4;imos2++)
    {
@@ -259,6 +242,23 @@ int main(int argc, char *argv[])
     }
    }
    cout<<"Scalar (LS) orbitals selected for the WFX file from "<<setw(5)<<imos+1<<" to "<<setw(5)<<imos+4<<endl; 
+  }
+  if(OCCs[imos]==-TEN) // Write positronic MO coefs to file
+  {
+   for(iprim=0;iprim<Nprimitives;iprim++)
+   {
+    coefs_file_pos<<setw(20)<<Prim2MO_Coef[imos][iprim].real()<<setw(20)<<Prim2MO_Coef[imos][iprim].imag();
+   }
+  }
+  if(OCCs[imos]>pow(TEN,-EIGHT)) // Overwrite positronic MO coefs with electronic ones and print the electronic ones
+  {
+   for(iprim=0;iprim<Nprimitives;iprim++)
+   {
+    Prim2MO_Coef[imos1][iprim]=Prim2MO_Coef[imos][iprim];
+    coefs_file<<setw(20)<<Prim2MO_Coef[imos1][iprim].real()<<setw(20)<<Prim2MO_Coef[imos1][iprim].imag();
+   }
+   MOsLS_occ.push_back(OCCs[imos]);
+   imos1++;
   }
  }
  NMOs_occ=imos1;
