@@ -23,7 +23,6 @@ then
     /bin/rm gitver_new.cpp
 fi
 
-
 # header
 echo '#ifndef _GIT_VERSION_H_' > gitver.h
 echo '#define _GIT_VERSION_H_' >> gitver.h
