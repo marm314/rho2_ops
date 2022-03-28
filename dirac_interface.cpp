@@ -958,6 +958,9 @@ void print_wfx()
  imag_wfx<<line<<endl; 
  real_wfx<<1<<endl; 
  imag_wfx<<1<<endl; 
+ line="</Number of Nuclei>";
+ real_wfx<<line<<endl; 
+ imag_wfx<<line<<endl; 
  line="<Number of Occupied Molecular Orbitals>";
  real_wfx<<line<<endl; 
  imag_wfx<<line<<endl; 
@@ -971,17 +974,26 @@ void print_wfx()
   real_wfx<<4<<endl; 
   imag_wfx<<4<<endl;
  } 
+ line="</Number of Occupied Molecular Orbitals>";
+ real_wfx<<line<<endl; 
+ imag_wfx<<line<<endl; 
  line="<Electronic Spin Multiplicity>";
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
  real_wfx<<1<<endl; 
  imag_wfx<<1<<endl; 
+ line="</Electronic Spin Multiplicity>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
  line="<Nuclear Charges>"; // Faked
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
  real_wfx<<0<<endl; 
  imag_wfx<<0<<endl; 
- line="<Nuclear Cartesian Coordinates>"; 
+ line="</Nuclear Charges>"; // Faked
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Nuclear Cartesian Coordinates>"; // Only atomic systems 
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
  real_wfx<<ZERO<<endl; // x
@@ -990,12 +1002,18 @@ void print_wfx()
  imag_wfx<<ZERO<<endl; 
  real_wfx<<ZERO<<endl; // z
  imag_wfx<<ZERO<<endl; 
+ line="</Nuclear Cartesian Coordinates>"; // Only atomic systems 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
  line="<Number of Primitives>";
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
  real_wfx<<Nprimitives<<endl;
  imag_wfx<<Nprimitives<<endl;
- line="<Primitive Centers>"; 
+ line="</Number of Primitives>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Primitive Centers>"; // Only atomic systems 
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
  for(iprim=0;iprim<Nprimitives;iprim++)
@@ -1003,6 +1021,9 @@ void print_wfx()
   real_wfx<<1<<endl;
   imag_wfx<<1<<endl;
  }
+ line="</Primitive Centers>"; 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
  line="<Primitive Types>";
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
@@ -1011,6 +1032,9 @@ void print_wfx()
   real_wfx<<shell_types[iprim]<<endl;
   imag_wfx<<shell_types[iprim]<<endl;
  }
+ line="</Primitive Types>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
  line="<Primitive Exponents>";
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
@@ -1019,6 +1043,9 @@ void print_wfx()
   real_wfx<<prim_exponents[iprim]<<endl;
   imag_wfx<<prim_exponents[iprim]<<endl;
  }
+ line="</Primitive Exponents>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
  line="<Molecular Orbital Occupation Numbers>";
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
@@ -1038,7 +1065,10 @@ void print_wfx()
    imag_wfx<<ONE<<endl;
   }
  }
- line="<Molecular Orbital Spin Types>";
+ line="</Molecular Orbital Occupation Numbers>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Molecular Orbital Spin Types>"; // Faked spin
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
  if(OneMO_wfx==-1)
@@ -1059,6 +1089,9 @@ void print_wfx()
    imag_wfx<<line<<endl;
   }
  }
+ line="</Molecular Orbital Spin Types>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
  line="<Molecular Orbital Primitive Coefficients>"; 
  real_wfx<<line<<endl;
  imag_wfx<<line<<endl;
@@ -1092,6 +1125,9 @@ void print_wfx()
    }
   }
  }
+ line="</Molecular Orbital Primitive Coefficients>"; 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
  imag_wfx.close(); 
  real_wfx.close(); 
 }
