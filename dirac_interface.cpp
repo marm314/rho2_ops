@@ -16,8 +16,12 @@ void print_basis_file();
 void read_dirac_out();
 void clean_shell2aos();
 void print_wfx();
+void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cMO4, double Dijkl_4cMO); 
 
 int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,OneMO_wfx=-1;
+long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4;
+int IMOS,IMOS1,IMOS2,IMOS3,IMOS4;
+int RECORD_DELIMITER_LENGTH=4;
 struct Shell2AOs
 {
  int styp,atom,nprim,naos,paired2=-1;
@@ -28,6 +32,7 @@ Shell2AOs *shell2aos;
 double Quaternion_coef[4];
 double *OCCs,**Prim2AO_Coef;
 complex<double> **AO2MO_Coef,**Prim2MO_Coef;
+double *Dijkl_MOsLS;
 string dirac_output_name,dirac_output_file;
 vector<int>shell_types;
 vector<double>prim_exponents;
@@ -47,14 +52,14 @@ int main(int argc, char *argv[])
  cout<<"----------------------------------------"<<endl;
  cout<<"----------------------------------------"<<endl;
  cout<<endl;
- if(argc!=2 && argc!=3)
+ if(argc!=3 && argc!=4)
  {
   cout<<endl;
-  cout<<"Please, Include the name of the DIRAC program as an argument."<<endl;
+  cout<<"Please, Include the parameters required by the program."<<endl;
   cout<<endl;
-  cout<<"name_name.out"<<endl;
+  cout<<"name_dirac.out name_dm2.dm2"<<endl;
   cout<<"or"<<endl;
-  cout<<"name_name.out one_mo_wfx(integer optional)"<<endl;
+  cout<<"name_dirac.out name_dm2.dm2 one_mo_wfx(integer optional)"<<endl;
   cout<<endl;
   cout<<"----------------------------------------"<<endl;
   cout<<"--        Normal termination          --"<<endl;
@@ -65,11 +70,14 @@ int main(int argc, char *argv[])
  bool repeated_prims;
  int ishell,ishell1,iprim,iprim1,iaos,iaos1,imos,imos1,imos2;
  int naos;
+ int index_4cMO[2]={10,10},index_4cMO_prime[2]={10,10};
+ double Dijkl_4cMO,Trace=ZERO;
  dirac_output_file=argv[1];
+ string dm2_file=argv[2];
  dirac_output_name=dirac_output_file.substr(0,dirac_output_file.length()-3);
- if(argc==3)
+ if(argc==4)
  {
-  OneMO_wfx=atoi(argv[2]);
+  OneMO_wfx=atoi(argv[3]);
   OneMO_wfx=(OneMO_wfx-1)*4; // even->unbar, odd->bar
   cout<<"Orbital selection is swittched on. Scalar (LS) orbitals to print in the WFX file: "<<setw(5)<<OneMO_wfx+1<<" to "<<setw(5)<<OneMO_wfx+4<<endl;
  }
@@ -164,6 +172,7 @@ int main(int argc, char *argv[])
   } 
  }
  // Organize Prim 2 AO Coefs matrix using index_min2max
+ cout<<endl;
  cout<<"AO to Primitives map (per shell):"<<endl;
  iaos1=1;
  for(ishell=0;ishell<Nshell;ishell++)
@@ -195,6 +204,7 @@ int main(int argc, char *argv[])
  // Deallocate arrays that are not used anymore
  clean_shell2aos();
  // Compute Primitives to MO coefficients
+ cout<<endl;
  cout<<"Building the matrix Prim2MO_Coefs[MO][Primitives] ((2x4MO) x 2(L+S)) = AO2MO_Coef[MO][AO]*Prim2AO_Coef[AO][Primitives]"<<endl;
  Prim2MO_Coef=new complex<double>*[NMOs_LS]; 
  for(imos=0;imos<NMOs_LS;imos++)
@@ -211,6 +221,7 @@ int main(int argc, char *argv[])
   }
  }
  cout<<"Matrix Prim2MO_Coefs[MO][Primitives] for bar and unbar orbs. built."<<endl;
+ cout<<endl;
  // Deallocate arrays related to AOs
  for(imos=0;imos<NMOs_LS;imos++)
  {
@@ -264,7 +275,7 @@ int main(int argc, char *argv[])
  NMOs_occ=imos1;
  coefs_file.close();
  coefs_file_pos.close();
- cout<<"Num. of occ MO 2(L+S): "<<setw(12)<<NMOs_occ<<endl;
+ cout<<"Num. of occ MO (Scalar): "<<setw(12)<<NMOs_occ<<endl;
  // Print a WFX file for RHO_OPS (currently only available for ATOMS)
  if(OneMO_wfx==-1)
  {
@@ -281,9 +292,66 @@ int main(int argc, char *argv[])
    cout<<"Unable to print the (un)bar MO orb: "<<setw(5)<<(OneMO_wfx/4)+1<<" is not present."<<endl;
   }
  }
- // Read 2-RDM (binary)
- // TODO: Read the 2-RDM and (anti)symmetrize it. Then, transform it to 4component (expand indices to scalars).
- 
+ // Read 2-RDM (binary) and store it in the scalar (2(L+S)) MO basis (using only Scalar occupied size at this stage!)
+ ifstream check_dm2;
+ check_dm2.open(dm2_file);
+ if(check_dm2.good())
+ {
+  check_dm2.close();
+  NMOs_LS_1=NMOs_occ;
+  NMOs_LS_2=NMOs_LS_1*NMOs_occ;
+  NMOs_LS_3=NMOs_LS_2*NMOs_occ;
+  NMOs_LS_4=NMOs_LS_3*NMOs_occ;
+  Dijkl_MOsLS=new double[NMOs_LS_4];
+  for(IMOS=0;IMOS<NMOs_LS_4;IMOS++){Dijkl_MOsLS[IMOS]=ZERO;} 
+  ifstream input_data(dm2_file.c_str(),ios::binary);
+  cout<<endl;
+  cout<<"Reading the 4c 2-RDM elements"<<endl;
+  while(index_4cMO[0]!=0 || index_4cMO[1]!=0 || index_4cMO_prime[0]!=0 || index_4cMO_prime[1]!=0)
+  {
+   input_data.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+   input_data.read((char*) &index_4cMO[0], sizeof(index_4cMO[0]));
+   input_data.read((char*) &index_4cMO[1], sizeof(index_4cMO[1]));
+   input_data.read((char*) &index_4cMO_prime[0], sizeof(index_4cMO_prime[0]));
+   input_data.read((char*) &index_4cMO_prime[1], sizeof(index_4cMO_prime[1]));
+   input_data.read((char*) &Dijkl_4cMO, sizeof(Dijkl_4cMO));
+   input_data.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+   if(Dijkl_4cMO!=ZERO && index_4cMO[0]!=0 && index_4cMO[1]!=0 && index_4cMO_prime[0]!=0 && index_4cMO_prime[1]!=0)
+   {
+    index_4cMO[0]=index_4cMO[0]-1;index_4cMO[1]=index_4cMO[1]-1;index_4cMO_prime[0]=index_4cMO_prime[0]-1;index_4cMO_prime[1]=index_4cMO_prime[1]-1;
+    // Note: The function dm2_4c2LS will add a contribution if the 2-RDM element is repeated!
+    dm2_4c2LS(index_4cMO[0],index_4cMO[1],index_4cMO_prime[0],index_4cMO_prime[1], Dijkl_4cMO); 
+    dm2_4c2LS(index_4cMO[1],index_4cMO[0],index_4cMO_prime[0],index_4cMO_prime[1],-Dijkl_4cMO); 
+    dm2_4c2LS(index_4cMO[1],index_4cMO[0],index_4cMO_prime[1],index_4cMO_prime[0], Dijkl_4cMO); 
+    dm2_4c2LS(index_4cMO[0],index_4cMO[1],index_4cMO_prime[1],index_4cMO_prime[0],-Dijkl_4cMO);
+    if(index_4cMO[0]!=index_4cMO_prime[0] || index_4cMO[1]!=index_4cMO_prime[1])
+    {
+     dm2_4c2LS(index_4cMO_prime[0],index_4cMO_prime[1],index_4cMO[0],index_4cMO[1], Dijkl_4cMO); 
+     dm2_4c2LS(index_4cMO_prime[1],index_4cMO_prime[0],index_4cMO[0],index_4cMO[1],-Dijkl_4cMO); 
+     dm2_4c2LS(index_4cMO_prime[1],index_4cMO_prime[0],index_4cMO[1],index_4cMO[0], Dijkl_4cMO); 
+     dm2_4c2LS(index_4cMO_prime[0],index_4cMO_prime[1],index_4cMO[1],index_4cMO[0],-Dijkl_4cMO);
+    }
+    index_4cMO[0]=index_4cMO[0]+1;index_4cMO[1]=index_4cMO[1]+1;index_4cMO_prime[0]=index_4cMO_prime[0]+1;index_4cMO_prime[1]=index_4cMO_prime[1]+1;
+    if(index_4cMO[0]==index_4cMO_prime[0] && index_4cMO[1]==index_4cMO_prime[1]){Trace=Trace+Dijkl_4cMO;}
+   }
+  }
+  input_data.close();
+  cout<<"The 2-RDM elements were read and stored in the Scalar (LS) MO basis"<<endl;
+  cout<<"Trace of the 2-RDM stored: "<<setprecision(12)<<fixed<<scientific<<setw(17)<<Trace<<endl;
+  cout<<endl;
+  // TODO: -Transform the Scalar MO basis to the primitives basis.
+  //       -Print it using the fact that primitives are real so the 2-RDM elements must be (Val + Val*) -> Real when we account for Bra <-> Ket
+  delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
+ }
+ else
+ {
+  check_dm2.close();
+  cout<<endl;
+  cout<<"Unable to find the file: "<<dm2_file<<endl;
+  cout<<"Not transforming the 2-RDM matrix"<<endl;
+  cout<<endl;
+ }
+
 
  // Deallocate arrays Primitive to MO coefs (rows).
  for(imos=0;imos<NMOs_LS;imos++)
@@ -517,7 +585,7 @@ void read_dirac_out()
     }
     cout<<"Number of Quat. MOs  : "<<setw(12)<<NMOs<<endl;
     NMOs_LS=NMOs*8;
-    cout<<"Number of 2(L+S) MOs : "<<setw(12)<<NMOs_LS<<endl;
+    cout<<"Number of Scalar MOs : "<<setw(12)<<NMOs_LS<<endl;
     cout<<"Number of AOs (read) : "<<setw(12)<<Nbasis_int<<endl;
     AO2MO_Coef=new complex<double>*[NMOs_LS];
     for(imos=0;imos<NMOs_LS;imos++)
@@ -1130,4 +1198,28 @@ void print_wfx()
  imag_wfx<<line<<endl;
  imag_wfx.close(); 
  real_wfx.close(); 
+}
+
+void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cMO4, double Dijkl_4cMO)
+{
+ int imos,imos1;
+ long int indices_MO1[4],indices_MO2[4],indices_MO3[4],indices_MO4[4];
+ // Transform index from 4cMO to 2(L+S) MO
+ indices_MO1[0]=index_4cMO1*4;indices_MO2[0]=index_4cMO2*4;indices_MO3[0]=index_4cMO3*4;indices_MO4[0]=index_4cMO4*4; 
+ for(imos=1;imos<4;imos++)
+ {
+  indices_MO1[imos]=indices_MO1[imos-1]+1; 
+  indices_MO2[imos]=indices_MO2[imos-1]+1; 
+  indices_MO3[imos]=indices_MO3[imos-1]+1; 
+  indices_MO4[imos]=indices_MO4[imos-1]+1; 
+ }
+ // Produce the 2-RDM in the 2(L+S) scalar MO basis
+ for(imos=0;imos<4;imos++)
+ {
+  for(imos1=0;imos1<4;imos1++)
+  {
+   Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos]*NMOs_LS_2+indices_MO4[imos1]*NMOs_LS_3]=
+   Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos]*NMOs_LS_2+indices_MO4[imos1]*NMOs_LS_3]+Dijkl_4cMO; 
+  }
+ }
 }
