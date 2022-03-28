@@ -7,9 +7,9 @@ sphere_lebedev_rule.o
 String_ops.o
 RHO2_OPS
 chimpanC
-psi4_interface
+psi4intface
 RHO2_OPS.tar.gz
 gitver.cpp
 gitver.h
 gitver.o
-dirac_interface
+diracintface

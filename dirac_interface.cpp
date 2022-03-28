@@ -16,11 +16,10 @@ void print_basis_file();
 void read_dirac_out();
 void clean_shell2aos();
 void print_wfx();
-void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cMO4, double Dijkl_4cMO); 
+void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cMO4,double Dijkl_4cMO); 
 
 int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,OneMO_wfx=-1;
 long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4;
-int IMOS,IMOS1,IMOS2,IMOS3,IMOS4;
 int RECORD_DELIMITER_LENGTH=4;
 struct Shell2AOs
 {
@@ -68,8 +67,9 @@ int main(int argc, char *argv[])
   return -1;
  }
  bool repeated_prims;
- int ishell,ishell1,iprim,iprim1,iaos,iaos1,imos,imos1,imos2;
+ int ishell,ishell1,iprim,iprim1,iaos,iaos1,imos,imos1,imos2; // imos for Scalar MOs
  int naos;
+ long int IMOS; // IMOS for 4c MOs
  int index_4cMO[2]={10,10},index_4cMO_prime[2]={10,10};
  double Dijkl_4cMO,Trace=ZERO;
  dirac_output_file=argv[1];
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
  coefs_file.close();
  coefs_file_pos.close();
  cout<<"Num. of occ MO (Scalar): "<<setw(12)<<NMOs_occ<<endl;
- // Print a WFX file for RHO_OPS (currently only available for ATOMS)
+ // Print a WFX file for RHO_OPS (currently only available for ATOMS) and delete OCCs array.
  if(OneMO_wfx==-1)
  {
   print_wfx();
@@ -292,7 +292,8 @@ int main(int argc, char *argv[])
    cout<<"Unable to print the (un)bar MO orb: "<<setw(5)<<(OneMO_wfx/4)+1<<" is not present."<<endl;
   }
  }
- // Read 2-RDM (binary) and store it in the scalar (2(L+S)) MO basis (using only Scalar occupied size at this stage!)
+ delete[] OCCs;OCCs=NULL;
+ // Read 2-RDM (binary) and store it in the scalar (2(L+S)) MO basis (using only Scalar occupied MOs for the size of the 2-RDM at this stage!).
  ifstream check_dm2;
  check_dm2.open(dm2_file);
  if(check_dm2.good())
@@ -319,7 +320,7 @@ int main(int argc, char *argv[])
    if(Dijkl_4cMO!=ZERO && index_4cMO[0]!=0 && index_4cMO[1]!=0 && index_4cMO_prime[0]!=0 && index_4cMO_prime[1]!=0)
    {
     index_4cMO[0]=index_4cMO[0]-1;index_4cMO[1]=index_4cMO[1]-1;index_4cMO_prime[0]=index_4cMO_prime[0]-1;index_4cMO_prime[1]=index_4cMO_prime[1]-1;
-    // Note: The function dm2_4c2LS will add a contribution if the 2-RDM element is repeated!
+    // Note: The function dm2_4c2LS will add contributions to Dijkl_MOsLS if the 2-RDM element indices are repeated!
     dm2_4c2LS(index_4cMO[0],index_4cMO[1],index_4cMO_prime[0],index_4cMO_prime[1], Dijkl_4cMO); 
     dm2_4c2LS(index_4cMO[1],index_4cMO[0],index_4cMO_prime[0],index_4cMO_prime[1],-Dijkl_4cMO); 
     dm2_4c2LS(index_4cMO[1],index_4cMO[0],index_4cMO_prime[1],index_4cMO_prime[0], Dijkl_4cMO); 
@@ -341,7 +342,11 @@ int main(int argc, char *argv[])
   cout<<endl;
   // TODO: -Transform the Scalar MO basis to the primitives basis.
   //       -Print it using the fact that primitives are real so the 2-RDM elements must be (Val + Val*) -> Real when we account for Bra <-> Ket
+  
+
   delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
+  
+ 
  }
  else
  {
@@ -351,15 +356,12 @@ int main(int argc, char *argv[])
   cout<<"Not transforming the 2-RDM matrix"<<endl;
   cout<<endl;
  }
-
-
- // Deallocate arrays Primitive to MO coefs (rows).
+ // Deallocate array Primitive to MO coefs (rows).
  for(imos=0;imos<NMOs_LS;imos++)
  {
   delete [] Prim2MO_Coef[imos];Prim2MO_Coef[imos]=NULL;
  }
  delete[] Prim2MO_Coef;Prim2MO_Coef=NULL;
- delete[] OCCs;OCCs=NULL;
  cout<<endl;
  cout<<"----------------------------------------"<<endl;
  cout<<"--        Normal termination          --"<<endl;
