@@ -37,11 +37,11 @@ clean:
 chimpanC: String_ops.cpp chimpanC.cpp
 	$(CPP) $(CPPFLAGS) String_ops.cpp chimpanC.cpp -o chimpanC
 
-psi4intface: psi4_interface.cpp
-	$(CPP) $(CPPFLAGS) psi4_interface.cpp -o psi4intface
+psi4intface: psi4intface.cpp
+	$(CPP) $(CPPFLAGS) psi4intface.cpp -o psi4intface
 
-diracintface: dirac_interface.cpp
-	$(CPP) $(CPPFLAGS) dirac_interface.cpp -o diracintface
+diracintface: diracintface.cpp
+	$(CPP) $(CPPFLAGS) diracintface.cpp -o diracintface
 
 
 tar:
