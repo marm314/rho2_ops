@@ -23,6 +23,7 @@ void transform_Dijkl2Dpqrs();
 complex<double>CZERO=(ZERO,ZERO);
 int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,OneMO_wfx=-1;
 long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4,Nterms_printed=0;
+long int Nprims1,Nprims2,Nprims3,Nprims4;       // Powers of Nprimitives
 int RECORD_DELIMITER_LENGTH=4;
 struct Shell2AOs
 {
@@ -34,6 +35,7 @@ Shell2AOs *shell2aos;
 double Quaternion_coef[4];
 double *OCCs,**Prim2AO_Coef;
 complex<double> **AO2MO_Coef,**Prim2MO_Coef;
+complex<double> *Dpqrs_ALL;
 double *Dijkl_MOsLS;
 string dirac_output_name,dirac_output_file;
 vector<int>shell_types;
@@ -344,8 +346,12 @@ int main(int argc, char *argv[])
   cout<<endl;
   // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives)
   transform_Dijkl2Dpqrs();
-  // TODO: Program old style and compare after index reduction!
   delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
+  // TODO: Program old style and compare after index reduction!
+
+  //Dpqrs_ALL=new complex<double>[Nprims4];
+  //delete[] Dpqrs_ALL;Dpqrs_ALL=NULL;
+
  }
  else
  {
@@ -1229,15 +1235,13 @@ void transform_Dijkl2Dpqrs()
  int index_primitive[2],index_primitive_prime[2];
  long int IMOS,IMOS1,IMOS2,IMOS3;        // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
  long int IPRIM,IPRIM1,IPRIM2,IPRIM3;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
- long int Nprims1,Nprims2,Nprims3;       // Powers of Nprimitives
  double Dpqrs_re,Dpqrs_im,MEM;
  complex<double>Dpqrs;
  complex<double> *Diqrs_Prims,*Dijrs_Prims,*Dijks_Prims;
- string name="Conv_cplx_"+dirac_output_name+"dm2";
- ofstream output_data(name.c_str(),ios::binary);
  Nprims1=Nprimitives; 
  Nprims2=Nprims1*Nprimitives; 
  Nprims3=Nprims2*Nprimitives;
+ Nprims4=Nprims3*Nprimitives;
  MEM=EIGHT*(TWO*(Nprims1+Nprims2+Nprims3)+NMOs_LS_4)/pow(TEN,NINE);
  cout<<setprecision(2)<<fixed;
  cout<<"Memory required ";
@@ -1266,6 +1270,8 @@ void transform_Dijkl2Dpqrs()
  cout<<" for the index transformation."<<endl; 
  cout<<endl;
  cout<<"Start writing the transformed-complex 2-RDM elements in the primitives basis"<<endl;
+ string name="Conv_cplx_"+dirac_output_name+"dm2";
+ ofstream output_data(name.c_str(),ios::binary);
  Dijks_Prims=new complex<double>[Nprims1];
  Dijrs_Prims=new complex<double>[Nprims2];
  Diqrs_Prims=new complex<double>[Nprims3];
