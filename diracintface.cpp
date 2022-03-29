@@ -17,7 +17,10 @@ void read_dirac_out();
 void clean_shell2aos();
 void print_wfx();
 void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cMO4,double Dijkl_4cMO); 
+void transform_Dijkl2Dpqrs();
+      
 
+complex<double>ztmp0=(ZERO,ZERO);
 int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,OneMO_wfx=-1;
 long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4;
 int RECORD_DELIMITER_LENGTH=4;
@@ -69,7 +72,7 @@ int main(int argc, char *argv[])
  bool repeated_prims;
  int ishell,ishell1,iprim,iprim1,iaos,iaos1,imos,imos1,imos2; // imos for Scalar MOs
  int naos;
- long int IMOS; // IMOS for 4c MOs
+ long int IMOS; // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
  int index_4cMO[2]={10,10},index_4cMO_prime[2]={10,10};
  double Dijkl_4cMO,Trace=ZERO;
  dirac_output_file=argv[1];
@@ -212,7 +215,6 @@ int main(int argc, char *argv[])
   Prim2MO_Coef[imos]=new complex<double>[Nprimitives];
   for(iprim=0;iprim<Nprimitives;iprim++)
   {
-   complex<double>ztmp0=(ZERO,ZERO);
    Prim2MO_Coef[imos][iprim]=ztmp0;
    for(iaos=0;iaos<Nbasis;iaos++)
    {
@@ -340,13 +342,10 @@ int main(int argc, char *argv[])
   cout<<"The 2-RDM elements were read and stored in the Scalar (LS) MO basis"<<endl;
   cout<<"Trace of the 2-RDM stored: "<<setprecision(12)<<fixed<<scientific<<setw(17)<<Trace<<endl;
   cout<<endl;
-  // TODO: -Transform the Scalar MO basis to the primitives basis.
-  //       -Print it using the fact that primitives are real so the 2-RDM elements must be (Val + Val*) -> Real when we account for Bra <-> Ket
-  
+  // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives)
+  transform_Dijkl2Dpqrs();
 
   delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
-  
- 
  }
  else
  {
@@ -595,7 +594,6 @@ void read_dirac_out()
      AO2MO_Coef[imos]=new complex<double>[Nbasis];
      for(iaos=0;iaos<Nbasis;iaos++)
      {
-      complex<double>ztmp0=(ZERO,ZERO);
       AO2MO_Coef[imos][iaos]=ztmp0;
      }
     }
@@ -609,28 +607,28 @@ void read_dirac_out()
      {
       Dirac_file>>Quaternion_coef[0]>>Quaternion_coef[1]>>Quaternion_coef[2]>>Quaternion_coef[3];
       //cout<<Quaternion_coef[0]<<Quaternion_coef[1]<<Quaternion_coef[2]<<Quaternion_coef[3]<<endl;
-      complex<double>ztmp0( Quaternion_coef[0], Quaternion_coef[1]); 
-      complex<double>ztmp1(-Quaternion_coef[2], Quaternion_coef[3]); 
-      complex<double>ztmp2( Quaternion_coef[2], Quaternion_coef[3]); 
-      complex<double>ztmp3( Quaternion_coef[0],-Quaternion_coef[1]); 
-      AO2MO_Coef[imos1][iaos]=ztmp0; // unbar alpha L
-      AO2MO_Coef[imos2][iaos]=ztmp1; // unbar beta L
-      AO2MO_Coef[imos5][iaos]=ztmp2; // bar alpha L
-      AO2MO_Coef[imos6][iaos]=ztmp3; // bar beta L
+      complex<double>ztmp4c1( Quaternion_coef[0], Quaternion_coef[1]); 
+      complex<double>ztmp4c2(-Quaternion_coef[2], Quaternion_coef[3]); 
+      complex<double>ztmp4c3( Quaternion_coef[2], Quaternion_coef[3]); 
+      complex<double>ztmp4c4( Quaternion_coef[0],-Quaternion_coef[1]); 
+      AO2MO_Coef[imos1][iaos]=ztmp4c1; // unbar alpha L
+      AO2MO_Coef[imos2][iaos]=ztmp4c2; // unbar beta L
+      AO2MO_Coef[imos5][iaos]=ztmp4c3; // bar alpha L
+      AO2MO_Coef[imos6][iaos]=ztmp4c4; // bar beta L
      }
      //cout<<"Quaternion to Small component MOs transformation for MO"<<setw(5)<<imos+1<<endl;
      for(iaos=Nbasis_L;iaos<Nbasis;iaos++)
      {
       Dirac_file>>Quaternion_coef[0]>>Quaternion_coef[1]>>Quaternion_coef[2]>>Quaternion_coef[3];
       //cout<<Quaternion_coef[0]<<Quaternion_coef[1]<<Quaternion_coef[2]<<Quaternion_coef[3]<<endl; 
-      complex<double>ztmp0( Quaternion_coef[0], Quaternion_coef[1]); 
-      complex<double>ztmp1(-Quaternion_coef[2], Quaternion_coef[3]); 
-      complex<double>ztmp2( Quaternion_coef[2], Quaternion_coef[3]); 
-      complex<double>ztmp3( Quaternion_coef[0],-Quaternion_coef[1]); 
-      AO2MO_Coef[imos3][iaos]=ztmp0;  // unbar alpha S
-      AO2MO_Coef[imos4][iaos]=ztmp1;  // unbar beta S
-      AO2MO_Coef[imos7][iaos]=ztmp2;  // bar alpha S
-      AO2MO_Coef[imos8][iaos]=ztmp3;  // bar beta S
+      complex<double>ztmp4c1( Quaternion_coef[0], Quaternion_coef[1]); 
+      complex<double>ztmp4c2(-Quaternion_coef[2], Quaternion_coef[3]); 
+      complex<double>ztmp4c3( Quaternion_coef[2], Quaternion_coef[3]); 
+      complex<double>ztmp4c4( Quaternion_coef[0],-Quaternion_coef[1]); 
+      AO2MO_Coef[imos3][iaos]=ztmp4c1;  // unbar alpha S
+      AO2MO_Coef[imos4][iaos]=ztmp4c2;  // unbar beta S
+      AO2MO_Coef[imos7][iaos]=ztmp4c3;  // bar alpha S
+      AO2MO_Coef[imos8][iaos]=ztmp4c4;  // bar beta S
      } 
     }
     // Complex conjugate the coefficients because now they are stored as rows
@@ -1225,3 +1223,123 @@ void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cM
   }
  }
 }
+
+void transform_Dijkl2Dpqrs()
+{
+ int index_primitive[2],index_primitive_prime[2];
+ long int IMOS,IMOS1,IMOS2,IMOS3;        // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
+ long int IPRIM,IPRIM1,IPRIM2,IPRIM3;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
+ long int Nprims1,Nprims2,Nprims3;       // Powers of Nprimitives
+ double Dpqrs_re,Dpqrs_im;
+ complex<double>Dpqrs;
+ complex<double> *Diqrs_Prims,*Dijrs_Prims,*Dijks_Prims;
+ string name="Conv_"+dirac_output_name+"dm2";
+ cout<<endl;
+ cout<<"Start writing the transformed-complex 2-RDM elements in the primitives basis"<<endl;
+ cout<<endl;
+ ofstream output_data(name.c_str(),ios::binary);
+ Nprims1=Nprimitives; 
+ Nprims2=Nprims1*Nprimitives; 
+ Nprims3=Nprims2*Nprimitives; 
+ Dijks_Prims=new complex<double>[Nprims1];
+ Dijrs_Prims=new complex<double>[Nprims2];
+ Diqrs_Prims=new complex<double>[Nprims3];
+ for(IMOS=0;IMOS<NMOs_LS_1;IMOS++)         // i
+ {
+  for(IPRIM1=0;IPRIM1<Nprims3;IPRIM1++)    // qrs
+  {
+   Diqrs_Prims[IPRIM1]=ztmp0;
+  }
+  // Change j for fixed i
+  for(IMOS1=0;IMOS1<NMOs_LS_1;IMOS1++)     // j
+  { 
+   for(IPRIM2=0;IPRIM2<Nprims2;IPRIM2++)   // rs
+   {
+    Dijrs_Prims[IPRIM2]=ztmp0;
+   }
+   // Change k for fixed ij
+   for(IMOS2=0;IMOS2<NMOs_LS_1;IMOS2++)     // k
+   {
+    for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)   // s
+    {
+     Dijks_Prims[IPRIM3]=ztmp0;
+    }
+    // Change l for fixed ijk
+    for(IMOS3=0;IMOS3<NMOs_LS_1;IMOS3++)    // l
+    {
+     // Change l -> s for fixed ijk
+     for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)  // s
+     {
+      Dijks_Prims[IPRIM3]=Dijks_Prims[IPRIM3]+Dijkl_MOsLS[IMOS+IMOS1*NMOs_LS_1+IMOS2*NMOs_LS_2+IMOS3*NMOs_LS_3]*Prim2MO_Coef[IMOS3][IPRIM3]; 
+     }
+    }
+    // Change k -> r for fixed ij
+    for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)   // r
+    {
+     for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)  // s
+     {
+      Dijrs_Prims[IPRIM2+IPRIM3*Nprims1]=Dijrs_Prims[IPRIM2+IPRIM3*Nprims1]+Dijks_Prims[IPRIM3]*Prim2MO_Coef[IMOS2][IPRIM2];
+     }
+    }
+   }
+   // Change j -> q for fixed i
+   for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)    // q
+   {
+    for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)   // r
+    {
+     for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)  // s
+     {
+      Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]=Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]
+      +Dijrs_Prims[IPRIM2+IPRIM3*Nprims1]*conj(Prim2MO_Coef[IMOS1][IPRIM1]);
+     }
+    }
+   }
+  }
+  // Change i -> p
+  for(IPRIM=0;IPRIM<Nprims1;IPRIM++)        // p
+  {
+   for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)    // q
+   {
+    for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)   // r
+    {
+     for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)  // s
+     {
+      Dpqrs=Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]*conj(Prim2MO_Coef[IMOS][IPRIM]);
+      if(abs(Dpqrs)>pow(TEN,-TEN))
+      {
+       Dpqrs_re=Dpqrs.real();
+       Dpqrs_im=Dpqrs.imag();
+       index_primitive[0]=IPRIM+1;index_primitive[1]=IPRIM1+1;index_primitive_prime[0]=IPRIM2+1;index_primitive_prime[1]=IPRIM3+1;
+       output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+       output_data.write((char*) &index_primitive[0], sizeof(index_primitive[0]));
+       output_data.write((char*) &index_primitive[1], sizeof(index_primitive[1]));
+       output_data.write((char*) &index_primitive_prime[0], sizeof(index_primitive_prime[0]));
+       output_data.write((char*) &index_primitive_prime[1], sizeof(index_primitive_prime[1]));
+       output_data.write((char*) &Dpqrs_re, sizeof(Dpqrs_re));
+       output_data.write((char*) &Dpqrs_im, sizeof(Dpqrs_im));
+       output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+      }
+     }
+    }
+   }
+  }
+ } 
+ Dpqrs_re=ZERO;
+ Dpqrs_im=ZERO;
+ index_primitive[0]=0;index_primitive[1]=0;index_primitive_prime[0]=0;index_primitive_prime[1]=0;
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.write((char*) &index_primitive[0], sizeof(index_primitive[0]));
+ output_data.write((char*) &index_primitive[1], sizeof(index_primitive[1]));
+ output_data.write((char*) &index_primitive_prime[0], sizeof(index_primitive_prime[0]));
+ output_data.write((char*) &index_primitive_prime[1], sizeof(index_primitive_prime[1]));
+ output_data.write((char*) &Dpqrs_re, sizeof(Dpqrs_re));
+ output_data.write((char*) &Dpqrs_im, sizeof(Dpqrs_im));
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.close();
+ cout<<endl;
+ cout<<"Finished the writing of the transformed-complex 2-RDM elements in the primitives basis"<<endl;
+ cout<<endl;
+ delete[] Dijks_Prims;Dijks_Prims=NULL;
+ delete[] Dijrs_Prims;Dijrs_Prims=NULL;
+ delete[] Diqrs_Prims;Diqrs_Prims=NULL;
+}  
