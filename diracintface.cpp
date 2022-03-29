@@ -20,9 +20,9 @@ void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cM
 void transform_Dijkl2Dpqrs();
       
 
-complex<double>ztmp0=(ZERO,ZERO);
+complex<double>CZERO=(ZERO,ZERO);
 int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,OneMO_wfx=-1;
-long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4;
+long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4,Nterms_printed=0;
 int RECORD_DELIMITER_LENGTH=4;
 struct Shell2AOs
 {
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
   Prim2MO_Coef[imos]=new complex<double>[Nprimitives];
   for(iprim=0;iprim<Nprimitives;iprim++)
   {
-   Prim2MO_Coef[imos][iprim]=ztmp0;
+   Prim2MO_Coef[imos][iprim]=CZERO;
    for(iaos=0;iaos<Nbasis;iaos++)
    {
     Prim2MO_Coef[imos][iprim]=Prim2MO_Coef[imos][iprim]+AO2MO_Coef[imos][iaos]*Prim2AO_Coef[iaos][iprim];
@@ -237,8 +237,8 @@ int main(int argc, char *argv[])
  delete[] Prim2AO_Coef;Prim2AO_Coef=NULL;
  // Print the Prim2MO_Coef matrix (coefficients are rows). 
  // WARNING! Below we may overwrite the positronic states (initial ones) with the occ. electronic states (i.e. put them on top of the list)!
- ofstream coefs_file((dirac_output_name+"coef").c_str());
- ofstream coefs_file_pos((dirac_output_name+"coef_pos").c_str());
+ ofstream coefs_file((dirac_output_name+"electronic.coef").c_str());
+ ofstream coefs_file_pos((dirac_output_name+"positronic.coef").c_str());
  imos1=0;
  coefs_file<<setprecision(12)<<fixed<<scientific;
  coefs_file_pos<<setprecision(12)<<fixed<<scientific;
@@ -594,7 +594,7 @@ void read_dirac_out()
      AO2MO_Coef[imos]=new complex<double>[Nbasis];
      for(iaos=0;iaos<Nbasis;iaos++)
      {
-      AO2MO_Coef[imos][iaos]=ztmp0;
+      AO2MO_Coef[imos][iaos]=CZERO;
      }
     }
     getline(Dirac_file,line);
@@ -1230,39 +1230,64 @@ void transform_Dijkl2Dpqrs()
  long int IMOS,IMOS1,IMOS2,IMOS3;        // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
  long int IPRIM,IPRIM1,IPRIM2,IPRIM3;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
  long int Nprims1,Nprims2,Nprims3;       // Powers of Nprimitives
- double Dpqrs_re,Dpqrs_im;
+ double Dpqrs_re,Dpqrs_im,MEM;
  complex<double>Dpqrs;
  complex<double> *Diqrs_Prims,*Dijrs_Prims,*Dijks_Prims;
- string name="Conv_"+dirac_output_name+"dm2";
- cout<<endl;
- cout<<"Start writing the transformed-complex 2-RDM elements in the primitives basis"<<endl;
- cout<<endl;
+ string name="Conv_cplx_"+dirac_output_name+"dm2";
  ofstream output_data(name.c_str(),ios::binary);
  Nprims1=Nprimitives; 
  Nprims2=Nprims1*Nprimitives; 
- Nprims3=Nprims2*Nprimitives; 
+ Nprims3=Nprims2*Nprimitives;
+ MEM=EIGHT*(TWO*(Nprims1+Nprims2+Nprims3)+NMOs_LS_4)/pow(TEN,NINE);
+ cout<<setprecision(2)<<fixed;
+ cout<<"Memory required ";
+ if(MEM>pow(TEN,THREE))
+ {
+  cout<<setw(10)<<MEM/pow(TEN,THREE)<<" Tb.";
+ }
+ else
+ {
+  if(MEM>ONE)
+  {
+   cout<<setw(10)<<MEM<<" Gb.";
+  }
+  else
+  {
+   if(MEM<ONE && MEM>pow(TEN,-THREE))
+   {
+    cout<<setw(10)<<MEM*pow(TEN,THREE)<<" Mb.";
+   }
+   else
+   {
+    cout<<setw(10)<<MEM*pow(TEN,SIX)<<" Kb.";
+   }
+  }
+ }
+ cout<<" for the index transformation."<<endl; 
+ cout<<endl;
+ cout<<"Start writing the transformed-complex 2-RDM elements in the primitives basis"<<endl;
  Dijks_Prims=new complex<double>[Nprims1];
  Dijrs_Prims=new complex<double>[Nprims2];
  Diqrs_Prims=new complex<double>[Nprims3];
  for(IMOS=0;IMOS<NMOs_LS_1;IMOS++)         // i
  {
-  for(IPRIM1=0;IPRIM1<Nprims3;IPRIM1++)    // qrs
+  for(IPRIM1=0;IPRIM1<Nprims3;IPRIM1++)    // Initialize qrs
   {
-   Diqrs_Prims[IPRIM1]=ztmp0;
+   Diqrs_Prims[IPRIM1]=CZERO;
   }
   // Change j for fixed i
   for(IMOS1=0;IMOS1<NMOs_LS_1;IMOS1++)     // j
   { 
-   for(IPRIM2=0;IPRIM2<Nprims2;IPRIM2++)   // rs
+   for(IPRIM2=0;IPRIM2<Nprims2;IPRIM2++)   // Initialize rs
    {
-    Dijrs_Prims[IPRIM2]=ztmp0;
+    Dijrs_Prims[IPRIM2]=CZERO;
    }
    // Change k for fixed ij
    for(IMOS2=0;IMOS2<NMOs_LS_1;IMOS2++)     // k
    {
-    for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)   // s
+    for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)   // Initialize s
     {
-     Dijks_Prims[IPRIM3]=ztmp0;
+     Dijks_Prims[IPRIM3]=CZERO;
     }
     // Change l for fixed ijk
     for(IMOS3=0;IMOS3<NMOs_LS_1;IMOS3++)    // l
@@ -1274,20 +1299,20 @@ void transform_Dijkl2Dpqrs()
      }
     }
     // Change k -> r for fixed ij
-    for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)   // r
+    for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)   // s
     {
-     for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)  // s
+     for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)  // r
      {
       Dijrs_Prims[IPRIM2+IPRIM3*Nprims1]=Dijrs_Prims[IPRIM2+IPRIM3*Nprims1]+Dijks_Prims[IPRIM3]*Prim2MO_Coef[IMOS2][IPRIM2];
      }
     }
    }
    // Change j -> q for fixed i
-   for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)    // q
+   for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)    // s
    {
     for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)   // r
     {
-     for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)  // s
+     for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)  // q
      {
       Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]=Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]
       +Dijrs_Prims[IPRIM2+IPRIM3*Nprims1]*conj(Prim2MO_Coef[IMOS1][IPRIM1]);
@@ -1296,17 +1321,18 @@ void transform_Dijkl2Dpqrs()
    }
   }
   // Change i -> p
-  for(IPRIM=0;IPRIM<Nprims1;IPRIM++)        // p
+  for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)    // s
   {
-   for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)    // q
+   for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)   // r
    {
-    for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)   // r
+    for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)  // q
     {
-     for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)  // s
+     for(IPRIM=0;IPRIM<Nprims1;IPRIM++)    // p
      {
       Dpqrs=Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]*conj(Prim2MO_Coef[IMOS][IPRIM]);
       if(abs(Dpqrs)>pow(TEN,-TEN))
       {
+       Nterms_printed++;
        Dpqrs_re=Dpqrs.real();
        Dpqrs_im=Dpqrs.imag();
        index_primitive[0]=IPRIM+1;index_primitive[1]=IPRIM1+1;index_primitive_prime[0]=IPRIM2+1;index_primitive_prime[1]=IPRIM3+1;
@@ -1336,8 +1362,8 @@ void transform_Dijkl2Dpqrs()
  output_data.write((char*) &Dpqrs_im, sizeof(Dpqrs_im));
  output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
  output_data.close();
- cout<<endl;
- cout<<"Finished the writing of the transformed-complex 2-RDM elements in the primitives basis"<<endl;
+ cout<<"Finished writing the transformed-complex 2-RDM elements in the primitives basis"<<endl;
+ cout<<"Num. of printed terms: "<<setw(12)<<Nterms_printed<<endl;
  cout<<endl;
  delete[] Dijks_Prims;Dijks_Prims=NULL;
  delete[] Dijrs_Prims;Dijrs_Prims=NULL;
