@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
   cout<<endl;
   // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives)
   transform_Dijkl2Dpqrs();
-
+  // TODO: Program old style and compare after index reduction!
   delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
  }
  else
