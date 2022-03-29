@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
  cout<<"##########################################################################"<<endl;
  cout<<"##########################################################################"<<endl;
  cout<<"# Conversion of DM2 from MO to Primitives (Program in C++)               #"<<endl;
- cout<<"# written by Dr. Mauricio Rodriguez M email: marm3.14@gmail.com          #"<<endl;
+ cout<<"# written by Dr. M. Rodriguez-Mayorga email: marm3.14@gmail.com          #"<<endl;
  cout<<"##########################################################################"<<endl;
  cout<<"##########################################################################"<<endl;
  cout<<endl;
@@ -1123,6 +1123,7 @@ int main(int argc, char *argv[])
     //Change done, proceed to print:
     cout<<"Change done!"<<endl;
     cout<<endl;
+    /* // Use for DEBUG
     trace=ZERO;
     for(ii=0;ii<N2;ii++)
     {
@@ -1137,6 +1138,7 @@ int main(int argc, char *argv[])
     cout<<endl;
     cout<<"Trace of the transformed 2RDM:  "<<setprecision(10)<<fixed<<scientific<<trace<<endl;
     cout<<endl;
+    */
     if(reduce)
     {
      cout<<endl;
