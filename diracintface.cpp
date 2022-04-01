@@ -12,16 +12,20 @@
 
 using namespace std;
 
+// Functions
 void print_basis_file();
 void read_dirac_out();
 void clean_shell2aos();
 void print_wfx();
+void read_2rdm4cMO_and_transf();
 void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cMO4,double Dijkl_4cMO); 
 void transform_Dijkl2Dpqrs();
-      
+void transform_Dijkl2Dpqrs_cplx();
+void reduce_getreal_print();
 
+// Global variables
 complex<double>CZERO=(ZERO,ZERO);
-int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,OneMO_wfx=-1;
+int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,OneMO_wfx=-1,select_arg4=0;
 long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4,Nterms_printed=0;
 long int Nprims1,Nprims2,Nprims3,Nprims4;       // Powers of Nprimitives
 int RECORD_DELIMITER_LENGTH=4;
@@ -37,7 +41,7 @@ double *OCCs,**Prim2AO_Coef;
 complex<double> **AO2MO_Coef,**Prim2MO_Coef;
 complex<double> *Dpqrs_ALL;
 double *Dijkl_MOsLS;
-string dirac_output_name,dirac_output_file;
+string dirac_output_name,dirac_output_file,dm2_file;
 vector<int>shell_types;
 vector<double>prim_exponents;
 vector<double>MOsLS_occ;
@@ -63,7 +67,7 @@ int main(int argc, char *argv[])
   cout<<endl;
   cout<<"name_dirac.out name_dm2.dm2"<<endl;
   cout<<"or"<<endl;
-  cout<<"name_dirac.out name_dm2.dm2 one_mo_wfx(integer optional)"<<endl;
+  cout<<"name_dirac.out name_dm2.dm2 argument4(integer: >0 orb selection, <0 transform_2RDM_cpplx)"<<endl;
   cout<<endl;
   cout<<"----------------------------------------"<<endl;
   cout<<"--        Normal termination          --"<<endl;
@@ -74,17 +78,19 @@ int main(int argc, char *argv[])
  bool repeated_prims;
  int ishell,ishell1,iprim,iprim1,iaos,iaos1,imos,imos1,imos2; // imos for Scalar MOs
  int naos;
- long int IMOS; // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
- int index_4cMO[2]={10,10},index_4cMO_prime[2]={10,10};
- double Dijkl_4cMO,Trace=ZERO;
  dirac_output_file=argv[1];
- string dm2_file=argv[2];
+ dm2_file=argv[2];
  dirac_output_name=dirac_output_file.substr(0,dirac_output_file.length()-3);
  if(argc==4)
  {
-  OneMO_wfx=atoi(argv[3]);
-  OneMO_wfx=(OneMO_wfx-1)*4; // even->unbar, odd->bar
-  cout<<"Orbital selection is swittched on. Scalar (LS) orbitals to print in the WFX file: "<<setw(5)<<OneMO_wfx+1<<" to "<<setw(5)<<OneMO_wfx+4<<endl;
+  select_arg4=atoi(argv[3]);
+  if(select_arg4>0)
+  {
+   OneMO_wfx=select_arg4;
+   OneMO_wfx=(OneMO_wfx-1)*4; // even->unbar, odd->bar
+   cout<<"Orbital selection is swittched on. Scalar (LS) orbitals to print in the WFX file: ";
+   cout<<setw(5)<<OneMO_wfx+1<<" to "<<setw(5)<<OneMO_wfx+4<<endl;
+  }
  }
  // Read Dirac output
  read_dirac_out();
@@ -303,55 +309,7 @@ int main(int argc, char *argv[])
  if(check_dm2.good())
  {
   check_dm2.close();
-  NMOs_LS_1=NMOs_occ;
-  NMOs_LS_2=NMOs_LS_1*NMOs_occ;
-  NMOs_LS_3=NMOs_LS_2*NMOs_occ;
-  NMOs_LS_4=NMOs_LS_3*NMOs_occ;
-  Dijkl_MOsLS=new double[NMOs_LS_4];
-  for(IMOS=0;IMOS<NMOs_LS_4;IMOS++){Dijkl_MOsLS[IMOS]=ZERO;} 
-  ifstream input_data(dm2_file.c_str(),ios::binary);
-  cout<<endl;
-  cout<<"Reading the 4c 2-RDM elements"<<endl;
-  while(index_4cMO[0]!=0 || index_4cMO[1]!=0 || index_4cMO_prime[0]!=0 || index_4cMO_prime[1]!=0)
-  {
-   input_data.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
-   input_data.read((char*) &index_4cMO[0], sizeof(index_4cMO[0]));
-   input_data.read((char*) &index_4cMO[1], sizeof(index_4cMO[1]));
-   input_data.read((char*) &index_4cMO_prime[0], sizeof(index_4cMO_prime[0]));
-   input_data.read((char*) &index_4cMO_prime[1], sizeof(index_4cMO_prime[1]));
-   input_data.read((char*) &Dijkl_4cMO, sizeof(Dijkl_4cMO));
-   input_data.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
-   if(Dijkl_4cMO!=ZERO && index_4cMO[0]!=0 && index_4cMO[1]!=0 && index_4cMO_prime[0]!=0 && index_4cMO_prime[1]!=0)
-   {
-    index_4cMO[0]=index_4cMO[0]-1;index_4cMO[1]=index_4cMO[1]-1;index_4cMO_prime[0]=index_4cMO_prime[0]-1;index_4cMO_prime[1]=index_4cMO_prime[1]-1;
-    // Note: The function dm2_4c2LS will add contributions to Dijkl_MOsLS if the 2-RDM element indices are repeated!
-    dm2_4c2LS(index_4cMO[0],index_4cMO[1],index_4cMO_prime[0],index_4cMO_prime[1], Dijkl_4cMO); 
-    dm2_4c2LS(index_4cMO[1],index_4cMO[0],index_4cMO_prime[0],index_4cMO_prime[1],-Dijkl_4cMO); 
-    dm2_4c2LS(index_4cMO[1],index_4cMO[0],index_4cMO_prime[1],index_4cMO_prime[0], Dijkl_4cMO); 
-    dm2_4c2LS(index_4cMO[0],index_4cMO[1],index_4cMO_prime[1],index_4cMO_prime[0],-Dijkl_4cMO);
-    if(index_4cMO[0]!=index_4cMO_prime[0] || index_4cMO[1]!=index_4cMO_prime[1])
-    {
-     dm2_4c2LS(index_4cMO_prime[0],index_4cMO_prime[1],index_4cMO[0],index_4cMO[1], Dijkl_4cMO); 
-     dm2_4c2LS(index_4cMO_prime[1],index_4cMO_prime[0],index_4cMO[0],index_4cMO[1],-Dijkl_4cMO); 
-     dm2_4c2LS(index_4cMO_prime[1],index_4cMO_prime[0],index_4cMO[1],index_4cMO[0], Dijkl_4cMO); 
-     dm2_4c2LS(index_4cMO_prime[0],index_4cMO_prime[1],index_4cMO[1],index_4cMO[0],-Dijkl_4cMO);
-    }
-    index_4cMO[0]=index_4cMO[0]+1;index_4cMO[1]=index_4cMO[1]+1;index_4cMO_prime[0]=index_4cMO_prime[0]+1;index_4cMO_prime[1]=index_4cMO_prime[1]+1;
-    if(index_4cMO[0]==index_4cMO_prime[0] && index_4cMO[1]==index_4cMO_prime[1]){Trace=Trace+Dijkl_4cMO;}
-   }
-  }
-  input_data.close();
-  cout<<"The 2-RDM elements were read and stored in the Scalar (LS) MO basis"<<endl;
-  cout<<"Trace of the 2-RDM stored: "<<setprecision(12)<<fixed<<scientific<<setw(17)<<Trace<<endl;
-  cout<<endl;
-  // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives)
-  transform_Dijkl2Dpqrs();
-  delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
-  // TODO: Program old style and compare after index reduction!
-
-  //Dpqrs_ALL=new complex<double>[Nprims4];
-  //delete[] Dpqrs_ALL;Dpqrs_ALL=NULL;
-
+  read_2rdm4cMO_and_transf();
  }
  else
  {
@@ -1230,7 +1188,213 @@ void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cM
  }
 }
 
+void read_2rdm4cMO_and_transf()
+{
+ int index_4cMO[2]={10,10},index_4cMO_prime[2]={10,10};
+ long int IMOS; // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
+ double Dijkl_4cMO,Trace=ZERO;
+ NMOs_LS_1=NMOs_occ;
+ NMOs_LS_2=NMOs_LS_1*NMOs_occ;
+ NMOs_LS_3=NMOs_LS_2*NMOs_occ;
+ NMOs_LS_4=NMOs_LS_3*NMOs_occ;
+ Dijkl_MOsLS=new double[NMOs_LS_4];
+ for(IMOS=0;IMOS<NMOs_LS_4;IMOS++){Dijkl_MOsLS[IMOS]=ZERO;} 
+ ifstream input_data(dm2_file.c_str(),ios::binary);
+ cout<<endl;
+ cout<<"Reading the 4c 2-RDM index_Prims"<<endl;
+ while(index_4cMO[0]!=0 || index_4cMO[1]!=0 || index_4cMO_prime[0]!=0 || index_4cMO_prime[1]!=0)
+ {
+  input_data.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+  input_data.read((char*) &index_4cMO[0], sizeof(index_4cMO[0]));
+  input_data.read((char*) &index_4cMO[1], sizeof(index_4cMO[1]));
+  input_data.read((char*) &index_4cMO_prime[0], sizeof(index_4cMO_prime[0]));
+  input_data.read((char*) &index_4cMO_prime[1], sizeof(index_4cMO_prime[1]));
+  input_data.read((char*) &Dijkl_4cMO, sizeof(Dijkl_4cMO));
+  input_data.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+  if(Dijkl_4cMO!=ZERO && index_4cMO[0]!=0 && index_4cMO[1]!=0 && index_4cMO_prime[0]!=0 && index_4cMO_prime[1]!=0)
+  {
+   index_4cMO[0]=index_4cMO[0]-1;index_4cMO[1]=index_4cMO[1]-1;index_4cMO_prime[0]=index_4cMO_prime[0]-1;index_4cMO_prime[1]=index_4cMO_prime[1]-1;
+   // Note: The function dm2_4c2LS will add contributions to Dijkl_MOsLS if the 2-RDM index_Prim indices are repeated!
+   dm2_4c2LS(index_4cMO[0],index_4cMO[1],index_4cMO_prime[0],index_4cMO_prime[1], Dijkl_4cMO); 
+   dm2_4c2LS(index_4cMO[1],index_4cMO[0],index_4cMO_prime[0],index_4cMO_prime[1],-Dijkl_4cMO); 
+   dm2_4c2LS(index_4cMO[1],index_4cMO[0],index_4cMO_prime[1],index_4cMO_prime[0], Dijkl_4cMO); 
+   dm2_4c2LS(index_4cMO[0],index_4cMO[1],index_4cMO_prime[1],index_4cMO_prime[0],-Dijkl_4cMO);
+   if(index_4cMO[0]!=index_4cMO_prime[0] || index_4cMO[1]!=index_4cMO_prime[1])
+   {
+    dm2_4c2LS(index_4cMO_prime[0],index_4cMO_prime[1],index_4cMO[0],index_4cMO[1], Dijkl_4cMO); 
+    dm2_4c2LS(index_4cMO_prime[1],index_4cMO_prime[0],index_4cMO[0],index_4cMO[1],-Dijkl_4cMO); 
+    dm2_4c2LS(index_4cMO_prime[1],index_4cMO_prime[0],index_4cMO[1],index_4cMO[0], Dijkl_4cMO); 
+    dm2_4c2LS(index_4cMO_prime[0],index_4cMO_prime[1],index_4cMO[1],index_4cMO[0],-Dijkl_4cMO);
+   }
+   index_4cMO[0]=index_4cMO[0]+1;index_4cMO[1]=index_4cMO[1]+1;index_4cMO_prime[0]=index_4cMO_prime[0]+1;index_4cMO_prime[1]=index_4cMO_prime[1]+1;
+   if(index_4cMO[0]==index_4cMO_prime[0] && index_4cMO[1]==index_4cMO_prime[1]){Trace=Trace+Dijkl_4cMO;}
+  }
+ }
+ input_data.close();
+ cout<<"The 2-RDM index_Prims were read and stored in the Scalar (LS) MO basis"<<endl;
+ cout<<"Trace of the 2-RDM stored: "<<setprecision(12)<<fixed<<scientific<<setw(17)<<Trace<<endl;
+ cout<<endl;
+ if(select_arg4!=0)
+ {
+  // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives) complex
+  transform_Dijkl2Dpqrs_cplx();
+  delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
+  // Reduce symmetry elements, transf. to real, and print it 
+  reduce_getreal_print();
+ }
+ else
+ {
+  // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives) real
+  transform_Dijkl2Dpqrs();
+  
+ }
+}
+
 void transform_Dijkl2Dpqrs()
+{
+ int index_primitive[2],index_primitive_prime[2];
+ long int IMOS,IMOS1,IMOS2,IMOS3;        // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
+ long int IPRIM,IPRIM1,IPRIM2,IPRIM3;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
+ double Dpqrs_re,MEM;
+ complex<double>Dpqrs;
+ complex<double> *Diqrs_Prims,*Dijrs_Prims,*Dijks_Prims;
+ Nprims1=Nprimitives; 
+ Nprims2=Nprims1*Nprimitives; 
+ Nprims3=Nprims2*Nprimitives;
+ Nprims4=Nprims3*Nprimitives;
+ MEM=EIGHT*(TWO*(Nprims1+Nprims2+Nprims3)+NMOs_LS_4)/pow(TEN,NINE);
+ cout<<setprecision(2)<<fixed;
+ cout<<"Memory required ";
+ if(MEM>pow(TEN,THREE))
+ {
+  cout<<setw(10)<<MEM/pow(TEN,THREE)<<" Tb.";
+ }
+ else
+ {
+  if(MEM>ONE)
+  {
+   cout<<setw(10)<<MEM<<" Gb.";
+  }
+  else
+  {
+   if(MEM<ONE && MEM>pow(TEN,-THREE))
+   {
+    cout<<setw(10)<<MEM*pow(TEN,THREE)<<" Mb.";
+   }
+   else
+   {
+    cout<<setw(10)<<MEM*pow(TEN,SIX)<<" Kb.";
+   }
+  }
+ }
+ cout<<" for the index transformation."<<endl; 
+ cout<<endl;
+ cout<<"Start writing the transformed-real 2-RDM index_Prims in the primitives basis"<<endl;
+ cout<<"[Note: The complex part will be ignored]"<<endl;
+ string name="Conv_"+dirac_output_name+"dm2";
+ ofstream output_data(name.c_str(),ios::binary);
+ Dijks_Prims=new complex<double>[Nprims1];
+ Dijrs_Prims=new complex<double>[Nprims2];
+ Diqrs_Prims=new complex<double>[Nprims3];
+ for(IMOS=0;IMOS<NMOs_LS_1;IMOS++)         // i
+ {
+  for(IPRIM1=0;IPRIM1<Nprims3;IPRIM1++)    // Initialize qrs
+  {
+   Diqrs_Prims[IPRIM1]=CZERO;
+  }
+  // Change j for fixed i
+  for(IMOS1=0;IMOS1<NMOs_LS_1;IMOS1++)     // j
+  { 
+   for(IPRIM2=0;IPRIM2<Nprims2;IPRIM2++)   // Initialize rs
+   {
+    Dijrs_Prims[IPRIM2]=CZERO;
+   }
+   // Change k for fixed ij
+   for(IMOS2=0;IMOS2<NMOs_LS_1;IMOS2++)     // k
+   {
+    for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)   // Initialize s
+    {
+     Dijks_Prims[IPRIM3]=CZERO;
+    }
+    // Change l for fixed ijk
+    for(IMOS3=0;IMOS3<NMOs_LS_1;IMOS3++)    // l
+    {
+     // Change l -> s for fixed ijk
+     for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)  // s
+     {
+      Dijks_Prims[IPRIM3]=Dijks_Prims[IPRIM3]+Dijkl_MOsLS[IMOS+IMOS1*NMOs_LS_1+IMOS2*NMOs_LS_2+IMOS3*NMOs_LS_3]*Prim2MO_Coef[IMOS3][IPRIM3]; 
+     }
+    }
+    // Change k -> r for fixed ij
+    for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)   // s
+    {
+     for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)  // r
+     {
+      Dijrs_Prims[IPRIM2+IPRIM3*Nprims1]=Dijrs_Prims[IPRIM2+IPRIM3*Nprims1]+Dijks_Prims[IPRIM3]*Prim2MO_Coef[IMOS2][IPRIM2];
+     }
+    }
+   }
+   // Change j -> q for fixed i
+   for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)    // s
+   {
+    for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)   // r
+    {
+     for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)  // q
+     {
+      Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]=Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]
+      +Dijrs_Prims[IPRIM2+IPRIM3*Nprims1]*conj(Prim2MO_Coef[IMOS1][IPRIM1]);
+     }
+    }
+   }
+  }
+  // TODO: Reduce symetry and permutation!
+  // Change i -> p
+  for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)    // s
+  {
+   for(IPRIM2=0;IPRIM2<Nprims1;IPRIM2++)   // r
+   {
+    for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)  // q
+    {
+     for(IPRIM=0;IPRIM<Nprims1;IPRIM++)    // p
+     {
+      Dpqrs=Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]*conj(Prim2MO_Coef[IMOS][IPRIM]);
+      if(abs(Dpqrs.real())>pow(TEN,-TEN))
+      {
+       Nterms_printed++;
+       Dpqrs_re=Dpqrs.real();
+       index_primitive[0]=IPRIM+1;index_primitive[1]=IPRIM1+1;index_primitive_prime[0]=IPRIM2+1;index_primitive_prime[1]=IPRIM3+1;
+       output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+       output_data.write((char*) &index_primitive[0], sizeof(index_primitive[0]));
+       output_data.write((char*) &index_primitive[1], sizeof(index_primitive[1]));
+       output_data.write((char*) &index_primitive_prime[0], sizeof(index_primitive_prime[0]));
+       output_data.write((char*) &index_primitive_prime[1], sizeof(index_primitive_prime[1]));
+       output_data.write((char*) &Dpqrs_re, sizeof(Dpqrs_re));
+       output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+      }
+     }
+    }
+   }
+  }
+ } 
+ Dpqrs_re=ZERO;
+ index_primitive[0]=0;index_primitive[1]=0;index_primitive_prime[0]=0;index_primitive_prime[1]=0;
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.write((char*) &index_primitive[0], sizeof(index_primitive[0]));
+ output_data.write((char*) &index_primitive[1], sizeof(index_primitive[1]));
+ output_data.write((char*) &index_primitive_prime[0], sizeof(index_primitive_prime[0]));
+ output_data.write((char*) &index_primitive_prime[1], sizeof(index_primitive_prime[1]));
+ output_data.write((char*) &Dpqrs_re, sizeof(Dpqrs_re));
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.close();
+ cout<<"Finished writing the transformed-complex 2-RDM index_Prims in the primitives basis"<<endl;
+ cout<<"Num. of printed terms: "<<setw(12)<<Nterms_printed<<endl;
+ cout<<endl;
+ delete[] Dijks_Prims;Dijks_Prims=NULL;
+ delete[] Dijrs_Prims;Dijrs_Prims=NULL;
+ delete[] Diqrs_Prims;Diqrs_Prims=NULL;
+}  
+
+void transform_Dijkl2Dpqrs_cplx()
 {
  int index_primitive[2],index_primitive_prime[2];
  long int IMOS,IMOS1,IMOS2,IMOS3;        // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
@@ -1269,7 +1433,7 @@ void transform_Dijkl2Dpqrs()
  }
  cout<<" for the index transformation."<<endl; 
  cout<<endl;
- cout<<"Start writing the transformed-complex 2-RDM elements in the primitives basis"<<endl;
+ cout<<"Start writing the transformed-complex 2-RDM index_Prims in the primitives basis"<<endl;
  string name="Conv_cplx_"+dirac_output_name+"dm2";
  ofstream output_data(name.c_str(),ios::binary);
  Dijks_Prims=new complex<double>[Nprims1];
@@ -1368,10 +1532,131 @@ void transform_Dijkl2Dpqrs()
  output_data.write((char*) &Dpqrs_im, sizeof(Dpqrs_im));
  output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
  output_data.close();
- cout<<"Finished writing the transformed-complex 2-RDM elements in the primitives basis"<<endl;
+ cout<<"Finished writing the transformed-complex 2-RDM index_Prims in the primitives basis"<<endl;
  cout<<"Num. of printed terms: "<<setw(12)<<Nterms_printed<<endl;
  cout<<endl;
  delete[] Dijks_Prims;Dijks_Prims=NULL;
  delete[] Dijrs_Prims;Dijrs_Prims=NULL;
  delete[] Diqrs_Prims;Diqrs_Prims=NULL;
 }  
+
+void reduce_getreal_print()
+{
+ int index_Prim[2],index_Prim_prime[2];
+ long int IPRIM,IPRIM1,IPRIM2,IPRIM3,IPRIM4;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
+ double Dijkl_Prim_RE,Dijkl_Prim_IM,Dpqrs;
+ string conv_name="Conv_cplx_"+dirac_output_name+"dm2";
+ Dpqrs_ALL=new complex<double>[Nprims4];
+ ifstream input_data2(conv_name.c_str(),ios::binary);
+ cout<<endl;
+ index_Prim[0]=10;index_Prim[1]=10;index_Prim_prime[0]=10;index_Prim_prime[1]=10;
+ cout<<"Reading the transformed 2-RDM index_Prims from "<<conv_name<<endl;
+ while(index_Prim[0]!=0 || index_Prim[1]!=0 || index_Prim_prime[0]!=0 || index_Prim_prime[1]!=0)
+ {
+  input_data2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+  input_data2.read((char*) &index_Prim[0], sizeof(index_Prim[0]));
+  input_data2.read((char*) &index_Prim[1], sizeof(index_Prim[1]));
+  input_data2.read((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+  input_data2.read((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+  input_data2.read((char*) &Dijkl_Prim_RE, sizeof(Dijkl_Prim_RE));
+  input_data2.read((char*) &Dijkl_Prim_IM, sizeof(Dijkl_Prim_IM));
+  input_data2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+  complex<double>ztmpPRIM(Dijkl_Prim_RE,Dijkl_Prim_IM);
+  if(abs(ztmpPRIM)!=ZERO && index_Prim[0]!=0 && index_Prim[1]!=0 && index_Prim_prime[0]!=0 && index_Prim_prime[1]!=0)
+  {
+   index_Prim[0]=index_Prim[0]-1;index_Prim[1]=index_Prim[1]-1;index_Prim_prime[0]=index_Prim_prime[0]-1;index_Prim_prime[1]=index_Prim_prime[1]-1;
+   Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]= 
+   Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]+ztmpPRIM;
+   index_Prim[0]=index_Prim[0]+1;index_Prim[1]=index_Prim[1]+1;index_Prim_prime[0]=index_Prim_prime[0]+1;index_Prim_prime[1]=index_Prim_prime[1]+1;
+  }
+ }
+ input_data2.close();
+ // Reduce
+ cout<<"Reducing the p <-> r and q <-> s terms"<<endl;
+ for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
+ {
+  IPRIM1=(IPRIM/Nprims3);
+  IPRIM2=((IPRIM-IPRIM1*Nprims3)/Nprims2);
+  IPRIM3=((IPRIM-IPRIM2*Nprims2-IPRIM1*Nprims3)/Nprims1);
+  IPRIM4=(IPRIM-IPRIM3*Nprims1-IPRIM2*Nprims2-IPRIM1*Nprims3);
+  if(IPRIM4!=IPRIM2 && IPRIM3!=IPRIM1)
+  {
+   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
+                 +Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]
+                 +Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]
+                 +Dpqrs_ALL[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3];
+   Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=CZERO;
+   Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=CZERO;
+   Dpqrs_ALL[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3]=CZERO;
+  }
+  if(IPRIM4!=IPRIM2 && IPRIM3==IPRIM1)
+  {
+   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
+                 +Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3];
+   Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=CZERO;
+  }
+  if(IPRIM4==IPRIM2 && IPRIM3!=IPRIM1)
+  {
+   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
+                 +Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3];
+   Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=CZERO;
+  }
+ }
+ // Debug
+ /*
+ for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
+ {
+  IPRIM1=(IPRIM/Nprims3);
+  IPRIM2=((IPRIM-IPRIM1*Nprims3)/Nprims2);
+  IPRIM3=((IPRIM-IPRIM2*Nprims2-IPRIM1*Nprims3)/Nprims1);
+  IPRIM4=(IPRIM-IPRIM3*Nprims1-IPRIM2*Nprims2-IPRIM1*Nprims3);
+  if(abs(Dpqrs_ALL[IPRIM].imag())>pow(TEN,-TEN))
+  {
+   cout<<setw(5)<<IPRIM4+1<<setw(5)<<IPRIM3+1<<setw(5)<<IPRIM2+1<<setw(5)<<IPRIM1+1;
+   cout<<setprecision(15)<<fixed<<scientific<<setw(28)<<Dpqrs_ALL[IPRIM].real()<<setw(28)<<Dpqrs_ALL[IPRIM].imag()<<endl;
+  }
+ }
+ */
+ // Print
+ cout<<"Printing the reduced (real) transformed 2-RDM"<<endl;
+ conv_name="Conv_"+dirac_output_name+"dm2";
+ ofstream output_data(conv_name.c_str(),ios::binary);
+ for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
+ {
+  Dpqrs=Dpqrs_ALL[IPRIM].real();
+  if(abs(Dpqrs)>=pow(TEN,-TEN))
+  {
+   index_Prim_prime[1]=(int)(IPRIM/Nprims3);
+   index_Prim_prime[0]=(int)((IPRIM-index_Prim_prime[1]*Nprims3)/Nprims2);
+   index_Prim[1]=(int)((IPRIM-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3)/Nprims1);
+   index_Prim[0]=(int)(IPRIM-index_Prim[1]*Nprims1-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3);
+   if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]))
+   {
+    Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=CZERO;
+    Dpqrs_ALL[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=CZERO;
+   }
+   index_Prim[0]++;index_Prim[1]++;index_Prim_prime[0]++;index_Prim_prime[1]++;
+   output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+   output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
+   output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
+   output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+   output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+   output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
+   output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+  }
+ }
+ index_Prim[0]=0;
+ index_Prim[1]=0;
+ index_Prim_prime[0]=0;
+ index_Prim_prime[1]=0;
+ Dpqrs=ZERO;
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
+ output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
+ output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+ output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+ output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.close();
+ delete[] Dpqrs_ALL;Dpqrs_ALL=NULL;
+}
