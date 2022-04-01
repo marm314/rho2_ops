@@ -1173,10 +1173,10 @@ void transform_Dijkl2Dpqrs()
      for(IPRIM=0;IPRIM<Nprims1;IPRIM++)    // p
      {
       Dpqrs=Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]*conj(Prim2MO_Coef[IMOS][IPRIM]);
-      if(abs(Dpqrs.real())>pow(TEN,-TEN))
+      Dpqrs_re=Dpqrs.real();
+      if(abs(Dpqrs_re)>pow(TEN,-TEN))
       {
        Nterms_printed++;
-       Dpqrs_re=Dpqrs.real();
        index_primitive[0]=IPRIM+1;index_primitive[1]=IPRIM1+1;index_primitive_prime[0]=IPRIM2+1;index_primitive_prime[1]=IPRIM3+1;
        output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
        output_data.write((char*) &index_primitive[0], sizeof(index_primitive[0]));
@@ -1190,7 +1190,7 @@ void transform_Dijkl2Dpqrs()
     }
    }
   }
- } 
+ }
  Dpqrs_re=ZERO;
  index_primitive[0]=0;index_primitive[1]=0;index_primitive_prime[0]=0;index_primitive_prime[1]=0;
  output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
