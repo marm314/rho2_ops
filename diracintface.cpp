@@ -22,10 +22,12 @@ void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cM
 void transform_Dijkl2Dpqrs();
 void transform_Dijkl2Dpqrs_cplx();
 void reduce_getreal_print();
+void reduce_print();
 
 // Global variables
 complex<double>CZERO=(ZERO,ZERO);
-int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,OneMO_wfx=-1,select_arg4=0;
+int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,Largest_Prim;
+int OneMO_wfx=-1,select_arg4=0;
 long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4,Nterms_printed=0;
 long int Nprims1,Nprims2,Nprims3,Nprims4;       // Powers of Nprimitives
 int RECORD_DELIMITER_LENGTH=4;
@@ -38,8 +40,9 @@ struct Shell2AOs
 Shell2AOs *shell2aos;
 double Quaternion_coef[4];
 double *OCCs,**Prim2AO_Coef;
+double *Dpqrs_ALL;
 complex<double> **AO2MO_Coef,**Prim2MO_Coef;
-complex<double> *Dpqrs_ALL;
+complex<double> *Dpqrs_ALL_cplx;
 double *Dijkl_MOsLS;
 string dirac_output_name,dirac_output_file,dm2_file;
 vector<int>shell_types;
@@ -1036,6 +1039,9 @@ void read_2rdm4cMO_and_transf()
  {
   // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives) real
   transform_Dijkl2Dpqrs();
+  delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
+  // Reduce symmetry elements and print it 
+  reduce_print();
  }
 }
 
@@ -1073,11 +1079,12 @@ void transform_Dijkl2Dpqrs()
  double Dpqrs_re,MEM;
  complex<double>Dpqrs;
  complex<double> *Diqrs_Prims,*Dijrs_Prims,*Dijks_Prims;
+ Largest_Prim=-1;
  Nprims1=Nprimitives; 
  Nprims2=Nprims1*Nprimitives; 
  Nprims3=Nprims2*Nprimitives;
  Nprims4=Nprims3*Nprimitives;
- MEM=EIGHT*(TWO*(Nprims1+Nprims2+Nprims3)+NMOs_LS_4)/pow(TEN,NINE);
+ MEM=EIGHT*((TWO*Nprims1+FOUR*Nprims2+EIGHT*Nprims3)+NMOs_LS_4)/pow(TEN,NINE);
  cout<<setprecision(2)<<fixed;
  cout<<"Memory required ";
  if(MEM>pow(TEN,THREE))
@@ -1178,6 +1185,10 @@ void transform_Dijkl2Dpqrs()
       {
        Nterms_printed++;
        index_primitive[0]=IPRIM+1;index_primitive[1]=IPRIM1+1;index_primitive_prime[0]=IPRIM2+1;index_primitive_prime[1]=IPRIM3+1;
+       if(index_primitive[0]>Largest_Prim){Largest_Prim=index_primitive[0];}
+       if(index_primitive[1]>Largest_Prim){Largest_Prim=index_primitive[1];}
+       if(index_primitive_prime[0]>Largest_Prim){Largest_Prim=index_primitive_prime[0];}
+       if(index_primitive_prime[0]>Largest_Prim){Largest_Prim=index_primitive_prime[1];}
        output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
        output_data.write((char*) &index_primitive[0], sizeof(index_primitive[0]));
        output_data.write((char*) &index_primitive[1], sizeof(index_primitive[1]));
@@ -1203,6 +1214,16 @@ void transform_Dijkl2Dpqrs()
  output_data.close();
  cout<<"Finished writing the transformed-complex 2-RDM index_Prims in the primitives basis"<<endl;
  cout<<"Num. of printed terms: "<<setw(12)<<Nterms_printed<<endl;
+ cout<<"Largest prim. in use : "<<setw(12)<<Largest_Prim<<endl;
+ if(Largest_Prim<Nprimitives)
+ {
+  cout<<"Overwriting Nprimitives variable with largest prim. in use"<<endl;
+  Nprimitives=Largest_Prim;
+  Nprims1=Nprimitives; 
+  Nprims2=Nprims1*Nprimitives; 
+  Nprims3=Nprims2*Nprimitives;
+  Nprims4=Nprims3*Nprimitives;
+ }
  cout<<endl;
  delete[] Dijks_Prims;Dijks_Prims=NULL;
  delete[] Dijrs_Prims;Dijrs_Prims=NULL;
@@ -1218,11 +1239,12 @@ void transform_Dijkl2Dpqrs_cplx()
  double Dpqrs_re,Dpqrs_im,MEM;
  complex<double>Dpqrs;
  complex<double> *Diqrs_Prims,*Dijrs_Prims,*Dijks_Prims;
+ Largest_Prim=-1;
  Nprims1=Nprimitives; 
  Nprims2=Nprims1*Nprimitives; 
  Nprims3=Nprims2*Nprimitives;
  Nprims4=Nprims3*Nprimitives;
- MEM=EIGHT*(TWO*(Nprims1+Nprims2+Nprims3)+NMOs_LS_4)/pow(TEN,NINE);
+ MEM=EIGHT*((TWO*Nprims1+FOUR*Nprims2+EIGHT*Nprims3)+NMOs_LS_4)/pow(TEN,NINE);
  cout<<setprecision(2)<<fixed;
  cout<<"Memory required ";
  if(MEM>pow(TEN,THREE))
@@ -1322,6 +1344,10 @@ void transform_Dijkl2Dpqrs_cplx()
        Dpqrs_re=Dpqrs.real();
        Dpqrs_im=Dpqrs.imag();
        index_primitive[0]=IPRIM+1;index_primitive[1]=IPRIM1+1;index_primitive_prime[0]=IPRIM2+1;index_primitive_prime[1]=IPRIM3+1;
+       if(index_primitive[0]>Largest_Prim){Largest_Prim=index_primitive[0];}
+       if(index_primitive[1]>Largest_Prim){Largest_Prim=index_primitive[1];}
+       if(index_primitive_prime[0]>Largest_Prim){Largest_Prim=index_primitive_prime[0];}
+       if(index_primitive_prime[0]>Largest_Prim){Largest_Prim=index_primitive_prime[1];}
        output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
        output_data.write((char*) &index_primitive[0], sizeof(index_primitive[0]));
        output_data.write((char*) &index_primitive[1], sizeof(index_primitive[1]));
@@ -1350,20 +1376,58 @@ void transform_Dijkl2Dpqrs_cplx()
  output_data.close();
  cout<<"Finished writing the transformed-complex 2-RDM index_Prims in the primitives basis"<<endl;
  cout<<"Num. of printed terms: "<<setw(12)<<Nterms_printed<<endl;
+ cout<<"Largest prim. in use : "<<setw(12)<<Largest_Prim<<endl;
+ if(Largest_Prim<Nprimitives)
+ {
+  cout<<"Overwriting Nprimitives variable with largest prim. in use"<<endl;
+  Nprimitives=Largest_Prim;
+  Nprims1=Nprimitives; 
+  Nprims2=Nprims1*Nprimitives; 
+  Nprims3=Nprims2*Nprimitives;
+  Nprims4=Nprims3*Nprimitives;
+ }
  cout<<endl;
  delete[] Dijks_Prims;Dijks_Prims=NULL;
  delete[] Dijrs_Prims;Dijrs_Prims=NULL;
  delete[] Diqrs_Prims;Diqrs_Prims=NULL;
 }  
 
-// Read the 2-RDM in primitive basis and reduceusing symmetry 
+// Read the 2-RDM in primitive basis, reduce it using symmetry, and print it real
 void reduce_getreal_print()
 {
  int index_Prim[2],index_Prim_prime[2];
  long int IPRIM,IPRIM1,IPRIM2,IPRIM3,IPRIM4;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
- double Dijkl_Prim_RE,Dijkl_Prim_IM,Dpqrs;
+ double Dpqrs_Prim_RE,Dpqrs_Prim_IM,Dpqrs,MEM;
  string conv_name="Conv_cplx_"+dirac_output_name+"dm2";
- Dpqrs_ALL=new complex<double>[Nprims4];
+ MEM=EIGHT*(TWO*EIGHT*Nprims4)/pow(TEN,NINE);
+ cout<<setprecision(2)<<fixed;
+ cout<<"Memory required ";
+ if(MEM>pow(TEN,THREE))
+ {
+  cout<<setw(10)<<MEM/pow(TEN,THREE)<<" Tb.";
+ }
+ else
+ {
+  if(MEM>ONE)
+  {
+   cout<<setw(10)<<MEM<<" Gb.";
+  }
+  else
+  {
+   if(MEM<ONE && MEM>pow(TEN,-THREE))
+   {
+    cout<<setw(10)<<MEM*pow(TEN,THREE)<<" Mb.";
+   }
+   else
+   {
+    cout<<setw(10)<<MEM*pow(TEN,SIX)<<" Kb.";
+   }
+  }
+ }
+ cout<<" for the reduction."<<endl; 
+ cout<<"Num. of 2-RDM elem.  : "<<setw(12)<<Nprims4<<endl;
+ cout<<endl;
+ Dpqrs_ALL_cplx=new complex<double>[Nprims4];
  ifstream input_data2(conv_name.c_str(),ios::binary);
  cout<<endl;
  index_Prim[0]=10;index_Prim[1]=10;index_Prim_prime[0]=10;index_Prim_prime[1]=10;
@@ -1375,15 +1439,15 @@ void reduce_getreal_print()
   input_data2.read((char*) &index_Prim[1], sizeof(index_Prim[1]));
   input_data2.read((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
   input_data2.read((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
-  input_data2.read((char*) &Dijkl_Prim_RE, sizeof(Dijkl_Prim_RE));
-  input_data2.read((char*) &Dijkl_Prim_IM, sizeof(Dijkl_Prim_IM));
+  input_data2.read((char*) &Dpqrs_Prim_RE, sizeof(Dpqrs_Prim_RE));
+  input_data2.read((char*) &Dpqrs_Prim_IM, sizeof(Dpqrs_Prim_IM));
   input_data2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
-  complex<double>ztmpPRIM(Dijkl_Prim_RE,Dijkl_Prim_IM);
+  complex<double>ztmpPRIM(Dpqrs_Prim_RE,Dpqrs_Prim_IM);
   if(abs(ztmpPRIM)!=ZERO && index_Prim[0]!=0 && index_Prim[1]!=0 && index_Prim_prime[0]!=0 && index_Prim_prime[1]!=0)
   {
    index_Prim[0]=index_Prim[0]-1;index_Prim[1]=index_Prim[1]-1;index_Prim_prime[0]=index_Prim_prime[0]-1;index_Prim_prime[1]=index_Prim_prime[1]-1;
-   Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]= 
-   Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]+ztmpPRIM;
+   Dpqrs_ALL_cplx[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]= 
+   Dpqrs_ALL_cplx[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]+ztmpPRIM;
    index_Prim[0]=index_Prim[0]+1;index_Prim[1]=index_Prim[1]+1;index_Prim_prime[0]=index_Prim_prime[0]+1;index_Prim_prime[1]=index_Prim_prime[1]+1;
   }
  }
@@ -1398,25 +1462,25 @@ void reduce_getreal_print()
   IPRIM4=(IPRIM-IPRIM3*Nprims1-IPRIM2*Nprims2-IPRIM1*Nprims3);
   if(IPRIM4!=IPRIM2 && IPRIM3!=IPRIM1)
   {
-   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
-                 +Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]
-                 +Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]
-                 +Dpqrs_ALL[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3];
-   Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=CZERO;
-   Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=CZERO;
-   Dpqrs_ALL[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3]=CZERO;
+   Dpqrs_ALL_cplx[IPRIM]=Dpqrs_ALL_cplx[IPRIM]
+                 +Dpqrs_ALL_cplx[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]
+                 +Dpqrs_ALL_cplx[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]
+                 +Dpqrs_ALL_cplx[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3];
+   Dpqrs_ALL_cplx[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=CZERO;
+   Dpqrs_ALL_cplx[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=CZERO;
+   Dpqrs_ALL_cplx[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3]=CZERO;
   }
   if(IPRIM4!=IPRIM2 && IPRIM3==IPRIM1)
   {
-   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
-                 +Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3];
-   Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=CZERO;
+   Dpqrs_ALL_cplx[IPRIM]=Dpqrs_ALL_cplx[IPRIM]
+                 +Dpqrs_ALL_cplx[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3];
+   Dpqrs_ALL_cplx[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=CZERO;
   }
   if(IPRIM4==IPRIM2 && IPRIM3!=IPRIM1)
   {
-   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
-                 +Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3];
-   Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=CZERO;
+   Dpqrs_ALL_cplx[IPRIM]=Dpqrs_ALL_cplx[IPRIM]
+                 +Dpqrs_ALL_cplx[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3];
+   Dpqrs_ALL_cplx[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=CZERO;
   }
  }
  // Debug
@@ -1440,7 +1504,7 @@ void reduce_getreal_print()
  ofstream output_data(conv_name.c_str(),ios::binary);
  for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
  {
-  Dpqrs=Dpqrs_ALL[IPRIM].real();
+  Dpqrs=Dpqrs_ALL_cplx[IPRIM].real();
   if(abs(Dpqrs)>=pow(TEN,-TEN))
   {
    index_Prim_prime[1]=(int)(IPRIM/Nprims3);
@@ -1449,8 +1513,156 @@ void reduce_getreal_print()
    index_Prim[0]=(int)(IPRIM-index_Prim[1]*Nprims1-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3);
    if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]))
    {
-    Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=CZERO;
-    Dpqrs_ALL[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=CZERO;
+    Dpqrs_ALL_cplx[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=CZERO;
+    Dpqrs_ALL_cplx[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=CZERO;
+   }
+   index_Prim[0]++;index_Prim[1]++;index_Prim_prime[0]++;index_Prim_prime[1]++;
+   output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+   output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
+   output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
+   output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+   output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+   output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
+   output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+  }
+ }
+ index_Prim[0]=0;
+ index_Prim[1]=0;
+ index_Prim_prime[0]=0;
+ index_Prim_prime[1]=0;
+ Dpqrs=ZERO;
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
+ output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
+ output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+ output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+ output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.close();
+ delete[] Dpqrs_ALL_cplx;Dpqrs_ALL_cplx=NULL;
+}
+
+// Read the 2-RDM in primitive basis, reduce it using symmetry, and print it real
+void reduce_print()
+{
+ int index_Prim[2],index_Prim_prime[2];
+ long int IPRIM,IPRIM1,IPRIM2,IPRIM3,IPRIM4;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
+ double Dpqrs,MEM;
+ string conv_name="Conv_"+dirac_output_name+"dm2";
+ MEM=EIGHT*Nprims4/pow(TEN,NINE);
+ cout<<setprecision(2)<<fixed;
+ cout<<"Memory required ";
+ if(MEM>pow(TEN,THREE))
+ {
+  cout<<setw(10)<<MEM/pow(TEN,THREE)<<" Tb.";
+ }
+ else
+ {
+  if(MEM>ONE)
+  {
+   cout<<setw(10)<<MEM<<" Gb.";
+  }
+  else
+  {
+   if(MEM<ONE && MEM>pow(TEN,-THREE))
+   {
+    cout<<setw(10)<<MEM*pow(TEN,THREE)<<" Mb.";
+   }
+   else
+   {
+    cout<<setw(10)<<MEM*pow(TEN,SIX)<<" Kb.";
+   }
+  }
+ }
+ cout<<" for the reduction."<<endl; 
+ cout<<"Num. of 2-RDM elem.  : "<<setw(12)<<Nprims4<<endl;
+ cout<<endl;
+ Dpqrs_ALL=new double[Nprims4];
+ ifstream input_data2(conv_name.c_str(),ios::binary);
+ cout<<endl;
+ index_Prim[0]=10;index_Prim[1]=10;index_Prim_prime[0]=10;index_Prim_prime[1]=10;
+ cout<<"Reading the transformed 2-RDM index_Prims from "<<conv_name<<endl;
+ while(index_Prim[0]!=0 || index_Prim[1]!=0 || index_Prim_prime[0]!=0 || index_Prim_prime[1]!=0)
+ {
+  input_data2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+  input_data2.read((char*) &index_Prim[0], sizeof(index_Prim[0]));
+  input_data2.read((char*) &index_Prim[1], sizeof(index_Prim[1]));
+  input_data2.read((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+  input_data2.read((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+  input_data2.read((char*) &Dpqrs, sizeof(Dpqrs));
+  input_data2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+  if(abs(Dpqrs)!=ZERO && index_Prim[0]!=0 && index_Prim[1]!=0 && index_Prim_prime[0]!=0 && index_Prim_prime[1]!=0)
+  {
+   index_Prim[0]=index_Prim[0]-1;index_Prim[1]=index_Prim[1]-1;index_Prim_prime[0]=index_Prim_prime[0]-1;index_Prim_prime[1]=index_Prim_prime[1]-1;
+   Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]= 
+   Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]+Dpqrs;
+   index_Prim[0]=index_Prim[0]+1;index_Prim[1]=index_Prim[1]+1;index_Prim_prime[0]=index_Prim_prime[0]+1;index_Prim_prime[1]=index_Prim_prime[1]+1;
+  }
+ }
+ input_data2.close();
+ // Reduce
+ cout<<"Reducing the p <-> r and q <-> s terms"<<endl;
+ for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
+ {
+  IPRIM1=(IPRIM/Nprims3);
+  IPRIM2=((IPRIM-IPRIM1*Nprims3)/Nprims2);
+  IPRIM3=((IPRIM-IPRIM2*Nprims2-IPRIM1*Nprims3)/Nprims1);
+  IPRIM4=(IPRIM-IPRIM3*Nprims1-IPRIM2*Nprims2-IPRIM1*Nprims3);
+  if(IPRIM4!=IPRIM2 && IPRIM3!=IPRIM1)
+  {
+   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
+                 +Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]
+                 +Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]
+                 +Dpqrs_ALL[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3];
+   Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=ZERO;
+   Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=ZERO;
+   Dpqrs_ALL[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3]=ZERO;
+  }
+  if(IPRIM4!=IPRIM2 && IPRIM3==IPRIM1)
+  {
+   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
+                 +Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3];
+   Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=ZERO;
+  }
+  if(IPRIM4==IPRIM2 && IPRIM3!=IPRIM1)
+  {
+   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
+                 +Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3];
+   Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=ZERO;
+  }
+ }
+ // Debug
+ /*
+ for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
+ {
+  IPRIM1=(IPRIM/Nprims3);
+  IPRIM2=((IPRIM-IPRIM1*Nprims3)/Nprims2);
+  IPRIM3=((IPRIM-IPRIM2*Nprims2-IPRIM1*Nprims3)/Nprims1);
+  IPRIM4=(IPRIM-IPRIM3*Nprims1-IPRIM2*Nprims2-IPRIM1*Nprims3);
+  if(abs(Dpqrs_ALL[IPRIM].imag())>pow(TEN,-TEN))
+  {
+   cout<<setw(5)<<IPRIM4+1<<setw(5)<<IPRIM3+1<<setw(5)<<IPRIM2+1<<setw(5)<<IPRIM1+1;
+   cout<<setprecision(15)<<fixed<<scientific<<setw(28)<<Dpqrs_ALL[IPRIM]<<setw(28)<<endl;
+  }
+ }
+ */
+ // Print
+ cout<<"Printing the reduced transformed 2-RDM"<<endl;
+ conv_name="Conv_"+dirac_output_name+"dm2";
+ ofstream output_data(conv_name.c_str(),ios::binary);
+ for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
+ {
+  Dpqrs=Dpqrs_ALL[IPRIM];
+  if(abs(Dpqrs)>=pow(TEN,-TEN))
+  {
+   index_Prim_prime[1]=(int)(IPRIM/Nprims3);
+   index_Prim_prime[0]=(int)((IPRIM-index_Prim_prime[1]*Nprims3)/Nprims2);
+   index_Prim[1]=(int)((IPRIM-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3)/Nprims1);
+   index_Prim[0]=(int)(IPRIM-index_Prim[1]*Nprims1-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3);
+   if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]))
+   {
+    Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=ZERO;
+    Dpqrs_ALL[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=ZERO;
    }
    index_Prim[0]++;index_Prim[1]++;index_Prim_prime[0]++;index_Prim_prime[1]++;
    output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
