@@ -985,11 +985,38 @@ void read_2rdm4cMO_and_transf()
 {
  int index_4cMO[2]={10,10},index_4cMO_prime[2]={10,10};
  long int IMOS; // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
- double Dijkl_4cMO,Trace=ZERO;
+ double Dijkl_4cMO,Trace=ZERO,MEM;
  NMOs_LS_1=NMOs_occ;
  NMOs_LS_2=NMOs_LS_1*NMOs_occ;
  NMOs_LS_3=NMOs_LS_2*NMOs_occ;
  NMOs_LS_4=NMOs_LS_3*NMOs_occ;
+ MEM=EIGHT*NMOs_LS_4/pow(TEN,NINE);
+ cout<<setprecision(2)<<fixed;
+ cout<<"Memory required ";
+ if(MEM>pow(TEN,THREE))
+ {
+  cout<<setw(10)<<MEM/pow(TEN,THREE)<<" Tb.";
+ }
+ else
+ {
+  if(MEM>ONE)
+  {
+   cout<<setw(10)<<MEM<<" Gb.";
+  }
+  else
+  {
+   if(MEM<ONE && MEM>pow(TEN,-THREE))
+   {
+    cout<<setw(10)<<MEM*pow(TEN,THREE)<<" Mb.";
+   }
+   else
+   {
+    cout<<setw(10)<<MEM*pow(TEN,SIX)<<" Kb.";
+   }
+  }
+ }
+ cout<<" for storing the Scalar occupied (LS) 2-RDM."<<endl;
+ cout<<endl;
  Dijkl_MOsLS=new double[NMOs_LS_4];
  for(IMOS=0;IMOS<NMOs_LS_4;IMOS++){Dijkl_MOsLS[IMOS]=ZERO;} 
  ifstream input_data(dm2_file.c_str(),ios::binary);
@@ -1084,7 +1111,7 @@ void transform_Dijkl2Dpqrs()
  Nprims2=Nprims1*Nprimitives; 
  Nprims3=Nprims2*Nprimitives;
  Nprims4=Nprims3*Nprimitives;
- MEM=EIGHT*((TWO*Nprims1+FOUR*Nprims2+EIGHT*Nprims3)+NMOs_LS_4)/pow(TEN,NINE);
+ MEM=EIGHT*(TWO*Nprims1+FOUR*Nprims2+EIGHT*Nprims3)/pow(TEN,NINE);
  cout<<setprecision(2)<<fixed;
  cout<<"Memory required ";
  if(MEM>pow(TEN,THREE))
@@ -1244,7 +1271,7 @@ void transform_Dijkl2Dpqrs_cplx()
  Nprims2=Nprims1*Nprimitives; 
  Nprims3=Nprims2*Nprimitives;
  Nprims4=Nprims3*Nprimitives;
- MEM=EIGHT*((TWO*Nprims1+FOUR*Nprims2+EIGHT*Nprims3)+NMOs_LS_4)/pow(TEN,NINE);
+ MEM=EIGHT*(TWO*Nprims1+FOUR*Nprims2+EIGHT*Nprims3)/pow(TEN,NINE);
  cout<<setprecision(2)<<fixed;
  cout<<"Memory required ";
  if(MEM>pow(TEN,THREE))
@@ -1399,7 +1426,7 @@ void reduce_getreal_print()
  long int IPRIM,IPRIM1,IPRIM2,IPRIM3,IPRIM4;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
  double Dpqrs_Prim_RE,Dpqrs_Prim_IM,Dpqrs,MEM;
  string conv_name="Conv_cplx_"+dirac_output_name+"dm2";
- MEM=EIGHT*(TWO*EIGHT*Nprims4)/pow(TEN,NINE);
+ MEM=EIGHT*((TWO*EIGHT)*Nprims4)/pow(TEN,NINE);
  cout<<setprecision(2)<<fixed;
  cout<<"Memory required ";
  if(MEM>pow(TEN,THREE))
