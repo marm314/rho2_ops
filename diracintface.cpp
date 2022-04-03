@@ -1550,7 +1550,7 @@ void reduce_getreal_print()
  */
  // Print
  cout<<"Printing the reduced (real) transformed 2-RDM"<<endl;
- if(symmrr_prime){cout<<"keep only one term among orb_p(1) orb_q(2) orb_r(1) orb_s(2) = orb_q(2) orb_p(1) orb_s(2) orb_r(1)"<<endl;}
+ if(symmrr_prime){cout<<"keep only one term among prim_p(1) prim_q(2) prim_r(1) prim_s(2) = prim_q(2) prim_p(1) prim_s(2) prim_r(1)"<<endl;}
  conv_name="Conv_"+dirac_output_name+"dm2";
  ofstream output_data(conv_name.c_str(),ios::binary);
  for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
@@ -1700,7 +1700,7 @@ void reduce_print()
  */
  // Print
  cout<<"Printing the reduced transformed 2-RDM"<<endl;
- if(symmrr_prime){cout<<"keep only one term among orb_p(1) orb_q(2) orb_r(1) orb_s(2) = orb_q(2) orb_p(1) orb_s(2) orb_r(1)"<<endl;}
+ if(symmrr_prime){cout<<"keep only one term among prim_p(1) prim_q(2) prim_r(1) prim_s(2) = prim_q(2) prim_p(1) prim_s(2) prim_r(1)"<<endl;}
  conv_name="Conv_"+dirac_output_name+"dm2";
  ofstream output_data(conv_name.c_str(),ios::binary);
  for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
