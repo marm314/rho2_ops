@@ -26,6 +26,7 @@ void reduce_print();
 
 // Global variables
 complex<double>CZERO=(ZERO,ZERO);
+bool transf_cplx=false,symmrr_prime=true;
 int Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,Largest_Prim;
 int OneMO_wfx=-1,select_arg4=0;
 long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4,Nterms_printed=0;
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
   cout<<endl;
   cout<<"name_dirac.out name_dm2.dm2"<<endl;
   cout<<"or"<<endl;
-  cout<<"name_dirac.out name_dm2.dm2 argument4(integer: >0 orb selection, <0 transform_2RDM_cpplx)"<<endl;
+  cout<<"name_dirac.out name_dm2.dm2 argument4(integer: >0 orb selection, -1 transform_2RDM_cplx, -10 no rr'_symmetry)"<<endl;
   cout<<endl;
   cout<<"----------------------------------------"<<endl;
   cout<<"--        Normal termination          --"<<endl;
@@ -94,6 +95,14 @@ int main(int argc, char *argv[])
    OneMO_wfx=(OneMO_wfx-1)*4; // even->unbar, odd->bar
    cout<<"Orbital selection is swittched on. Scalar (LS) orbitals to print in the WFX file: ";
    cout<<setw(5)<<OneMO_wfx+1<<" to "<<setw(5)<<OneMO_wfx+4<<endl;
+  }
+  if(select_arg4==-1)
+  {
+   transf_cplx=true;
+  }
+  if(select_arg4==-10)
+  {
+   symmrr_prime=false;
   }
  }
  // Read Dirac output
@@ -249,11 +258,15 @@ int main(int argc, char *argv[])
  delete[] Prim2AO_Coef;Prim2AO_Coef=NULL;
  // Print the Prim2MO_Coef matrix (coefficients are rows). 
  // WARNING! Below we may overwrite the positronic states (initial ones) with the occ. electronic states (i.e. put them on top of the list)!
+ //
+ // Debug: Print coefs into the electronic.coef and positronic.coef file
+ /*
  ofstream coefs_file((dirac_output_name+"electronic.coef").c_str());
  ofstream coefs_file_pos((dirac_output_name+"positronic.coef").c_str());
- imos1=0;
  coefs_file<<setprecision(12)<<fixed<<scientific;
  coefs_file_pos<<setprecision(12)<<fixed<<scientific;
+ */
+ imos1=0;
  for(imos=0;imos<NMOs_LS;imos++)
  {
   if(OneMO_wfx!=-1 && OneMO_wfx==imos) // Check if we have to store this particular MO (plus the rest of components) for the WFX file
@@ -268,6 +281,7 @@ int main(int argc, char *argv[])
    }
    cout<<"Scalar (LS) orbitals selected for the WFX file from "<<setw(5)<<imos+1<<" to "<<setw(5)<<imos+4<<endl; 
   }
+ /* // Print positronic.coef file? Debug
   if(OCCs[imos]==-TEN) // Write positronic MO coefs to file
   {
    for(iprim=0;iprim<Nprimitives;iprim++)
@@ -275,20 +289,23 @@ int main(int argc, char *argv[])
     coefs_file_pos<<setw(20)<<Prim2MO_Coef[imos][iprim].real()<<setw(20)<<Prim2MO_Coef[imos][iprim].imag();
    }
   }
+ */
   if(OCCs[imos]>pow(TEN,-EIGHT)) // Overwrite positronic MO coefs with electronic ones and print the electronic ones
   {
    for(iprim=0;iprim<Nprimitives;iprim++)
    {
     Prim2MO_Coef[imos1][iprim]=Prim2MO_Coef[imos][iprim];
-    coefs_file<<setw(20)<<Prim2MO_Coef[imos1][iprim].real()<<setw(20)<<Prim2MO_Coef[imos1][iprim].imag();
+    //coefs_file<<setw(20)<<Prim2MO_Coef[imos1][iprim].real()<<setw(20)<<Prim2MO_Coef[imos1][iprim].imag(); // Print electronic coefs file? Debug
    }
    MOsLS_occ.push_back(OCCs[imos]);
    imos1++;
   }
  }
  NMOs_occ=imos1;
+ /*
  coefs_file.close();
  coefs_file_pos.close();
+ */
  cout<<"Num. of occ MO (Scalar): "<<setw(12)<<NMOs_occ<<endl;
  // Print a WFX file for RHO_OPS (currently only available for ATOMS) and delete OCCs array.
  if(OneMO_wfx==-1)
@@ -1054,7 +1071,7 @@ void read_2rdm4cMO_and_transf()
  cout<<"The 2-RDM index_Prims were read and stored in the Scalar (LS) MO basis"<<endl;
  cout<<"Trace of the 2-RDM stored: "<<setprecision(12)<<fixed<<scientific<<setw(17)<<Trace<<endl;
  cout<<endl;
- if(select_arg4!=0)
+ if(transf_cplx)
  {
   // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives) complex
   transform_Dijkl2Dpqrs_cplx();
@@ -1145,8 +1162,10 @@ void transform_Dijkl2Dpqrs()
  Dijks_Prims=new complex<double>[Nprims1];
  Dijrs_Prims=new complex<double>[Nprims2];
  Diqrs_Prims=new complex<double>[Nprims3];
+ cout<<endl;
  for(IMOS=0;IMOS<NMOs_LS_1;IMOS++)         // i
  {
+  cout<<"Transforming scalar MO "<<setw(5)<<IMOS+1<<"/"<<setw(5)<<NMOs_LS_1<<endl;
   for(IPRIM1=0;IPRIM1<Nprims3;IPRIM1++)    // Initialize qrs
   {
    Diqrs_Prims[IPRIM1]=CZERO;
@@ -1196,7 +1215,7 @@ void transform_Dijkl2Dpqrs()
     }
    }
   }
-  // TODO: Reduce symetry and permutation!
+  // TODO: Reduce symetry and permutation while we write?
   // Change i -> p
   for(IPRIM3=0;IPRIM3<Nprims1;IPRIM3++)    // s
   {
@@ -1239,6 +1258,7 @@ void transform_Dijkl2Dpqrs()
  output_data.write((char*) &Dpqrs_re, sizeof(Dpqrs_re));
  output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
  output_data.close();
+ cout<<endl;
  cout<<"Finished writing the transformed-complex 2-RDM index_Prims in the primitives basis"<<endl;
  cout<<"Num. of printed terms: "<<setw(12)<<Nterms_printed<<endl;
  cout<<"Largest prim. in use : "<<setw(12)<<Largest_Prim<<endl;
@@ -1304,8 +1324,10 @@ void transform_Dijkl2Dpqrs_cplx()
  Dijks_Prims=new complex<double>[Nprims1];
  Dijrs_Prims=new complex<double>[Nprims2];
  Diqrs_Prims=new complex<double>[Nprims3];
+ cout<<endl;
  for(IMOS=0;IMOS<NMOs_LS_1;IMOS++)         // i
  {
+  cout<<"Transforming scalar MO "<<setw(5)<<IMOS+1<<"/"<<setw(5)<<NMOs_LS_1<<endl;
   for(IPRIM1=0;IPRIM1<Nprims3;IPRIM1++)    // Initialize qrs
   {
    Diqrs_Prims[IPRIM1]=CZERO;
@@ -1401,6 +1423,7 @@ void transform_Dijkl2Dpqrs_cplx()
  output_data.write((char*) &Dpqrs_im, sizeof(Dpqrs_im));
  output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
  output_data.close();
+ cout<<endl;
  cout<<"Finished writing the transformed-complex 2-RDM index_Prims in the primitives basis"<<endl;
  cout<<"Num. of printed terms: "<<setw(12)<<Nterms_printed<<endl;
  cout<<"Largest prim. in use : "<<setw(12)<<Largest_Prim<<endl;
@@ -1527,6 +1550,7 @@ void reduce_getreal_print()
  */
  // Print
  cout<<"Printing the reduced (real) transformed 2-RDM"<<endl;
+ if(symmrr_prime){cout<<"keep only one term among orb_p(1) orb_q(2) orb_r(1) orb_s(2) = orb_q(2) orb_p(1) orb_s(2) orb_r(1)"<<endl;}
  conv_name="Conv_"+dirac_output_name+"dm2";
  ofstream output_data(conv_name.c_str(),ios::binary);
  for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
@@ -1538,7 +1562,8 @@ void reduce_getreal_print()
    index_Prim_prime[0]=(int)((IPRIM-index_Prim_prime[1]*Nprims3)/Nprims2);
    index_Prim[1]=(int)((IPRIM-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3)/Nprims1);
    index_Prim[0]=(int)(IPRIM-index_Prim[1]*Nprims1-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3);
-   if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]))
+   // Symmetry reduction?
+   if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]) && symmrr_prime)
    {
     Dpqrs_ALL_cplx[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=CZERO;
     Dpqrs_ALL_cplx[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=CZERO;
@@ -1675,6 +1700,7 @@ void reduce_print()
  */
  // Print
  cout<<"Printing the reduced transformed 2-RDM"<<endl;
+ if(symmrr_prime){cout<<"keep only one term among orb_p(1) orb_q(2) orb_r(1) orb_s(2) = orb_q(2) orb_p(1) orb_s(2) orb_r(1)"<<endl;}
  conv_name="Conv_"+dirac_output_name+"dm2";
  ofstream output_data(conv_name.c_str(),ios::binary);
  for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
@@ -1686,7 +1712,8 @@ void reduce_print()
    index_Prim_prime[0]=(int)((IPRIM-index_Prim_prime[1]*Nprims3)/Nprims2);
    index_Prim[1]=(int)((IPRIM-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3)/Nprims1);
    index_Prim[0]=(int)(IPRIM-index_Prim[1]*Nprims1-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3);
-   if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]))
+   // Symmetry reduction?
+   if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]) && symmrr_prime)
    {
     Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=ZERO;
     Dpqrs_ALL[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=ZERO;
