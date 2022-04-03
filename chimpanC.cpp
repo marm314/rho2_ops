@@ -586,7 +586,7 @@ int main(int argc, char *argv[])
     N3=N2*N2;
     N4=N3*N2;
     N5=N4*N2;
-    vector <double> Dijkl_term(N5,ZERO);
+    vector<double> Dijkl_term(N5,ZERO);
     cout<<"Storing of the spinless 2RDM..."<<endl;
     {
      ifstream input_data(name_dm2.c_str(),ios::binary);
@@ -1123,22 +1123,7 @@ int main(int argc, char *argv[])
     //Change done, proceed to print:
     cout<<"Change done!"<<endl;
     cout<<endl;
-    /* // Use for DEBUG
-    trace=ZERO;
-    for(ii=0;ii<N2;ii++)
-    {
-     for(jj=0;jj<N2;jj++)
-     {
-      if(abs(Dijkl_term[ii*(1+N3)+jj*(N2+N4)])>=threshold)
-      {
-       trace=trace+Dijkl_term[ii*(1+N3)+jj*(N2+N4)];
-      }
-     }
-    }
-    cout<<endl;
-    cout<<"Trace of the transformed 2RDM:  "<<setprecision(10)<<fixed<<scientific<<trace<<endl;
-    cout<<endl;
-    */
+    // Reduce the pr and qs elements
     if(reduce)
     {
      cout<<endl;

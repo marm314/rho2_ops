@@ -1533,21 +1533,6 @@ void reduce_getreal_print()
    Dpqrs_ALL_cplx[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=CZERO;
   }
  }
- // Debug
- /*
- for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
- {
-  IPRIM1=(IPRIM/Nprims3);
-  IPRIM2=((IPRIM-IPRIM1*Nprims3)/Nprims2);
-  IPRIM3=((IPRIM-IPRIM2*Nprims2-IPRIM1*Nprims3)/Nprims1);
-  IPRIM4=(IPRIM-IPRIM3*Nprims1-IPRIM2*Nprims2-IPRIM1*Nprims3);
-  if(abs(Dpqrs_ALL[IPRIM].imag())>pow(TEN,-TEN))
-  {
-   cout<<setw(5)<<IPRIM4+1<<setw(5)<<IPRIM3+1<<setw(5)<<IPRIM2+1<<setw(5)<<IPRIM1+1;
-   cout<<setprecision(15)<<fixed<<scientific<<setw(28)<<Dpqrs_ALL[IPRIM].real()<<setw(28)<<Dpqrs_ALL[IPRIM].imag()<<endl;
-  }
- }
- */
  // Print
  cout<<"Printing the reduced (real) transformed 2-RDM"<<endl;
  if(symmrr_prime){cout<<"keep only one term among prim_p(1) prim_q(2) prim_r(1) prim_s(2) = prim_q(2) prim_p(1) prim_s(2) prim_r(1)"<<endl;}
@@ -1683,21 +1668,6 @@ void reduce_print()
    Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=ZERO;
   }
  }
- // Debug
- /*
- for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
- {
-  IPRIM1=(IPRIM/Nprims3);
-  IPRIM2=((IPRIM-IPRIM1*Nprims3)/Nprims2);
-  IPRIM3=((IPRIM-IPRIM2*Nprims2-IPRIM1*Nprims3)/Nprims1);
-  IPRIM4=(IPRIM-IPRIM3*Nprims1-IPRIM2*Nprims2-IPRIM1*Nprims3);
-  if(abs(Dpqrs_ALL[IPRIM].imag())>pow(TEN,-TEN))
-  {
-   cout<<setw(5)<<IPRIM4+1<<setw(5)<<IPRIM3+1<<setw(5)<<IPRIM2+1<<setw(5)<<IPRIM1+1;
-   cout<<setprecision(15)<<fixed<<scientific<<setw(28)<<Dpqrs_ALL[IPRIM]<<setw(28)<<endl;
-  }
- }
- */
  // Print
  cout<<"Printing the reduced transformed 2-RDM"<<endl;
  if(symmrr_prime){cout<<"keep only one term among prim_p(1) prim_q(2) prim_r(1) prim_s(2) = prim_q(2) prim_p(1) prim_s(2) prim_r(1)"<<endl;}
