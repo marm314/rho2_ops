@@ -12,6 +12,12 @@ echo " sha=\""$name"\";" >> gitver_new.cpp
 echo "}" >> gitver_new.cpp
 
 # Check if this gitver.cpp file is different (new SHA).
+if [ -f "gitver.cpp" ]
+then
+    echo "gitver.cpp exists"
+else
+    cp gitver_new.cpp gitver.cpp  
+fi
 DIFF=$(diff gitver_new.cpp gitver.cpp)
 if [ "$DIFF" != "" ] 
 then

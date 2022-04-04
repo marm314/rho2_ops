@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
  if(argc==5 || argc==6 || argc==7)
  {
   bool contractSP=false,use_dm2_iiii_aa=false,two_dm2_mat=false,reduce=false,all_dm2_are_given=false,red_sym=false;
-  int i,j,k,l,AO,nbasis,nbasis2,nprim_shell,stype,contr_coef,spcontr_coef,iprim,iprim_tot,smap,prim_exp,natoms;
+  int i,j,k,l,AO,nbasis,Nprimitives,nprim_shell,stype,contr_coef,spcontr_coef,iprim,iprim_tot,smap,prim_exp,natoms;
   int *shelltype,*nprim_per_shell,*shell_to_atom,*Atomic_Z,nucleous,**Quant;
   int pivot,element[2]={10},element_prime[2]={10};
   long int ii,jj,kk,ll,new_index,N2,N3,N4,N5,elementL[2]={10},element_primeL[2]={10},Ired,Jred,Kred,Lred;
@@ -270,40 +270,40 @@ int main(int argc, char *argv[])
     else{}
    }
    open_fchk.close();
-   //Compute the size of the basis in primitives (nbasis2):
-   nbasis2=0;
+   //Compute the size of the basis in primitives (Nprimitives):
+   Nprimitives=0;
    for(i=0;i<stype;i++)
    {
     if((shelltype[i]==0 || shelltype[i]==1) || (shelltype[i]==2 ||shelltype[i]==3))
     {
-     nbasis2=nbasis2+(shelltype[i]+1)*(shelltype[i]+2)*nprim_per_shell[i]/2;
+     Nprimitives=Nprimitives+(shelltype[i]+1)*(shelltype[i]+2)*nprim_per_shell[i]/2;
     }
     if(shelltype[i]==-1)
     {
-     nbasis2=nbasis2+4*nprim_per_shell[i]; // One s plus three p
+     Nprimitives=Nprimitives+4*nprim_per_shell[i]; // One s plus three p
     }
     if(shelltype[i]==-2)
     {
-     nbasis2=nbasis2+6*nprim_per_shell[i]; // Build using the 6D
+     Nprimitives=Nprimitives+6*nprim_per_shell[i]; // Build using the 6D
     }
     if(shelltype[i]==-3)
     {
-     nbasis2=nbasis2+10*nprim_per_shell[i]; // Build using the 10F
+     Nprimitives=Nprimitives+10*nprim_per_shell[i]; // Build using the 10F
     }
     if(shelltype[i]==-4)
     {
-     nbasis2=nbasis2+15*nprim_per_shell[i]; // Build using the 15G
+     Nprimitives=Nprimitives+15*nprim_per_shell[i]; // Build using the 15G
     }
    }
-   cout<<"The size of the basis in cartesian primitives is: "<<nbasis2<<endl;
+   cout<<"The size of the basis in cartesian primitives is: "<<Nprimitives<<endl;
    L=new double*[nbasis];
    for(i=0;i<nbasis;i++)
    {
-    L[i]=new double[nbasis2];
+    L[i]=new double[Nprimitives];
    }
    for(i=0;i<nbasis;i++)
    {
-    for(j=0;j<nbasis2;j++)
+    for(j=0;j<Nprimitives;j++)
     {
      L[i][j]=ZERO;
     }
@@ -532,11 +532,11 @@ int main(int argc, char *argv[])
    B=new double*[nbasis];
    for(i=0;i<nbasis;i++)
    {
-    B[i]=new double[nbasis2];
+    B[i]=new double[Nprimitives];
    }
    for(i=0;i<nbasis;i++)
    {
-    for(j=0;j<nbasis2;j++)
+    for(j=0;j<Nprimitives;j++)
     {
      B[i][j]=ZERO;
     }
@@ -544,7 +544,7 @@ int main(int argc, char *argv[])
    //B = MO_COEF x  L
    for(i=0;i<nbasis;i++)
    {
-    for(j=0;j<nbasis2;j++)
+    for(j=0;j<Nprimitives;j++)
     {
      for(k=0;k<nbasis;k++)
      {
@@ -582,7 +582,7 @@ int main(int argc, char *argv[])
    {
     check_dm2.close();
     cout<<endl;
-    N2=nbasis2;
+    N2=Nprimitives;
     N3=N2*N2;
     N4=N3*N2;
     N5=N4*N2;
