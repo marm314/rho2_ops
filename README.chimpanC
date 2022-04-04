@@ -1,0 +1,11 @@
+$name_dm2
+name.dm2 
+$name_fchk         
+name.fchk
+$threshold             // Threshold for reading and printing 2-RDM elements
+$two_dm2_mat           // Store two 2-RDMs 
+$index_iiii            // Use aa_2D^ii _ii terms
+$reduce                // Reduce p <-> r, q <-> s terms
+$donof                 // Reading from DoNOF 2-RDM
+$all_dm2_are_given     // All 2-RDM elements are given
+$int8alldm2            // 2-RDM elements from PSI4 code 
