@@ -31,6 +31,7 @@ clean:
 	$(Cln) *psi4intface
 	$(Cln) *diracintface
 	$(Cln) *~
+	$(Cln) gitver.o gitver.cpp gitver.h
 	$(Cln) RHO2_OPS.tar.gz 
 
 
