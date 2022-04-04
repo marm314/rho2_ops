@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
   int pivot,element[2]={10},element_prime[2]={10};
   long int ii,jj,kk,ll,new_index,Nindex,Nindex2,Nindex3,Nindex4,elementL[2]={10},element_primeL[2]={10},Ired,Jred,Kred,Lred;
   long int NMOs_occ,IMOS,IMOS1,IMOS2,IMOS3,IPRIM,IPRIM1,IPRIM2,IPRIM3;
-  double threshold,Dijkl,Dijkl_change,trace=ZERO,MEM,*contrac_coeff,*SPcontrac_coeff,*Exponents,**MO_COEF,**L,**B,**Cartes_coord;
+  double threshold,Dijkl,Dijkl_change,trace=ZERO,MEM,MAXMEM,*contrac_coeff,*SPcontrac_coeff,*Exponents,**MO_COEF,**L,**B,**Cartes_coord;
   double *C_coef_send, *SPC_coef_send,*Exponents_send,Atom_coord[3];
   string aux(argv[1]);
   Input_chimpanC Input_commands(aux);
@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
   int8alldm2=Input_commands.int8alldm2;               // 2-RDM elements from PSI4 code 
   method1=Input_commands.method1;                     // Use the methods based on changing only occ MOs
   sl2rdm=Input_commands.sl2rdm;                       // Print the spin-less 2-RDM
+  MAXMEM=Input_commands.maxmem;                       // Max memory in Gb available
   string line;
   ifstream open_fchk;
   ifstream check_dm2;
@@ -851,6 +852,11 @@ int main(int argc, char *argv[])
      }
      cout<<" for the index transformation."<<endl;
      cout<<endl;
+     if(MEM>MAXMEM)
+     {
+      cout<<"Unable to proceed because MAXMEM "<<setw(10)<<MAXMEM<<" Gb. is lower than the memory required"<<endl;
+      return -1; 
+     }
      ofstream output_data;
      if(!two_dm2_mat)
      {
@@ -1034,6 +1040,11 @@ int main(int argc, char *argv[])
       }
       cout<<" for the storing one 2-RDM in primitives for reduction."<<endl;
       cout<<endl;
+      if(MEM>MAXMEM)
+      {
+       cout<<"Unable to proceed because MAXMEM "<<setw(10)<<MAXMEM<<" Gb. is lower than the memory required"<<endl;
+       return -1; 
+      }
       for(ii=0;ii<Nindex4;ii++)
       {
        Dijkl_term[ii]=ZERO;
@@ -1099,6 +1110,11 @@ int main(int argc, char *argv[])
      }
      cout<<" for the index transformation."<<endl;
      cout<<endl;
+     if(MEM>MAXMEM)
+     {
+      cout<<"Unable to proceed because MAXMEM "<<setw(10)<<MAXMEM<<" Gb. is lower than the memory required"<<endl;
+      return -1; 
+     }
      //Change basis
      ofstream temp_dm2;
      ifstream temp_dm2_2;

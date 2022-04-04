@@ -5,6 +5,7 @@ Input_chimpanC::Input_chimpanC(string I_in)
  two_dm2_mat=false,index_iiii=false,reduce=false,reduce_sym=false,all_dm2_are_given=false;
  int8alldm2=false,donof=false;method1=true,sl2rdm=false;
  threshold=pow(TEN,-TEN);
+ maxmem=ONE;
  ifstream I_input_file;
  I_in.erase(std::remove_if(I_in.begin(),I_in.end(),::isspace),I_in.end());
  I_input_file.open((I_in).c_str());
@@ -38,6 +39,10 @@ Input_chimpanC::Input_chimpanC(string I_in)
    else if(I_in=="$threshold")
    {
     I_input_file>>threshold;    
+   }
+   else if(I_in=="$maxmem")
+   {
+    I_input_file>>maxmem;    
    }
    else
    {

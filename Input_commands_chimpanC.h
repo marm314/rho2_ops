@@ -19,7 +19,7 @@ class Input_chimpanC
 {
  public:
  bool two_dm2_mat,index_iiii,reduce,reduce_sym,all_dm2_are_given,donof,int8alldm2,method1,sl2rdm;
- double threshold;
+ double threshold,maxmem;
  string name_dm2,name_fchk;
  Input_chimpanC();
  Input_chimpanC(string);

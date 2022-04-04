@@ -11,3 +11,4 @@ $all_dm2_are_given     // All 2-RDM elements are given
 $int8alldm2            // 2-RDM elements from PSI4 code 
 $sl2rdm                // Print the spin-less 2-RDM
 $method2               // Use the old method (4xM^5) to transform 2-RDM elements. Default: method1 based on occ. MO transf.
+$maxmem                // Max. RAM memory to use (default 1Gb)
