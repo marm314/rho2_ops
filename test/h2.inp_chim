@@ -1,0 +1,9 @@
+$INTRACULE
+$NAME_FCHK
+h2.fchk
+$NAME_DM2
+h2.dm2
+$Threshold
+1e-12              
+$Reduce
+$Two_dm2_mat

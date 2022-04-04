@@ -1097,7 +1097,7 @@ int main(int argc, char *argv[])
       }
      }
     }
-    cout<<"Printing the matrix:"<<endl;
+    cout<<"Printing the matrix: "<<"Conv_"+name_dm2<<endl;
     cout<<endl;
     ofstream dm2_file;
     dm2_file.open(("Conv_"+name_dm2).c_str(), ios::binary);
