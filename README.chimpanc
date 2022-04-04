@@ -3,9 +3,11 @@ name.dm2
 $name_fchk         
 name.fchk
 $threshold             // Threshold for reading and printing 2-RDM elements
-$two_dm2_mat           // Store two 2-RDMs 
+$two_dm2_mat           // Store two 2-RDMs (compatible with method1 and method2) 
 $index_iiii            // Use aa_2D^ii _ii terms
 $reduce                // Reduce p <-> r, q <-> s terms
 $donof                 // Reading from DoNOF 2-RDM
 $all_dm2_are_given     // All 2-RDM elements are given
 $int8alldm2            // 2-RDM elements from PSI4 code 
+$sl2rdm                // Print the spin-less 2-RDM
+$method2               // Use the old method (4xM^5) to transform 2-RDM elements. Default: method1 based on occ. MO transf.

@@ -3,7 +3,7 @@ Input_chimpanC::Input_chimpanC(){cout<<"Not allowed default constructor"<<endl;}
 Input_chimpanC::Input_chimpanC(string I_in)
 {
  two_dm2_mat=false,index_iiii=false,reduce=false,reduce_sym=false,all_dm2_are_given=false;
- int8alldm2=false,donof=false;
+ int8alldm2=false,donof=false;method1=true,sl2rdm=false;
  threshold=pow(TEN,-TEN);
  ifstream I_input_file;
  I_in.erase(std::remove_if(I_in.begin(),I_in.end(),::isspace),I_in.end());
@@ -33,6 +33,8 @@ Input_chimpanC::Input_chimpanC(string I_in)
    else if(I_in=="$all_dm2_are_given"){all_dm2_are_given=true;}
    else if(I_in=="$int8alldm2"){int8alldm2=true;}
    else if(I_in=="$donof"){donof=true;}
+   else if(I_in=="$sl2rdm"){sl2rdm=true;}
+   else if(I_in=="$method2"){method1=false;}
    else if(I_in=="$threshold")
    {
     I_input_file>>threshold;    

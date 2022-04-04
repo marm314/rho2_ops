@@ -1,13 +1,13 @@
 ##########################################################################
 ##########################################################################
 # Conversion of DM2 from MO to Primitives (Program in C++)               #
-# written by Dr. Mauricio Rodriguez M email: marm3.14@gmail.com          #
+# written by Dr. M. Rodriguez-Mayorga email: marm3.14@gmail.com          #
 ##########################################################################
 ##########################################################################
 
 
 #*****************************************************************************#
-# Copyright (C) 2016 Dr. Mauricio A. Rodriguez Mayorga                        #
+# Copyright (C) 2022 Dr. Mauricio A. Rodriguez Mayorga                        #
 # Ph.D. student at Donostia International Physics Center (DIPC)               #
 # for support and comments send an email to: marm314@gmail.com                #
 #*****************************************************************************#
@@ -28,6 +28,8 @@ Computing the product of coefficients matrix.
 
 The size of the basis in cartesian primitives is: 10
 
+Num. of occ MO (spin-with):           12
+Num. of occ MO (spinless) :            6
 Storing of the spinless 2RDM...
 Storing done!
 
@@ -35,19 +37,21 @@ Trace of the 2RDM stored:  2.0000000000e+00
 
 Change indexes: ^2 Dij,kl -> ^2 Dpq,rs
 
-l coefficient changed
-k coefficient changed
-j coefficient changed
-i coefficient changed
-Change done!
+Memory required      88.88 Kb. for the index transformation.
 
 
-Trace of the transformed 2RDM:  2.5630554532e-01
+Transforming scalar MO     1/    6
+Transforming scalar MO     2/    6
+Transforming scalar MO     3/    6
+Transforming scalar MO     4/    6
+Transforming scalar MO     5/    6
+Transforming scalar MO     6/    6
 
+Finished transforming the 2-RDM to the primitives basis
 
 Reduce the p <-> r and q <-> s terms
 
-Printing the matrix:
+Printing the matrix: Conv_h2.dm2
 
 #################################################
 
