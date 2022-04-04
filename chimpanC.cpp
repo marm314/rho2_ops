@@ -5,6 +5,7 @@
 #include<fstream>
 #include<vector>
 #include<sstream>
+#include"Input_commands_chimpanC.h"
 #include"Numbers.h"
 #include"String_ops.h"
 
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
  cout<<endl;
  cout<<"#*****************************************************************************#";
  cout<<endl;
- if(argc==5 || argc==6 || argc==7)
+ if(argc==2)
  {
   bool contractSP=false,use_dm2_iiii_aa=false,two_dm2_mat=false,reduce=false,all_dm2_are_given=false,red_sym=false;
   int i,j,k,l,AO,nbasis,Nprimitives,nprim_shell,stype,contr_coef,spcontr_coef,iprim,iprim_tot,smap,prim_exp,natoms;
@@ -70,88 +71,18 @@ int main(int argc, char *argv[])
   long int ii,jj,kk,ll,new_index,N2,N3,N4,N5,elementL[2]={10},element_primeL[2]={10},Ired,Jred,Kred,Lred;
   double threshold,Dijkl,Dijkl_change,trace=ZERO,*contrac_coeff,*SPcontrac_coeff,*Exponents,**MO_COEF,**L,**B,**Cartes_coord;
   double *C_coef_send, *SPC_coef_send,*Exponents_send,Atom_coord[3];
-  string name_dm2(argv[1]);
-  string name_fchk(argv[2]);
-  threshold=atof(argv[3]);
-  string y_or_n(argv[4]);
-  if(y_or_n=="y" || y_or_n=="Y")
-  {
-   two_dm2_mat=true;
-  }
-  if(argc==6)
-  {
-   string y_or_n2(argv[5]);
-   lowercase(y_or_n2);
-   if(y_or_n2=="i4")
-   {
-    use_dm2_iiii_aa=true;
-   }
-   if(y_or_n2=="r")
-   {
-    reduce=true;
-   }
-   if(y_or_n2=="rs")
-   {
-    reduce=true;
-    red_sym=true;
-   }
-   if(y_or_n2=="i4r")
-   {
-    use_dm2_iiii_aa=true;
-    reduce=true;
-   }
-   if(y_or_n2=="i4rs")
-   {
-    use_dm2_iiii_aa=true;
-    reduce=true;
-    red_sym=true;
-   }
-   if(y_or_n2=="a")
-   {
-    all_dm2_are_given=true;
-   }
-   if(y_or_n2=="ar")
-   {
-    all_dm2_are_given=true;
-    reduce=true;
-   }
-   if(y_or_n2=="ars")
-   {
-    all_dm2_are_given=true;
-    reduce=true;
-    red_sym=true;
-   }
-   if(y_or_n2=="donof")
-   {
-    donofdm2=true;
-   }
-   if(y_or_n2=="donofr")
-   {
-    donofdm2=true;
-    reduce=true;
-   }
-   if(y_or_n2=="donofrs")
-   {
-    donofdm2=true;
-    reduce=true;
-    red_sym=true;
-   }
-   if(y_or_n2=="i8all")
-   {
-    int8alldm2=true; 
-   }
-   if(y_or_n2=="i8allr")
-   {
-    int8alldm2=true; 
-    reduce=true;
-   }
-   if(y_or_n2=="i8allrs")
-   {
-    int8alldm2=true; 
-    reduce=true;
-    red_sym=true;
-   }
-  }
+  string aux(argv[1]);
+  Input_chimpanC Input_commands(aux);
+  string name_dm2=Input_commands.name_dm2; 
+  string name_fchk=Input_commands.name_fchk;
+  threshold=Input_commands.threshold; 
+  two_dm2_mat=Input_commands.two_dm2_mat;             // Store two 2-RDMs 
+  use_dm2_iiii_aa=Input_commands.index_iiii;          // Use aa_2D^ii _ii terms
+  reduce=Input_commands.reduce;                       // Reduce p <-> r, q <-> s terms
+  red_sym=Input_commands.reduce_sym;                  // Reduce using symmetry 
+  donofdm2=Input_commands.donof;                      // Reading from DoNOF 2-RDM
+  all_dm2_are_given=Input_commands.all_dm2_are_given; // All 2-RDM elements are given
+  int8alldm2=Input_commands.int8alldm2;               // 2-RDM elements from PSI4 code 
   string line;
   ifstream open_fchk;
   ifstream check_dm2;
@@ -1232,36 +1163,7 @@ int main(int argc, char *argv[])
  else
  {
   cout<<endl;
-  cout<<"Please, include the parameters needed"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i4(use aa_2D^ii _ii terms)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) r(reduce p <-> r and q <-> s terms)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) rs(reduce p <-> r, q <-> s terms and symmetry)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) a(all 2D elements are given)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) donof(2D elements are from DoNOF code)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i8all(2D elements are from PSI4 code)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i4r(aa_2D^ii _ii terms and reduce p <-> r and q <-> s terms)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i4rs(aa_2D^ii _ii terms and reduce p <-> r, q <-> s terms and symm)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) ar(all 2D elements are given and reduce p <-> r and q <-> s terms)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) ars(all 2D elements are given and reduce p <-> r, q <-> s terms and symm)"<<endl;
-  cout<<"or"<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) donofr(2D elements are from DoNOF code and reduce p <-> r and q <-> s terms)"<<endl;
-  cout<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) donofrs(2D elements are from DoNOF code and reduce p <-> r, q <-> s terms and symm)"<<endl;
-  cout<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i8allr(2D elements are from PSI4 code and reduce p <-> r and q <-> s terms)"<<endl;
-  cout<<endl;
-  cout<<"name_file.dm2 name_file.fchk threshold(e.g. 1e-10) y.or.n(store 2 DM2) i8allrs(2D elements are from PSI4 code and reduce p <-> r, q <-> s terms and symm)"<<endl;
+  cout<<"Please, include the input file"<<endl;
   cout<<endl;
   cout<<endl;
  }

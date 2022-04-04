@@ -34,8 +34,8 @@ clean:
 	$(Cln) RHO2_OPS.tar.gz 
 
 
-chimpanC: String_ops.cpp chimpanC.cpp
-	$(CPP) $(CPPFLAGS) String_ops.cpp chimpanC.cpp -o chimpanC
+chimpanC: String_ops.cpp Input_commands.cpp chimpanC.cpp
+	$(CPP) $(CPPFLAGS) String_ops.cpp Input_commands_chimpanC.cpp chimpanC.cpp -o chimpanC
 
 psi4intface: psi4intface.cpp
 	$(CPP) $(CPPFLAGS) psi4intface.cpp -o psi4intface
