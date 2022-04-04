@@ -87,6 +87,28 @@ int main(int argc, char *argv[])
   method1=Input_commands.method1;                     // Use the methods based on changing only occ MOs
   sl2rdm=Input_commands.sl2rdm;                       // Print the spin-less 2-RDM
   MAXMEM=Input_commands.maxmem;                       // Max memory in Gb available
+  if(MAXMEM>pow(TEN,THREE))
+  {
+   MAXMEM=MAXMEM/pow(TEN,THREE);
+  }
+  else
+  {
+   if(MEM>ONE)
+   {
+    MAXMEM=MAXMEM;
+   }
+   else
+   {
+    if(MAXMEM<ONE && MAXMEM>pow(TEN,-THREE))
+    {
+     MAXMEM=MAXMEM*pow(TEN,THREE);
+    }
+    else
+    {
+     MAXMEM=MAXMEM*pow(TEN,SIX);
+    }
+   }
+  }
   string line;
   ifstream open_fchk;
   ifstream check_dm2;
@@ -854,7 +876,7 @@ int main(int argc, char *argv[])
      cout<<endl;
      if(MEM>MAXMEM)
      {
-      cout<<"Unable to proceed because MAXMEM "<<setw(10)<<MAXMEM<<" Gb. is lower than the memory required"<<endl;
+      cout<<"Unable to proceed because MAXMEM is lower than the memory required"<<endl;
       return -1; 
      }
      ofstream output_data;
@@ -1042,7 +1064,7 @@ int main(int argc, char *argv[])
       cout<<endl;
       if(MEM>MAXMEM)
       {
-       cout<<"Unable to proceed because MAXMEM "<<setw(10)<<MAXMEM<<" Gb. is lower than the memory required"<<endl;
+       cout<<"Unable to proceed because MAXMEM is lower than the memory required"<<endl;
        return -1; 
       }
       for(ii=0;ii<Nindex4;ii++)
@@ -1112,7 +1134,7 @@ int main(int argc, char *argv[])
      cout<<endl;
      if(MEM>MAXMEM)
      {
-      cout<<"Unable to proceed because MAXMEM "<<setw(10)<<MAXMEM<<" Gb. is lower than the memory required"<<endl;
+      cout<<"Unable to proceed because MAXMEM is lower than the memory required"<<endl;
       return -1; 
      }
      //Change basis
