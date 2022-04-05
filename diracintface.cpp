@@ -41,7 +41,7 @@ struct Shell2AOs
 Shell2AOs *shell2aos;
 double Quaternion_coef[4];
 double *OCCs,**Prim2AO_Coef;
-double *Dpqrs_ALL;
+double ****Dpqrs_ALL;
 complex<double> **AO2MO_Coef,**Prim2MO_Coef;
 complex<double> *Dpqrs_ALL_cplx;
 double *Dijkl_MOsLS;
@@ -1117,7 +1117,7 @@ void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cM
 // Function used to transform scalar 2-RDM to (real) Primitives
 void transform_Dijkl2Dpqrs()
 {
- int index_primitive[2],index_primitive_prime[2];
+ int pivot,index_primitive[2],index_primitive_prime[2];
  long int IMOS,IMOS1,IMOS2,IMOS3;        // IMOS used with Scalar MOs (0 to NMOs_LS_4) 
  long int IPRIM,IPRIM1,IPRIM2,IPRIM3;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
  double Dpqrs_re,MEM;
@@ -1162,6 +1162,9 @@ void transform_Dijkl2Dpqrs()
  Dijks_Prims=new complex<double>[Nprims1];
  Dijrs_Prims=new complex<double>[Nprims2];
  Diqrs_Prims=new complex<double>[Nprims3];
+ // Reduce
+ cout<<endl;
+ cout<<"Automatic reduction of the p <-> r and q <-> s terms"<<endl;
  cout<<endl;
  for(IMOS=0;IMOS<NMOs_LS_1;IMOS++)         // i
  {
@@ -1235,6 +1238,14 @@ void transform_Dijkl2Dpqrs()
        if(index_primitive[1]>Largest_Prim){Largest_Prim=index_primitive[1];}
        if(index_primitive_prime[0]>Largest_Prim){Largest_Prim=index_primitive_prime[0];}
        if(index_primitive_prime[0]>Largest_Prim){Largest_Prim=index_primitive_prime[1];}
+       if(index_primitive[0]<index_primitive_prime[0])
+       {
+        pivot=index_primitive_prime[0];index_primitive_prime[0]=index_primitive[0];index_primitive[0]=pivot;
+       }
+       if(index_primitive[1]<index_primitive_prime[1])
+       {
+        pivot=index_primitive_prime[1];index_primitive_prime[1]=index_primitive[1];index_primitive[1]=pivot;
+       }
        output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
        output_data.write((char*) &index_primitive[0], sizeof(index_primitive[0]));
        output_data.write((char*) &index_primitive[1], sizeof(index_primitive[1]));
@@ -1535,7 +1546,10 @@ void reduce_getreal_print()
  }
  // Print
  cout<<"Printing the reduced (real) transformed 2-RDM"<<endl;
+ // TODO: add this symmetry
+ /*
  if(symmrr_prime){cout<<"keep only one term among prim_p(1) prim_q(2) prim_r(1) prim_s(2) = prim_q(2) prim_p(1) prim_s(2) prim_r(1)"<<endl;}
+ */
  conv_name="Conv_"+dirac_output_name+"dm2";
  ofstream output_data(conv_name.c_str(),ios::binary);
  for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
@@ -1548,11 +1562,13 @@ void reduce_getreal_print()
    index_Prim[1]=(int)((IPRIM-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3)/Nprims1);
    index_Prim[0]=(int)(IPRIM-index_Prim[1]*Nprims1-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3);
    // Symmetry reduction?
+   /*
    if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]) && symmrr_prime)
    {
     Dpqrs_ALL_cplx[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=CZERO;
     Dpqrs_ALL_cplx[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=CZERO;
    }
+   */
    index_Prim[0]++;index_Prim[1]++;index_Prim_prime[0]++;index_Prim_prime[1]++;
    output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
    output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
@@ -1586,7 +1602,7 @@ void reduce_print()
  long int IPRIM,IPRIM1,IPRIM2,IPRIM3,IPRIM4;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
  double Dpqrs,MEM;
  string conv_name="Conv_"+dirac_output_name+"dm2";
- MEM=EIGHT*Nprims4/pow(TEN,NINE);
+ MEM=(EIGHT*((Nprims1*(Nprims1+1)*Nprims1*(Nprims1+1))/4))/pow(TEN,NINE);
  cout<<setprecision(2)<<fixed;
  cout<<"Memory required ";
  if(MEM>pow(TEN,THREE))
@@ -1614,7 +1630,23 @@ void reduce_print()
  cout<<" for the reduction."<<endl; 
  cout<<"Num. of 2-RDM elem.  : "<<setw(12)<<Nprims4<<endl;
  cout<<endl;
- Dpqrs_ALL=new double[Nprims4];
+ Dpqrs_ALL=new double***[Nprims1];
+ for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
+ {
+  Dpqrs_ALL[IPRIM]=new double**[Nprims1];
+  for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
+  {
+   Dpqrs_ALL[IPRIM][IPRIM1]=new double*[IPRIM+1];
+   for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
+   {
+    Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2]=new double[IPRIM1+1];
+    for(IPRIM3=0;IPRIM3<IPRIM1+1;IPRIM3++)
+    {
+     Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2][IPRIM3]=ZERO;
+    }
+   }
+  }
+ }
  ifstream input_data2(conv_name.c_str(),ios::binary);
  cout<<endl;
  index_Prim[0]=10;index_Prim[1]=10;index_Prim_prime[0]=10;index_Prim_prime[1]=10;
@@ -1631,71 +1663,38 @@ void reduce_print()
   if(abs(Dpqrs)!=ZERO && index_Prim[0]!=0 && index_Prim[1]!=0 && index_Prim_prime[0]!=0 && index_Prim_prime[1]!=0)
   {
    index_Prim[0]=index_Prim[0]-1;index_Prim[1]=index_Prim[1]-1;index_Prim_prime[0]=index_Prim_prime[0]-1;index_Prim_prime[1]=index_Prim_prime[1]-1;
-   Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]= 
-   Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]+Dpqrs;
+   Dpqrs_ALL[index_Prim[0]][index_Prim[1]][index_Prim_prime[0]][index_Prim_prime[1]]=
+   Dpqrs_ALL[index_Prim[0]][index_Prim[1]][index_Prim_prime[0]][index_Prim_prime[1]]+Dpqrs;
    index_Prim[0]=index_Prim[0]+1;index_Prim[1]=index_Prim[1]+1;index_Prim_prime[0]=index_Prim_prime[0]+1;index_Prim_prime[1]=index_Prim_prime[1]+1;
   }
  }
  input_data2.close();
- // Reduce
- cout<<"Reducing the p <-> r and q <-> s terms"<<endl;
- for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
- {
-  IPRIM1=(IPRIM/Nprims3);
-  IPRIM2=((IPRIM-IPRIM1*Nprims3)/Nprims2);
-  IPRIM3=((IPRIM-IPRIM2*Nprims2-IPRIM1*Nprims3)/Nprims1);
-  IPRIM4=(IPRIM-IPRIM3*Nprims1-IPRIM2*Nprims2-IPRIM1*Nprims3);
-  if(IPRIM4!=IPRIM2 && IPRIM3!=IPRIM1)
-  {
-   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
-                 +Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]
-                 +Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]
-                 +Dpqrs_ALL[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3];
-   Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=ZERO;
-   Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=ZERO;
-   Dpqrs_ALL[IPRIM2+IPRIM1*Nprims1+IPRIM4*Nprims2+IPRIM3*Nprims3]=ZERO;
-  }
-  if(IPRIM4!=IPRIM2 && IPRIM3==IPRIM1)
-  {
-   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
-                 +Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3];
-   Dpqrs_ALL[IPRIM2+IPRIM3*Nprims1+IPRIM4*Nprims2+IPRIM1*Nprims3]=ZERO;
-  }
-  if(IPRIM4==IPRIM2 && IPRIM3!=IPRIM1)
-  {
-   Dpqrs_ALL[IPRIM]=Dpqrs_ALL[IPRIM]
-                 +Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3];
-   Dpqrs_ALL[IPRIM4+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=ZERO;
-  }
- }
  // Print
  cout<<"Printing the reduced transformed 2-RDM"<<endl;
- if(symmrr_prime){cout<<"keep only one term among prim_p(1) prim_q(2) prim_r(1) prim_s(2) = prim_q(2) prim_p(1) prim_s(2) prim_r(1)"<<endl;}
  conv_name="Conv_"+dirac_output_name+"dm2";
  ofstream output_data(conv_name.c_str(),ios::binary);
- for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
+ for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
  {
-  Dpqrs=Dpqrs_ALL[IPRIM];
-  if(abs(Dpqrs)>=pow(TEN,-TEN))
+  for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
   {
-   index_Prim_prime[1]=(int)(IPRIM/Nprims3);
-   index_Prim_prime[0]=(int)((IPRIM-index_Prim_prime[1]*Nprims3)/Nprims2);
-   index_Prim[1]=(int)((IPRIM-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3)/Nprims1);
-   index_Prim[0]=(int)(IPRIM-index_Prim[1]*Nprims1-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3);
-   // Symmetry reduction?
-   if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]) && symmrr_prime)
+   for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
    {
-    Dpqrs_ALL[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=ZERO;
-    Dpqrs_ALL[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=ZERO;
+    for(IPRIM3=0;IPRIM3<IPRIM1+1;IPRIM3++)
+    {
+     Dpqrs=Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2][IPRIM3];
+     if(abs(Dpqrs)>=pow(TEN,-TEN))
+     {
+      index_Prim[0]=IPRIM+1;index_Prim[1]=IPRIM1+1;index_Prim_prime[0]=IPRIM2+1;index_Prim_prime[1]=IPRIM3+1;
+      output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+      output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
+      output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
+      output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+      output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+      output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
+      output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+     }
+    }
    }
-   index_Prim[0]++;index_Prim[1]++;index_Prim_prime[0]++;index_Prim_prime[1]++;
-   output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
-   output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
-   output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
-   output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
-   output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
-   output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
-   output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
   }
  }
  index_Prim[0]=0;
@@ -1711,6 +1710,18 @@ void reduce_print()
  output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
  output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
  output_data.close();
+ for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
+ {
+  for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
+  {
+   for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
+   {
+    delete[] Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2];Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2]=NULL;
+   }
+   delete[] Dpqrs_ALL[IPRIM][IPRIM1];Dpqrs_ALL[IPRIM][IPRIM1]=NULL;
+  }
+  delete[] Dpqrs_ALL[IPRIM];Dpqrs_ALL[IPRIM]=NULL;
+ }
  delete[] Dpqrs_ALL;Dpqrs_ALL=NULL;
 }
 
