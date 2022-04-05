@@ -2,7 +2,7 @@
 Input_chimpanC::Input_chimpanC(){cout<<"Not allowed default constructor"<<endl;}
 Input_chimpanC::Input_chimpanC(string I_in)
 {
- two_dm2_mat=false,index_iiii=false,reduce=false,reduce_sym=false,all_dm2_are_given=false;
+ large_mem=false,index_iiii=false,reduce=false,reduce_sym=false,all_dm2_are_given=false;
  int8alldm2=false,donof=false;method1=true,sl2rdm=false;
  threshold=pow(TEN,-TEN);
  maxmem=ONE;
@@ -27,7 +27,7 @@ Input_chimpanC::Input_chimpanC(string I_in)
     I_in.erase(std::remove_if(I_in.begin(),I_in.end(),::isspace),I_in.end());
     name_fchk=I_in;
    }
-   else if(I_in=="$two_dm2_mat"){two_dm2_mat=true;}
+   else if(I_in=="$large_mem"){large_mem=true;}
    else if(I_in=="$index_iiii"){index_iiii=true;}
    else if(I_in=="$reduce"){reduce=true;}
    else if(I_in=="$reduce_sym"){reduce_sym=true;}

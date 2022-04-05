@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
  cout<<endl;
  if(argc==2)
  {
-  bool contractSP=false,use_dm2_iiii_aa=false,two_dm2_mat=false,reduce=false,all_dm2_are_given=false,red_sym=false,method1=true,sl2rdm=false;
+  bool contractSP=false,use_dm2_iiii_aa=false,large_mem=false,reduce=false,all_dm2_are_given=false,red_sym=false,method1=true,sl2rdm=false;
   int i,j,k,l,AO,nbasis,nprimitives,nprim_shell,stype,contr_coef,spcontr_coef,iprim,iprim_tot,smap,prim_exp,natoms;
   int *shelltype,*nprim_per_shell,*shell_to_atom,*Atomic_Z,nucleous,**Quant;
   int pivot,element[2]={10},element_prime[2]={10};
@@ -77,10 +77,13 @@ int main(int argc, char *argv[])
   string name_dm2=Input_commands.name_dm2; 
   string name_fchk=Input_commands.name_fchk;
   threshold=Input_commands.threshold; 
-  two_dm2_mat=Input_commands.two_dm2_mat;             // Store two 2-RDMs 
+  large_mem=Input_commands.large_mem;                 // Store two 2-RDMs 
   use_dm2_iiii_aa=Input_commands.index_iiii;          // Use aa_2D^ii _ii terms
   reduce=Input_commands.reduce;                       // Reduce p <-> r, q <-> s terms
+// TODO: there is bug for Neon? Lets switch it off for sake
+/*
   red_sym=Input_commands.reduce_sym;                  // Reduce using symmetry 
+*/
   donofdm2=Input_commands.donof;                      // Reading from DoNOF 2-RDM
   all_dm2_are_given=Input_commands.all_dm2_are_given; // All 2-RDM elements are given
   int8alldm2=Input_commands.int8alldm2;               // 2-RDM elements from PSI4 code 
@@ -841,14 +844,14 @@ int main(int argc, char *argv[])
      int Largest_Prim=-1;
      long int Nprims1,Nprims2,Nprims3,Nprims4,Nterms_printed=0;
      double Dpqrs;
-     double *Dijks_Prims,*Dijrs_Prims,*Diqrs_Prims,*Dpqrs_Prims;
+     double *Dijks_Prims,*Dijrs_Prims,*Diqrs_Prims,****Dpqrs_Prims;
      Nprims1=nprimitives;
      Nprims2=Nprims1*nprimitives;
      Nprims3=Nprims2*nprimitives;
      Nprims4=Nprims3*nprimitives;
      MEM=EIGHT*(Nprims1+Nprims2+Nprims3)/pow(TEN,NINE);
      cout<<setprecision(2)<<fixed;
-     if(two_dm2_mat){MEM=EIGHT*(Nprims1+Nprims2+Nprims3+Nprims4)/pow(TEN,NINE);Largest_Prim=nprimitives;}
+     if(large_mem){MEM=EIGHT*(Nprims1+Nprims2+Nprims3+(Nprims1*(Nprims1+1)*Nprims1*(Nprims1+1))/4)/pow(TEN,NINE);Largest_Prim=nprimitives;}
      cout<<"Memory required ";
      if(MEM>pow(TEN,THREE))
      {
@@ -880,17 +883,35 @@ int main(int argc, char *argv[])
       return -1; 
      }
      ofstream output_data;
-     if(!two_dm2_mat)
+     if(!large_mem)
      {
       output_data.open(("Conv_"+name_dm2).c_str(), ios::binary);
      }
      else
      {
-      Dpqrs_Prims=new double[Nprims4];
+      Dpqrs_Prims=new double***[Nprims1];
+      for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
+      {
+       Dpqrs_Prims[IPRIM]=new double**[Nprims1];
+       for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
+       {
+        Dpqrs_Prims[IPRIM][IPRIM1]=new double*[IPRIM+1];
+        for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
+        {
+         Dpqrs_Prims[IPRIM][IPRIM1][IPRIM2]=new double[IPRIM1+1];
+         for(IPRIM3=0;IPRIM3<IPRIM1+1;IPRIM3++)
+         {
+          Dpqrs_Prims[IPRIM][IPRIM1][IPRIM2][IPRIM3]=ZERO;
+         }
+        }
+       }
+      }
      }
      Dijks_Prims=new double[Nprims1];
      Dijrs_Prims=new double[Nprims2];
      Diqrs_Prims=new double[Nprims3];
+     cout<<endl;
+     cout<<"Automatic reduction of the p <-> r and q <-> s terms"<<endl;
      cout<<endl;
      for(IMOS=0;IMOS<Nindex;IMOS++)         // i
      {
@@ -956,7 +977,7 @@ int main(int argc, char *argv[])
           Dpqrs=Diqrs_Prims[IPRIM1+IPRIM2*Nprims1+IPRIM3*Nprims2]*B[IMOS][IPRIM];
           if(abs(Dpqrs)>=threshold)
           {
-           if(!two_dm2_mat)
+           if(!large_mem)
            {
             Nterms_printed++;
             element[0]=IPRIM+1;element[1]=IPRIM1+1;element_prime[0]=IPRIM2+1;element_prime[1]=IPRIM3+1;
@@ -964,6 +985,8 @@ int main(int argc, char *argv[])
             if(element[1]>Largest_Prim){Largest_Prim=element[1];}
             if(element_prime[0]>Largest_Prim){Largest_Prim=element_prime[0];}
             if(element_prime[0]>Largest_Prim){Largest_Prim=element_prime[1];}
+            if(element[0]<element_prime[0]){pivot=element_prime[0];element_prime[0]=element[0];element[0]=pivot;}
+            if(element[1]<element_prime[1]){pivot=element_prime[1];element_prime[1]=element[1];element[1]=pivot;}
             output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
             output_data.write((char*) &element[0], sizeof(element[0]));
             output_data.write((char*) &element[1], sizeof(element[1]));
@@ -974,8 +997,11 @@ int main(int argc, char *argv[])
            }
            else
            {
-            Dpqrs_Prims[IPRIM+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]=Dpqrs_Prims[IPRIM+IPRIM1*Nprims1+IPRIM2*Nprims2+IPRIM3*Nprims3]
-            +Dpqrs;
+            element[0]=IPRIM;element[1]=IPRIM1;element_prime[0]=IPRIM2;element_prime[1]=IPRIM3;
+            if(element[0]<element_prime[0]){pivot=element_prime[0];element_prime[0]=element[0];element[0]=pivot;}
+            if(element[1]<element_prime[1]){pivot=element_prime[1];element_prime[1]=element[1];element[1]=pivot;}
+            Dpqrs_Prims[element[0]][element[1]][element_prime[0]][element_prime[1]]=
+            Dpqrs_Prims[element[0]][element[1]][element_prime[0]][element_prime[1]]+Dpqrs;
            }
           }
          }
@@ -983,7 +1009,7 @@ int main(int argc, char *argv[])
        }
       }
      }
-     if(!two_dm2_mat)
+     if(!large_mem)
      {
       Dpqrs=ZERO;
       element[0]=0;element[1]=0;element_prime[0]=0;element_prime[1]=0;
@@ -998,44 +1024,24 @@ int main(int argc, char *argv[])
      }
      cout<<endl;
      cout<<"Finished transforming the 2-RDM to the primitives basis"<<endl;
-     if(!two_dm2_mat)
+     if(!large_mem)
      {
       cout<<"Num. of printed terms: "<<setw(12)<<Nterms_printed<<endl;
       cout<<"Largest prim. in use : "<<setw(12)<<Largest_Prim<<endl;
      }
-     if(Largest_Prim<nprimitives && !two_dm2_mat)
+     if(Largest_Prim<nprimitives && !large_mem)
      {
       cout<<"Overwriting nprimitives variable with largest prim. in use"<<endl;
       nprimitives=Largest_Prim;
       Nprims1=nprimitives;
-      Nprims2=Nprims1*nprimitives;
-      Nprims3=Nprims2*nprimitives;
-      Nprims4=Nprims3*nprimitives;
      }
      delete[] Dijks_Prims;Dijks_Prims=NULL;
      delete[] Dijrs_Prims;Dijrs_Prims=NULL;
      delete[] Diqrs_Prims;Diqrs_Prims=NULL;
-     if(two_dm2_mat)
+     if(!large_mem)
      {
-      //Overwrite and extend Dijkl_term using Dpqrs_Prims pushing back
-      for(ii=0;ii<Nindex4;ii++)
-      {
-       Dijkl_term[ii]=Dpqrs_Prims[ii];
-      }
-      for(ii=Nindex4;ii<Nprims4;ii++)
-      {
-       Dijkl_term.push_back(Dpqrs_Prims[ii]);
-      }
-      Nindex=nprimitives;
-      Nindex2=Nindex*nprimitives;
-      Nindex3=Nindex2*nprimitives;
-      Nindex4=Nindex3*nprimitives;
-      delete[] Dpqrs_Prims;Dpqrs_Prims=NULL;
-     }
-     else
-     {
-      //Overwrite and extend Dijkl_term reading and pushing back
-      MEM=EIGHT*Nprims4/pow(TEN,NINE);
+      //Store the Dpqrs_Prims array and read it from disk
+      MEM=EIGHT*((Nprims1*(Nprims1+1)*Nprims1*(Nprims1+1))/4)/pow(TEN,NINE);
       cout<<endl;
       cout<<"Memory required ";
       if(MEM>pow(TEN,THREE))
@@ -1067,18 +1073,23 @@ int main(int argc, char *argv[])
        cout<<"Unable to proceed because MAXMEM is lower than the memory required"<<endl;
        return -1; 
       }
-      for(ii=0;ii<Nindex4;ii++)
+      Dpqrs_Prims=new double***[Nprims1];
+      for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
       {
-       Dijkl_term[ii]=ZERO;
+       Dpqrs_Prims[IPRIM]=new double**[Nprims1];
+       for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
+       {
+        Dpqrs_Prims[IPRIM][IPRIM1]=new double*[IPRIM+1];
+        for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
+        {
+         Dpqrs_Prims[IPRIM][IPRIM1][IPRIM2]=new double[IPRIM1+1];
+         for(IPRIM3=0;IPRIM3<IPRIM1+1;IPRIM3++)
+         {
+          Dpqrs_Prims[IPRIM][IPRIM1][IPRIM2][IPRIM3]=ZERO;
+         }
+        }
+       }
       }
-      for(ii=Nindex4;ii<Nprims4;ii++)
-      {
-       Dijkl_term.push_back(ZERO);
-      }
-      Nindex=nprimitives;
-      Nindex2=Nindex*nprimitives;
-      Nindex3=Nindex2*nprimitives;
-      Nindex4=Nindex3*nprimitives;
       ifstream input_data2(("Conv_"+name_dm2).c_str(),ios::binary);
       cout<<"Reading the transformed 2-RDM elements from "<<"Conv_"+name_dm2<<endl;
       element[0]=10;
@@ -1094,19 +1105,75 @@ int main(int argc, char *argv[])
        if(abs(Dpqrs)!=ZERO && element[0]!=0 && element[1]!=0 && element_prime[0]!=0 && element_prime[1]!=0)
        {
         element[0]=element[0]-1;element[1]=element[1]-1;element_prime[0]=element_prime[0]-1;element_prime[1]=element_prime[1]-1;
-        Dijkl_term[element[0]+element[1]*Nindex+element_prime[0]*Nindex2+element_prime[1]*Nindex3]=
-        Dijkl_term[element[0]+element[1]*Nindex+element_prime[0]*Nindex2+element_prime[1]*Nindex3]+Dpqrs;
+        Dpqrs_Prims[element[0]][element[1]][element_prime[0]][element_prime[1]]=
+        Dpqrs_Prims[element[0]][element[1]][element_prime[0]][element_prime[1]]+Dpqrs;
         element[0]=element[0]+1;element[1]=element[1]+1;element_prime[0]=element_prime[0]+1;element_prime[1]=element_prime[1]+1;
        }
       }
       input_data2.close();
      }
+     cout<<endl;
+     cout<<"Printing the matrix: "<<"Conv_"+name_dm2<<endl;
+     cout<<endl;
+     ofstream dm2_file;
+     dm2_file.open(("Conv_"+name_dm2).c_str(), ios::binary);
+     for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
+     {
+      for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
+      {
+       for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
+       {
+        for(IPRIM3=0;IPRIM3<IPRIM1+1;IPRIM3++)
+        {
+         Dpqrs=Dpqrs_Prims[IPRIM][IPRIM1][IPRIM2][IPRIM3];
+         if(abs(Dpqrs)>=threshold)
+         {
+          // TODO: Use symmetry?
+          element[0]=IPRIM+1;element[1]=IPRIM1+1;element_prime[0]=IPRIM2+1;element_prime[1]=IPRIM3+1;
+          dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+          dm2_file.write((char*) &element[0], sizeof(element[0]));
+          dm2_file.write((char*) &element[1], sizeof(element[1]));
+          dm2_file.write((char*) &element_prime[0], sizeof(element_prime[0]));
+          dm2_file.write((char*) &element_prime[1], sizeof(element_prime[1]));
+          dm2_file.write((char*) &Dpqrs, sizeof(Dpqrs));
+          dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+         }
+        }
+       }
+      }
+     }
+     element[0]=0;
+     element[1]=0;
+     element_prime[0]=0;
+     element_prime[1]=0;
+     Dpqrs=ZERO;
+     dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+     dm2_file.write((char*) &element[0], sizeof(element[0]));
+     dm2_file.write((char*) &element[1], sizeof(element[1]));
+     dm2_file.write((char*) &element_prime[0], sizeof(element_prime[0]));
+     dm2_file.write((char*) &element_prime[1], sizeof(element_prime[1]));
+     dm2_file.write((char*) &Dijkl, sizeof(Dpqrs));
+     dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+     dm2_file.close();
+     for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
+     {
+      for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
+      {
+       for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
+       {
+        delete[] Dpqrs_Prims[IPRIM][IPRIM1][IPRIM2];Dpqrs_Prims[IPRIM][IPRIM1][IPRIM2]=NULL;
+       }
+       delete[] Dpqrs_Prims[IPRIM][IPRIM1];Dpqrs_Prims[IPRIM][IPRIM1]=NULL;
+      }
+      delete[] Dpqrs_Prims[IPRIM];Dpqrs_Prims[IPRIM]=NULL;
+     }
+     delete[] Dpqrs_Prims;Dpqrs_Prims=NULL;
     }
     else
     {
      MEM=EIGHT*Nindex4/pow(TEN,NINE);
      cout<<setprecision(2)<<fixed;
-     if(two_dm2_mat){MEM=TWO*MEM;}
+     if(large_mem){MEM=TWO*MEM;}
      cout<<"Memory required ";
      if(MEM>pow(TEN,THREE))
      {
@@ -1141,7 +1208,7 @@ int main(int argc, char *argv[])
      ofstream temp_dm2;
      ifstream temp_dm2_2;
      //Change l:
-     if(!two_dm2_mat)
+     if(!large_mem)
      {
       temp_dm2.open("Temp.dm2",ios::binary);
       for(ii=0;ii<Nindex4;ii++)
@@ -1190,7 +1257,7 @@ int main(int argc, char *argv[])
       cout<<"l coefficient changed"<<endl;
      }
      //Change k:
-     if(!two_dm2_mat)
+     if(!large_mem)
      {
       temp_dm2.open("Temp.dm2",ios::binary);
       for(ii=0;ii<Nindex4;ii++)
@@ -1240,7 +1307,7 @@ int main(int argc, char *argv[])
       cout<<"k coefficient changed"<<endl;
      }
      //Change j:
-     if(!two_dm2_mat)
+     if(!large_mem)
      {
       temp_dm2.open("Temp.dm2",ios::binary);
       for(ii=0;ii<Nindex4;ii++)
@@ -1291,7 +1358,7 @@ int main(int argc, char *argv[])
       cout<<"j coefficient changed"<<endl;
      }
      //Change i:
-     if(!two_dm2_mat)
+     if(!large_mem)
      {
       temp_dm2.open("Temp.dm2",ios::binary);
       for(ii=0;ii<Nindex4;ii++)
@@ -1342,7 +1409,7 @@ int main(int argc, char *argv[])
       sys=system("/bin/rm Temp.dm2");
       cout<<"i coefficient changed"<<endl;
      }
-     if(two_dm2_mat)
+     if(large_mem)
      {
       vector<double>Dijkl_term2(Nindex4,ZERO);
       for(ii=0;ii<Nindex4;ii++)
@@ -1430,91 +1497,97 @@ int main(int argc, char *argv[])
      }
      //Change done, proceed to print:
      cout<<"Finished transforming the 2-RDM to the primitives basis"<<endl;
-    }
-    // Reduce the pr and qs elements
-    if(reduce)
-    {
-     cout<<endl;
-     cout<<"Reduce the p <-> r and q <-> s terms"<<endl;
-     if(red_sym)
+     // Reduce the pr and qs elements
+     if(reduce)
      {
-      cout<<"keep only one term among orb_p(1) orb_q(2) orb_r(1) orb_s(2) = orb_q(2) orb_p(1) orb_s(2) orb_r(1)"<<endl;
-     }
-     cout<<endl;
-     for(ii=0;ii<Nindex4;ii++)
-     {
-      if(abs(Dijkl_term[ii])>=threshold)
+      cout<<endl;
+      cout<<"Reduce the p <-> r and q <-> s terms"<<endl;
+      // TODO: there is bug for Neon? Lets switch it off for sake
+      /*
+      if(red_sym)
       {
-       Lred=(ii/Nindex3);
-       Kred=((ii-Lred*Nindex3)/Nindex2);
-       Jred=((ii-Kred*Nindex2-Lred*Nindex3)/Nindex);
-       Ired=(ii-Jred*Nindex-Kred*Nindex2-Lred*Nindex3);
-       if(Ired!=Kred && Jred!=Lred)
+       cout<<"keep only one term among orb_p(1) orb_q(2) orb_r(1) orb_s(2) = orb_q(2) orb_p(1) orb_s(2) orb_r(1)"<<endl;
+      }
+      */
+      cout<<endl;
+      for(ii=0;ii<Nindex4;ii++)
+      {
+       if(abs(Dijkl_term[ii])>=threshold)
        {
-        Dijkl_term[ii]=Dijkl_term[ii]
-                      +Dijkl_term[Kred+Jred*Nindex+Ired*Nindex2+Lred*Nindex3]
-                      +Dijkl_term[Ired+Lred*Nindex+Kred*Nindex2+Jred*Nindex3]
-                      +Dijkl_term[Kred+Lred*Nindex+Ired*Nindex2+Jred*Nindex3];
-        Dijkl_term[Kred+Jred*Nindex+Ired*Nindex2+Lred*Nindex3]=ZERO;
-        Dijkl_term[Ired+Lred*Nindex+Kred*Nindex2+Jred*Nindex3]=ZERO;
-        Dijkl_term[Kred+Lred*Nindex+Ired*Nindex2+Jred*Nindex3]=ZERO;
-       }
-       if(Ired!=Kred && Jred==Lred)
-       {
-        Dijkl_term[ii]=Dijkl_term[ii]
-                      +Dijkl_term[Kred+Jred*Nindex+Ired*Nindex2+Lred*Nindex3];
-        Dijkl_term[Kred+Jred*Nindex+Ired*Nindex2+Lred*Nindex3]=ZERO;
-       }
-       if(Ired==Kred && Jred!=Lred)
-       {
-        Dijkl_term[ii]=Dijkl_term[ii]
-                      +Dijkl_term[Ired+Lred*Nindex+Kred*Nindex2+Jred*Nindex3];
-        Dijkl_term[Ired+Lred*Nindex+Kred*Nindex2+Jred*Nindex3]=ZERO;
+        Lred=(ii/Nindex3);
+        Kred=((ii-Lred*Nindex3)/Nindex2);
+        Jred=((ii-Kred*Nindex2-Lred*Nindex3)/Nindex);
+        Ired=(ii-Jred*Nindex-Kred*Nindex2-Lred*Nindex3);
+        if(Ired!=Kred && Jred!=Lred)
+        {
+         Dijkl_term[ii]=Dijkl_term[ii]
+                       +Dijkl_term[Kred+Jred*Nindex+Ired*Nindex2+Lred*Nindex3]
+                       +Dijkl_term[Ired+Lred*Nindex+Kred*Nindex2+Jred*Nindex3]
+                       +Dijkl_term[Kred+Lred*Nindex+Ired*Nindex2+Jred*Nindex3];
+         Dijkl_term[Kred+Jred*Nindex+Ired*Nindex2+Lred*Nindex3]=ZERO;
+         Dijkl_term[Ired+Lred*Nindex+Kred*Nindex2+Jred*Nindex3]=ZERO;
+         Dijkl_term[Kred+Lred*Nindex+Ired*Nindex2+Jred*Nindex3]=ZERO;
+        }
+        if(Ired!=Kred && Jred==Lred)
+        {
+         Dijkl_term[ii]=Dijkl_term[ii]
+                       +Dijkl_term[Kred+Jred*Nindex+Ired*Nindex2+Lred*Nindex3];
+         Dijkl_term[Kred+Jred*Nindex+Ired*Nindex2+Lred*Nindex3]=ZERO;
+        }
+        if(Ired==Kred && Jred!=Lred)
+        {
+         Dijkl_term[ii]=Dijkl_term[ii]
+                       +Dijkl_term[Ired+Lred*Nindex+Kred*Nindex2+Jred*Nindex3];
+         Dijkl_term[Ired+Lred*Nindex+Kred*Nindex2+Jred*Nindex3]=ZERO;
+        }
        }
       }
      }
-    }
-    cout<<"Printing the matrix: "<<"Conv_"+name_dm2<<endl;
-    cout<<endl;
-    ofstream dm2_file;
-    dm2_file.open(("Conv_"+name_dm2).c_str(), ios::binary);
-    for(ii=0;ii<Nindex4;ii++)
-    {
-     Dijkl=Dijkl_term[ii];
-     if(abs(Dijkl)>=threshold)
+     cout<<"Printing the matrix: "<<"Conv_"+name_dm2<<endl;
+     cout<<endl;
+     ofstream dm2_file;
+     dm2_file.open(("Conv_"+name_dm2).c_str(), ios::binary);
+     for(ii=0;ii<Nindex4;ii++)
      {
-      element_prime[1]=(int)(ii/Nindex3);
-      element_prime[0]=(int)((ii-element_prime[1]*Nindex3)/Nindex2);
-      element[1]=(int)((ii-element_prime[0]*Nindex2-element_prime[1]*Nindex3)/Nindex);
-      element[0]=(int)(ii-element[1]*Nindex-element_prime[0]*Nindex2-element_prime[1]*Nindex3);
-      if(!(element[0]==element[1] && element[1]==element_prime[0] && element_prime[0]==element_prime[1]) && (reduce && red_sym))
+      Dijkl=Dijkl_term[ii];
+      if(abs(Dijkl)>=threshold)
       {
-       Dijkl_term[element[0]+element[1]*Nindex+element_prime[0]*Nindex2+element_prime[1]*Nindex3]=ZERO;
-       Dijkl_term[element[1]+element[0]*Nindex+element_prime[1]*Nindex2+element_prime[0]*Nindex3]=ZERO;
-      } 
-      element[0]++;element[1]++;element_prime[0]++;element_prime[1]++;
-      dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
-      dm2_file.write((char*) &element[0], sizeof(element[0]));
-      dm2_file.write((char*) &element[1], sizeof(element[1]));
-      dm2_file.write((char*) &element_prime[0], sizeof(element_prime[0]));
-      dm2_file.write((char*) &element_prime[1], sizeof(element_prime[1]));
-      dm2_file.write((char*) &Dijkl, sizeof(Dijkl));
-      dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+       element_prime[1]=(int)(ii/Nindex3);
+       element_prime[0]=(int)((ii-element_prime[1]*Nindex3)/Nindex2);
+       element[1]=(int)((ii-element_prime[0]*Nindex2-element_prime[1]*Nindex3)/Nindex);
+       element[0]=(int)(ii-element[1]*Nindex-element_prime[0]*Nindex2-element_prime[1]*Nindex3);
+      // TODO: there is bug for Neon? Lets switch it off for sake
+      /*
+       if(!(element[0]==element[1] && element[1]==element_prime[0] && element_prime[0]==element_prime[1]) && (reduce && red_sym))
+       {
+        Dijkl_term[element[0]+element[1]*Nindex+element_prime[0]*Nindex2+element_prime[1]*Nindex3]=ZERO;
+        Dijkl_term[element[1]+element[0]*Nindex+element_prime[1]*Nindex2+element_prime[0]*Nindex3]=ZERO;
+       }
+      */ 
+       element[0]++;element[1]++;element_prime[0]++;element_prime[1]++;
+       dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+       dm2_file.write((char*) &element[0], sizeof(element[0]));
+       dm2_file.write((char*) &element[1], sizeof(element[1]));
+       dm2_file.write((char*) &element_prime[0], sizeof(element_prime[0]));
+       dm2_file.write((char*) &element_prime[1], sizeof(element_prime[1]));
+       dm2_file.write((char*) &Dijkl, sizeof(Dijkl));
+       dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+      }
      }
+     element[0]=0;
+     element[1]=0;
+     element_prime[0]=0;
+     element_prime[1]=0;
+     Dijkl=ZERO;
+     dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+     dm2_file.write((char*) &element[0], sizeof(element[0]));
+     dm2_file.write((char*) &element[1], sizeof(element[1]));
+     dm2_file.write((char*) &element_prime[0], sizeof(element_prime[0]));
+     dm2_file.write((char*) &element_prime[1], sizeof(element_prime[1]));
+     dm2_file.write((char*) &Dijkl, sizeof(Dijkl));
+     dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+     dm2_file.close();
     }
-    element[0]=0;
-    element[1]=0;
-    element_prime[0]=0;
-    element_prime[1]=0;
-    Dijkl=ZERO;
-    dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
-    dm2_file.write((char*) &element[0], sizeof(element[0]));
-    dm2_file.write((char*) &element[1], sizeof(element[1]));
-    dm2_file.write((char*) &element_prime[0], sizeof(element_prime[0]));
-    dm2_file.write((char*) &element_prime[1], sizeof(element_prime[1]));
-    dm2_file.write((char*) &Dijkl, sizeof(Dijkl));
-    dm2_file.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
-    dm2_file.close();
    }
    else
    {

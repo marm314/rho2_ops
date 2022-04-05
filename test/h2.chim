@@ -37,8 +37,10 @@ Trace of the 2RDM stored:  2.0000000000e+00
 
 Change indexes: ^2 Dij,kl -> ^2 Dpq,rs
 
-Memory required      88.88 Kb. for the index transformation.
+Memory required      33.08 Kb. for the index transformation.
 
+
+Automatic reduction of the p <-> r and q <-> s terms
 
 Transforming scalar MO     1/    6
 Transforming scalar MO     2/    6
@@ -48,8 +50,6 @@ Transforming scalar MO     5/    6
 Transforming scalar MO     6/    6
 
 Finished transforming the 2-RDM to the primitives basis
-
-Reduce the p <-> r and q <-> s terms
 
 Printing the matrix: Conv_h2.dm2
 
