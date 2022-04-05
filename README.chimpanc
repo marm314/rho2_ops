@@ -3,9 +3,9 @@ name.dm2
 $name_fchk         
 name.fchk
 $threshold             // Threshold for reading and printing 2-RDM elements
-$two_dm2_mat           // Store two 2-RDMs (compatible with method1 and method2) 
+$large_mem             // Store large 2-RDMs (compatible with method1 and method2) 
 $index_iiii            // Use aa_2D^ii _ii terms
-$reduce                // Reduce p <-> r, q <-> s terms
+$reduce                // Reduce p <-> r, q <-> s terms (used only by old method, in the nex method it is automatic)
 $donof                 // Reading from DoNOF 2-RDM
 $all_dm2_are_given     // All 2-RDM elements are given
 $int8alldm2            // 2-RDM elements from PSI4 code 
