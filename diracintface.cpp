@@ -1682,7 +1682,7 @@ void reduce_print()
   }
  }
  cout<<" for the reduction."<<endl; 
- cout<<"Num. of 2-RDM elem.  : "<<setw(12)<<Nprims4<<endl;
+ cout<<"Num. of 2-RDM elem.  : "<<setw(12)<<(Nprims1*(Nprims1+1)*Nprims1*(Nprims1+1))/4<<endl;
  cout<<endl;
  Dpqrs_ALL=new double***[Nprims1];
  for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
