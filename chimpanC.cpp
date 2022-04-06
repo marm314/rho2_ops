@@ -915,7 +915,7 @@ int main(int argc, char *argv[])
      cout<<endl;
      for(IMOS=0;IMOS<Nindex;IMOS++)         // i
      {
-      cout<<"Transforming scalar MO "<<setw(5)<<IMOS+1<<"/"<<setw(5)<<Nindex<<endl;
+      cout<<"Transforming MO "<<setw(5)<<IMOS+1<<"/"<<setw(5)<<Nindex<<endl;
       for(IPRIM1=0;IPRIM1<Nprims3;IPRIM1++)    // Initialize qrs
       {
        Diqrs_Prims[IPRIM1]=ZERO;
