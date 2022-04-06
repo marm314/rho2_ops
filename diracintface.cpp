@@ -55,15 +55,15 @@ vector<double>One_Prim2MO_Coef_IM;
 // Main  
 int main(int argc, char *argv[])
 {
- cout<<"----------------------------------------"<<endl;
- cout<<"----------------------------------------"<<endl;
- cout<<"---  DIRAC INTERFACE FOR RHO2_OPS    ---"<<endl;
- cout<<"----------------------------------------"<<endl;
- cout<<"----------------------------------------"<<endl;
- cout<<"-- Developed by: M. Rodriguez-Mayorga --"<<endl;
- cout<<"--   email: marm3.14@gmail.com        --"<<endl;
- cout<<"----------------------------------------"<<endl;
- cout<<"----------------------------------------"<<endl;
+ cout<<"--------------------------------------------"<<endl;
+ cout<<"--------------------------------------------"<<endl;
+ cout<<"---  DIRAC+DM2 INTERFACE FOR RHO2_OPS    ---"<<endl;
+ cout<<"--------------------------------------------"<<endl;
+ cout<<"--------------------------------------------"<<endl;
+ cout<<"-- Developed by: Dr. M. Rodriguez-Mayorga --"<<endl;
+ cout<<"--     email: marm3.14@gmail.com          --"<<endl;
+ cout<<"--------------------------------------------"<<endl;
+ cout<<"--------------------------------------------"<<endl;
  cout<<endl;
  if(argc!=3 && argc!=4)
  {
@@ -72,14 +72,40 @@ int main(int argc, char *argv[])
   cout<<endl;
   cout<<"name_dirac.out name_dm2.dm2"<<endl;
   cout<<"or"<<endl;
-  cout<<"name_dirac.out name_dm2.dm2 argument4(integer: >0 orb selection, -1 transform_2RDM_cplx, -10 no rr'_symmetry)"<<endl;
+  cout<<"name_dirac.out name_dm2.dm2 argument3(integer: >0 orb selection for WFX, -1 transform_2RDM_cplx)"<<endl;
   cout<<endl;
-  cout<<"----------------------------------------"<<endl;
-  cout<<"--        Normal termination          --"<<endl;
-  cout<<"----------------------------------------"<<endl;
-  cout<<"----------------------------------------"<<endl;
+  cout<<"--------------------------------------------"<<endl;
+  cout<<"                       .-.                  "<<endl;  
+  cout<<"                      |_:_|                 "<<endl; 
+  cout<<"                     /(_Y_)\\               "<<endl; 
+  cout<<".                   ( \\/M\\/ )             "<<endl;
+  cout<<" '.               _.'-/'-'\\-'._            "<<endl;
+  cout<<"   ':           _/.--'[[[[]'--.\\_          "<<endl;
+  cout<<"     ':        /_'  : |::\"| :  '.\\        "<<endl;
+  cout<<"       ':     //   ./ |oUU| \\.'  :\\       "<<endl;
+  cout<<"         ':  _:'..' \\_|___|_/ :   :|       "<<endl;
+  cout<<"           ':.  .'  |_[___]_|  :.':\\       "<<endl;
+  cout<<"            [::\\ |  :  | |  :   ; : \\     "<<endl;
+  cout<<"             '-'   \\/'.| |.' \\  .;.' |    "<<endl;
+  cout<<"             |\\_    \\  '-'   :       |    "<<endl;
+  cout<<"             |  \\    \\ .:    :   |   |    "<<endl;
+  cout<<"             |   \\    | '.   :    \\  |    "<<endl;
+  cout<<"             /       \\   :. .;       |     "<<endl;
+  cout<<"            /     |   |  :__/     :  \\\\   "<<endl;
+  cout<<"           |  |   |    \\:   | \\   |   ||  "<<endl;
+  cout<<"          /    \\  : :  |:   /  |__|   /|   "<<endl;
+  cout<<"      snd |     : : :_/_|  /'._\\  '--|_\\  "<<endl;
+  cout<<"          /___.-/_|-'   \\  \\              "<<endl;  
+  cout<<"                         '-'                "<<endl;
+  cout<<"                                            "<<endl; 
+  cout<<"  'I find your lack of faith disturbing.'   "<<endl; 
+  cout<<"                             Dart Vader     "<<endl; 
+  cout<<"                                            "<<endl; 
+  cout<<"--------------------------------------------"<<endl;
+  cout<<"--          Normal termination            --"<<endl;
+  cout<<"--------------------------------------------"<<endl;
   return -1;
- }
+ } 
  bool repeated_prims;
  int ishell,ishell1,iprim,iprim1,iaos,iaos1,imos,imos1,imos2; // imos for Scalar MOs
  int naos;
@@ -100,10 +126,13 @@ int main(int argc, char *argv[])
   {
    transf_cplx=true;
   }
+  // TODO: 
+  /*
   if(select_arg4==-10)
   {
    symmrr_prime=false;
   }
+  */
  }
  // Read Dirac output
  read_dirac_out();
@@ -346,11 +375,36 @@ int main(int argc, char *argv[])
   delete [] Prim2MO_Coef[imos];Prim2MO_Coef[imos]=NULL;
  }
  delete[] Prim2MO_Coef;Prim2MO_Coef=NULL;
- cout<<endl;
- cout<<"----------------------------------------"<<endl;
- cout<<"--        Normal termination          --"<<endl;
- cout<<"----------------------------------------"<<endl;
- cout<<"----------------------------------------"<<endl;
+ cout<<"--------------------------------------------"<<endl;
+ cout<<"                       .-.                  "<<endl;
+ cout<<"                      |_:_|                 "<<endl;
+ cout<<"                     /(_Y_)\\               "<<endl;
+ cout<<".                   ( \\/M\\/ )             "<<endl;
+ cout<<" '.               _.'-/'-'\\-'._            "<<endl;
+ cout<<"   ':           _/.--'[[[[]'--.\\_          "<<endl;
+ cout<<"     ':        /_'  : |::\"| :  '.\\        "<<endl;
+ cout<<"       ':     //   ./ |oUU| \\.'  :\\       "<<endl;
+ cout<<"         ':  _:'..' \\_|___|_/ :   :|       "<<endl;
+ cout<<"           ':.  .'  |_[___]_|  :.':\\       "<<endl;
+ cout<<"            [::\\ |  :  | |  :   ; : \\     "<<endl;
+ cout<<"             '-'   \\/'.| |.' \\  .;.' |    "<<endl;
+ cout<<"             |\\_    \\  '-'   :       |    "<<endl;
+ cout<<"             |  \\    \\ .:    :   |   |    "<<endl;
+ cout<<"             |   \\    | '.   :    \\  |    "<<endl;
+ cout<<"             /       \\   :. .;       |     "<<endl;
+ cout<<"            /     |   |  :__/     :  \\\\   "<<endl;
+ cout<<"           |  |   |    \\:   | \\   |   ||  "<<endl;
+ cout<<"          /    \\  : :  |:   /  |__|   /|   "<<endl;
+ cout<<"      snd |     : : :_/_|  /'._\\  '--|_\\  "<<endl;
+ cout<<"          /___.-/_|-'   \\  \\              "<<endl;
+ cout<<"                         '-'                "<<endl;
+ cout<<"                                            "<<endl;
+ cout<<"  'I find your lack of faith disturbing.'   "<<endl;
+ cout<<"                             Dart Vader     "<<endl;
+ cout<<"                                            "<<endl;
+ cout<<"--------------------------------------------"<<endl;
+ cout<<"--          Normal termination            --"<<endl;
+ cout<<"--------------------------------------------"<<endl;
  return 0;
 }
 

@@ -70,47 +70,16 @@ nproc=npr[0];
 if(ID==0)
 {
  cout<<"##########################################################################"<<endl;
+ cout<<"# Evaluation of the Intracule, Extracule and Second Moments              #"<<endl;
  cout<<"##########################################################################"<<endl;
- cout<<"# Evaluation of the Intracule, Extracule and Second Moments using the    #"<<endl;
- cout<<"# DM2 in Primitives (in C++) written by Dr. Mauricio Rodriguez Mayorga   #"<<endl;
- cout<<"# email: marm3.14@gmail.com                                              #"<<endl;
- cout<<"##########################################################################"<<endl;
- cout<<"##########################################################################"<<endl;
- cout<<"#*****************************************************************************#";
- cout<<endl;
- cout<<"# Copyright (C) 2022 Dr. Mauricio A. Rodriguez Mayorga                        #";
- cout<<endl;
- cout<<"# Postdoctoral reseracher at Vrije Universiteit Amsterdam                     #";
- cout<<endl;
- cout<<"# for support and comments send an email to: marm3.14@gmail.com               #";
- cout<<endl;
- cout<<"#*****************************************************************************#";
- cout<<endl;
- cout<<"#  This program is free software: you can redistribute it and/or modify       #";
- cout<<endl;
- cout<<"#  it under the terms of the GNU General Public License as published by       #";
- cout<<endl;
- cout<<"#  the Free Software Foundation, either version 3 of the License, or          #";
- cout<<endl;
- cout<<"#  (at your option) any later version.                                        #";
- cout<<endl;
- cout<<"#  This program is distributed in the hope that it will be useful,            #";
- cout<<endl;
- cout<<"#  but WITHOUT ANY WARRANTY; without even the implied warranty of             #";
- cout<<endl;
- cout<<"#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #";
- cout<<endl;
- cout<<"#  GNU General Public License for more details.                               #";
- cout<<endl;
- cout<<"#  You should have received a copy of the GNU General Public License          #";
- cout<<endl;
- cout<<"#  along with this program.  If not, see <http://www.gnu.org/licenses/>.      #";
- cout<<endl;
- cout<<"#*****************************************************************************#";
- cout<<endl;
- cout<<"# See. J. Cioslowski and G. Liu, J. Chem. Phys., 105, 4151 (1996)             #";
- cout<<endl;
- cout<<"#*****************************************************************************#";
+ cout<<"#************************************************************************#"<<endl;
+ cout<<"# Developed by: Dr. M. Rodriguez-Mayorga                                 #"<<endl;
+ cout<<"# PhD Student at Universitat de Girona (2017)                            #"<<endl;
+ cout<<"# Postdoctoral researcher at Vrije Universiteit Amsterdam (2021)         #"<<endl;
+ cout<<"# For support and comments send an email to marm3.14@gmail.com           #"<<endl;
+ cout<<"#************************************************************************#"<<endl;
+ cout<<"# See. J. Cioslowski and G. Liu, J. Chem. Phys., 105, 4151 (1996)        #"<<endl;
+ cout<<"#************************************************************************#"<<endl;
  cout<<endl;
  /////////////////////
  //Get git sha      //
@@ -2551,11 +2520,11 @@ if(ID==0)
  date_file.close();
  sys=system("rm date_intrac.date");
  calc_time(DATE);
- cout<<"#################################################"<<endl;
+ cout<<"##########################################################################"<<endl;
  cout<<endl;
  cout<<"                             __...------------._"<<endl;
  cout<<"                         ,-'                   `-.  "<<endl;
- cout<<"  It is a Trap!       ,-'                         `."<<endl;
+ cout<<"                      ,-'                         `."<<endl;
  cout<<"                    ,'                            ,-`."<<endl;
  cout<<"                   ;                              `-' `."<<endl;
  cout<<"                  ;                                 .-. \\"<<endl;
@@ -2594,8 +2563,10 @@ if(ID==0)
  cout<<"                                                         |"<<endl;
  cout<<"                               mGk                       |"<<endl;
  cout<<endl;
+ cout<<"                                'It is a trap!'          "<<endl;
+ cout<<"                                General Ackbar           "<<endl; 
  cout<<endl;
- cout<<"#################################################"<<endl;
+ cout<<"##########################################################################"<<endl;
  cout<<endl;
  cout<<setprecision(0)<<fixed;
  cout<<"  It took "<<setw(4)<<DATE[0][0]<<" days "<<setw(4)<<DATE[0][1]<<" hours "<<setw(4)<<DATE[0][2]<<" min. ";
@@ -2603,11 +2574,11 @@ if(ID==0)
  cout<<endl;
  cout<<" Git sha: "<<sha<<endl;
  cout<<endl;
- cout<<"#################################################"<<endl;
+ cout<<"##########################################################################"<<endl;
  cout<<endl;
  cout<<" Normal termination of RHO2_OPS code          "<<endl;
  cout<<endl;
- cout<<"#################################################"<<endl;
+ cout<<"##########################################################################"<<endl;
 }
 #ifdef HAVE_MPI
 MPI_Finalize();
