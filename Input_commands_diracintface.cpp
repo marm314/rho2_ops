@@ -1,0 +1,53 @@
+#include"Input_commands_diracintface.h"
+Input_diracintface::Input_diracintface(){cout<<"Not allowed default constructor"<<endl;}
+Input_diracintface::Input_diracintface(string I_in)
+{
+ large_mem=false;oneMOwfx=false;transf_cplx=false;
+ threshold=pow(TEN,-TEN);
+ maxmem=ONE;
+ ifstream I_input_file;
+ I_in.erase(std::remove_if(I_in.begin(),I_in.end(),::isspace),I_in.end());
+ I_input_file.open((I_in).c_str());
+ if(I_input_file.good()) //Check existence of file
+ {
+  while(getline(I_input_file,I_in))
+  {
+   I_in.erase(std::remove_if(I_in.begin(),I_in.end(),::isspace),I_in.end());
+   lowercase(I_in);
+   if(I_in=="$name_dm2")
+   {
+    getline(I_input_file,I_in);
+    I_in.erase(std::remove_if(I_in.begin(),I_in.end(),::isspace),I_in.end());
+    name_dm2=I_in;
+   }
+   else if(I_in=="$name_out")
+   {
+    getline(I_input_file,I_in);
+    I_in.erase(std::remove_if(I_in.begin(),I_in.end(),::isspace),I_in.end());
+    name_out=I_in;
+   }
+   else if(I_in=="$large_mem"){large_mem=true;}
+   else if(I_in=="$transf_cplx"){transf_cplx=true;}
+   else if(I_in=="$threshold")
+   {
+    I_input_file>>threshold;    
+   }
+   else if(I_in=="$onemowfx")
+   {
+    oneMOwfx=true;
+    I_input_file>>OneMO_wfx;    
+   }
+   else if(I_in=="$maxmem")
+   {
+    I_input_file>>maxmem;    
+   }
+   else
+   {
+    // Nth
+   }
+  }
+ }
+ I_input_file.close();
+}
+Input_diracintface::~Input_diracintface()
+{}

@@ -41,8 +41,8 @@ chimpanC: String_ops.cpp Input_commands.cpp chimpanC.cpp
 psi4intface: psi4intface.cpp
 	$(CPP) $(CPPFLAGS) psi4intface.cpp -o psi4intface
 
-diracintface: diracintface.cpp
-	$(CPP) $(CPPFLAGS) diracintface.cpp -o diracintface
+diracintface:  String_ops.cpp Input_commands_diracintface.cpp diracintface.cpp  
+	$(CPP) $(CPPFLAGS) String_ops.cpp Input_commands_diracintface.cpp diracintface.cpp -o diracintface
 
 
 tar:
