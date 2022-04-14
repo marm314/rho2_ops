@@ -1436,6 +1436,7 @@ void transform_Dijkl2Dpqrs()
   cout<<"Finished writing the transformed-real 2-RDM elements in the primitives basis"<<endl;
   if(!large_mem)
   {
+   Largest_Prim++;
    cout<<"Num. of printed terms: "<<setw(12)<<Nterms_printed<<endl;
    cout<<"Largest prim. in use : "<<setw(12)<<Largest_Prim<<endl;
   }
