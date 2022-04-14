@@ -40,7 +40,7 @@ struct Shell2AOs
  double *Coef,*Expon,Coord[3];
 };
 Shell2AOs *shell2aos;
-double threshold,maxmem;
+double threshold,maxmem,sumMEM=ZERO;
 double Quaternion_coef[4];
 double *OCCs,**Prim2AO_Coef;
 double ****Dpqrs_ALL;
@@ -1056,7 +1056,9 @@ void read_2rdm4cMO_and_transf()
  NMOs_LS_2=NMOs_LS_1*NMOs_occ;
  NMOs_LS_3=NMOs_LS_2*NMOs_occ;
  NMOs_LS_4=NMOs_LS_3*NMOs_occ;
- MEM=EIGHT*NMOs_LS_4/pow(TEN,NINE);
+ MEM=EIGHT*NMOs_LS_4;
+ sumMEM=MEM;
+ MEM=MEM/pow(TEN,NINE);
  cout<<setprecision(2)<<fixed;
  cout<<"Memory required ";
  if(MEM>pow(TEN,THREE))
@@ -1185,6 +1187,7 @@ void transform_Dijkl2Dpqrs()
  {
   MEM=(EIGHT*(TWO*Nprims1+FOUR*Nprims2+EIGHT*Nprims3+(Nprims1*(Nprims1+1)*Nprims1*(Nprims1+1))/4));
  }
+ MEM=MEM+sumMEM;
  if(MEM>maxmem)
  {
   cout<<endl;
@@ -1214,11 +1217,12 @@ void transform_Dijkl2Dpqrs()
     }
    }
   }
-  cout<<" for the index transformation."<<endl; 
+  cout<<" for the index transformation and storage of the Scalar occupied (LS) 2-RDM."<<endl; 
   cout<<endl;
  }
  else
  {
+  MEM=MEM-sumMEM;
   MEM=MEM/pow(TEN,NINE);
   cout<<setprecision(2)<<fixed;
   cout<<"Memory required ";
