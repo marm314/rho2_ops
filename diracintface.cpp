@@ -286,14 +286,15 @@ int main(int argc, char *argv[])
  delete[] Prim2AO_Coef;Prim2AO_Coef=NULL;
  // Print the Prim2MO_Coef matrix (coefficients are rows). 
  // WARNING! Below we may overwrite the positronic states (initial ones) with the occ. electronic states (i.e. put them on top of the list)!
- //
- // Debug: Print coefs into the electronic.coef and positronic.coef file
- /*
- ofstream coefs_file((dirac_output_name+"electronic.coef").c_str());
- ofstream coefs_file_pos((dirac_output_name+"positronic.coef").c_str());
- coefs_file<<setprecision(12)<<fixed<<scientific;
- coefs_file_pos<<setprecision(12)<<fixed<<scientific;
- */
+ ofstream coefs_file;
+ ofstream coefs_file_pos;
+ if(Input_commands.print_coef_files)
+ {
+  coefs_file.open((dirac_output_name+"electronic.coef").c_str());
+  coefs_file_pos.open((dirac_output_name+"positronic.coef").c_str());
+  coefs_file<<setprecision(12)<<fixed<<scientific;
+  coefs_file_pos<<setprecision(12)<<fixed<<scientific;
+ }
  imos1=0;
  for(imos=0;imos<NMOs_LS;imos++)
  {
@@ -309,31 +310,36 @@ int main(int argc, char *argv[])
    }
    cout<<"Scalar (LS) orbitals selected for the WFX file from "<<setw(5)<<imos+1<<" to "<<setw(5)<<imos+4<<endl; 
   }
- /* // Print positronic.coef file? Debug
-  if(OCCs[imos]==-TEN) // Write positronic MO coefs to file
+  if(Input_commands.print_coef_files)
   {
-   for(iprim=0;iprim<Nprimitives;iprim++)
+   if(OCCs[imos]==-TEN) // Write positronic MO coefs to file
    {
-    coefs_file_pos<<setw(20)<<Prim2MO_Coef[imos][iprim].real()<<setw(20)<<Prim2MO_Coef[imos][iprim].imag();
+    for(iprim=0;iprim<Nprimitives;iprim++)
+    {
+     coefs_file_pos<<setw(20)<<Prim2MO_Coef[imos][iprim].real()<<setw(20)<<Prim2MO_Coef[imos][iprim].imag();
+    }
    }
   }
- */
   if(OCCs[imos]>pow(TEN,-EIGHT)) // Overwrite positronic MO coefs with electronic ones and print the electronic ones
   {
    for(iprim=0;iprim<Nprimitives;iprim++)
    {
     Prim2MO_Coef[imos1][iprim]=Prim2MO_Coef[imos][iprim];
-    //coefs_file<<setw(20)<<Prim2MO_Coef[imos1][iprim].real()<<setw(20)<<Prim2MO_Coef[imos1][iprim].imag(); // Print electronic coefs file? Debug
+    if(Input_commands.print_coef_files)
+    {
+     coefs_file<<setw(20)<<Prim2MO_Coef[imos1][iprim].real()<<setw(20)<<Prim2MO_Coef[imos1][iprim].imag();
+    }
    }
    MOsLS_occ.push_back(OCCs[imos]);
    imos1++;
   }
  }
  NMOs_occ=imos1;
- /*
- coefs_file.close();
- coefs_file_pos.close();
- */
+ if(Input_commands.print_coef_files)
+ {
+  coefs_file.close();
+  coefs_file_pos.close();
+ }
  cout<<"Num. of occ MO (Scalar): "<<setw(12)<<NMOs_occ<<endl;
  // Print a WFX file for RHO_OPS (currently only available for ATOMS) and delete OCCs array.
  if(OneMO_wfx==-1)

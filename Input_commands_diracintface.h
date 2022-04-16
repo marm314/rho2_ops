@@ -18,7 +18,7 @@ using namespace std;
 class Input_diracintface
 {
  public:
- bool large_mem,oneMOwfx,transf_cplx;
+ bool large_mem,oneMOwfx,transf_cplx,print_coef_files;
  int OneMO_wfx;
  double threshold,maxmem;
  string name_dm2,name_out;
