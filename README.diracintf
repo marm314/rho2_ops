@@ -5,6 +5,6 @@ name.out
 $threshold             // Threshold for reading and printing 2-RDM elements
 $large_mem             // Store large 2-RDMs 
 $maxmem                // Max. RAM memory to use (default 1Gb)
-$transf_cplx           // Transform the 2-RDM including imaginary part (might be usefull in momemtum space?) 
+$transf_cplx           // Transform the 2-RDM including imaginary part (might be usefull in momemtum space?) -> Currently switched off in the code! 
 $print_coef_files      // Print real and imaginary coefs in the primitive basis for electrons and positrons
 $onemowfx              // select one MO to be printed in the WFX file

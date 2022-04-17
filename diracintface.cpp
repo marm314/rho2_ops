@@ -21,9 +21,9 @@ void print_wfx();
 void read_2rdm4cMO_and_transf();
 void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cMO4,double Dijkl_4cMO); 
 void transform_Dijkl2Dpqrs();
-void transform_Dijkl2Dpqrs_cplx();
 void reduce_getreal_print();
 void reduce_print();
+//void transform_Dijkl2Dpqrs_cplx(); // Currently switched off because we do not need the imaginary part of the 2-RDM in primitives 
 
 // Global variables
 complex<double>CZERO=(ZERO,ZERO);
@@ -127,7 +127,11 @@ int main(int argc, char *argv[])
   cout<<"Orbital selection is swittched on. Scalar (LS) orbitals to print in the WFX file: ";
   cout<<setw(5)<<OneMO_wfx+1<<" to "<<setw(5)<<OneMO_wfx+4<<endl;
  }
- if(Input_commands.transf_cplx){transf_cplx=Input_commands.transf_cplx;}
+ if(Input_commands.transf_cplx)
+ {
+  cout<<"Warning! Currently the transf. of the Scalar (LS) 2-RDM to a complex 2-RDM in primitives is switched off!"<<endl;
+ //transf_cplx=Input_commands.transf_cplx;
+ }
  if(Input_commands.large_mem){large_mem=Input_commands.large_mem;}
  // TODO: 
  /*
@@ -1200,15 +1204,7 @@ void read_2rdm4cMO_and_transf()
  cout<<"The 2-RDM elements were read and stored in the Scalar (LS) MO basis"<<endl;
  cout<<"Trace of the 2-RDM stored: "<<setprecision(12)<<fixed<<scientific<<setw(17)<<Trace<<endl;
  cout<<endl;
- if(transf_cplx)
- {
-  // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives) complex
-  transform_Dijkl2Dpqrs_cplx();
-  delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
-  // Reduce symmetry elements, transf. to real, and print it 
-  reduce_getreal_print();
- }
- else
+ if(!transf_cplx)
  {
   // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives) real
   transform_Dijkl2Dpqrs();
@@ -1218,6 +1214,16 @@ void read_2rdm4cMO_and_transf()
   {
    reduce_print();
   }
+ }
+ else
+ {
+  /*
+  // Transform from D_ij,kl (Scalar MO) to D_pq,rs (Primitives) complex
+  transform_Dijkl2Dpqrs_cplx();
+  delete[] Dijkl_MOsLS;Dijkl_MOsLS=NULL;
+  // Reduce symmetry elements, transf. to real, and print it 
+  reduce_getreal_print();
+  */
  }
 }
 
@@ -1516,6 +1522,7 @@ void transform_Dijkl2Dpqrs()
   output_data.close();
   cout<<endl;
   cout<<"Finished writing the transformed-real 2-RDM elements in the primitives basis"<<endl;
+  cout<<"to the file "<<name<<endl;
   if(!large_mem)
   {
    Largest_Prim++;
@@ -1538,6 +1545,334 @@ void transform_Dijkl2Dpqrs()
  }
 }  
 
+// Read the 2-RDM in primitive basis, reduce it using symmetry, and print it real
+void reduce_print()
+{
+ int index_Prim[2],index_Prim_prime[2];
+ long int IPRIM,IPRIM1,IPRIM2,IPRIM3,IPRIM4;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
+ double Dpqrs,MEM;
+ string conv_name="Conv_"+dirac_output_name+"dm2";
+ MEM=(EIGHT*((Nprims1*(Nprims1+1)*Nprims1*(Nprims1+1))/4))/pow(TEN,NINE);
+ cout<<setprecision(2)<<fixed;
+ cout<<"Memory required ";
+ if(MEM>pow(TEN,THREE))
+ {
+  cout<<setw(10)<<MEM/pow(TEN,THREE)<<" Tb.";
+ }
+ else
+ {
+  if(MEM>ONE)
+  {
+   cout<<setw(10)<<MEM<<" Gb.";
+  }
+  else
+  {
+   if(MEM<ONE && MEM>pow(TEN,-THREE))
+   {
+    cout<<setw(10)<<MEM*pow(TEN,THREE)<<" Mb.";
+   }
+   else
+   {
+    cout<<setw(10)<<MEM*pow(TEN,SIX)<<" Kb.";
+   }
+  }
+ }
+ cout<<" for the reduction."<<endl; 
+ cout<<"Num. of 2-RDM elem.  : "<<setw(12)<<(Nprims1*(Nprims1+1)*Nprims1*(Nprims1+1))/4<<endl;
+ cout<<endl;
+ Dpqrs_ALL=new double***[Nprims1];
+ for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
+ {
+  Dpqrs_ALL[IPRIM]=new double**[Nprims1];
+  for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
+  {
+   Dpqrs_ALL[IPRIM][IPRIM1]=new double*[IPRIM+1];
+   for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
+   {
+    Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2]=new double[IPRIM1+1];
+    for(IPRIM3=0;IPRIM3<IPRIM1+1;IPRIM3++)
+    {
+     Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2][IPRIM3]=ZERO;
+    }
+   }
+  }
+ }
+ ifstream input_data2(conv_name.c_str(),ios::binary);
+ cout<<endl;
+ index_Prim[0]=10;index_Prim[1]=10;index_Prim_prime[0]=10;index_Prim_prime[1]=10;
+ cout<<"Reading the transformed 2-RDM elements from "<<conv_name<<endl;
+ while(index_Prim[0]!=0 || index_Prim[1]!=0 || index_Prim_prime[0]!=0 || index_Prim_prime[1]!=0)
+ {
+  input_data2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+  input_data2.read((char*) &index_Prim[0], sizeof(index_Prim[0]));
+  input_data2.read((char*) &index_Prim[1], sizeof(index_Prim[1]));
+  input_data2.read((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+  input_data2.read((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+  input_data2.read((char*) &Dpqrs, sizeof(Dpqrs));
+  input_data2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
+  if(abs(Dpqrs)!=ZERO && index_Prim[0]!=0 && index_Prim[1]!=0 && index_Prim_prime[0]!=0 && index_Prim_prime[1]!=0)
+  {
+   index_Prim[0]=index_Prim[0]-1;index_Prim[1]=index_Prim[1]-1;index_Prim_prime[0]=index_Prim_prime[0]-1;index_Prim_prime[1]=index_Prim_prime[1]-1;
+   Dpqrs_ALL[index_Prim[0]][index_Prim[1]][index_Prim_prime[0]][index_Prim_prime[1]]=
+   Dpqrs_ALL[index_Prim[0]][index_Prim[1]][index_Prim_prime[0]][index_Prim_prime[1]]+Dpqrs;
+   index_Prim[0]=index_Prim[0]+1;index_Prim[1]=index_Prim[1]+1;index_Prim_prime[0]=index_Prim_prime[0]+1;index_Prim_prime[1]=index_Prim_prime[1]+1;
+  }
+ }
+ input_data2.close();
+ // Print
+ cout<<"Printing the reduced transformed 2-RDM"<<endl;
+ cout<<"overwriting the file "<<conv_name<<endl;
+ cout<<endl;
+ ofstream output_data(conv_name.c_str(),ios::binary);
+ for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
+ {
+  for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
+  {
+   for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
+   {
+    for(IPRIM3=0;IPRIM3<IPRIM1+1;IPRIM3++)
+    {
+     Dpqrs=Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2][IPRIM3];
+     if(abs(Dpqrs)>=threshold)
+     {
+      index_Prim[0]=IPRIM+1;index_Prim[1]=IPRIM1+1;index_Prim_prime[0]=IPRIM2+1;index_Prim_prime[1]=IPRIM3+1;
+      output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+      output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
+      output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
+      output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+      output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+      output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
+      output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+     }
+    }
+   }
+  }
+ }
+ index_Prim[0]=0;
+ index_Prim[1]=0;
+ index_Prim_prime[0]=0;
+ index_Prim_prime[1]=0;
+ Dpqrs=ZERO;
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
+ output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
+ output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
+ output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
+ output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.close();
+ for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
+ {
+  for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
+  {
+   for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
+   {
+    delete[] Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2];Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2]=NULL;
+   }
+   delete[] Dpqrs_ALL[IPRIM][IPRIM1];Dpqrs_ALL[IPRIM][IPRIM1]=NULL;
+  }
+  delete[] Dpqrs_ALL[IPRIM];Dpqrs_ALL[IPRIM]=NULL;
+ }
+ delete[] Dpqrs_ALL;Dpqrs_ALL=NULL;
+}
+
+// Currently, only available for ATOMS
+void print_wfx()
+{
+ int iprim,imos,imos1,icenter;
+ string line;
+ ofstream real_wfx(("dirac_"+dirac_output_name+"RE.wfx").c_str());
+ ofstream imag_wfx(("dirac_"+dirac_output_name+"IM.wfx").c_str());
+ real_wfx<<setprecision(15)<<fixed<<scientific;
+ imag_wfx<<setprecision(15)<<fixed<<scientific;
+ line="<Number of Nuclei>";
+ real_wfx<<line<<endl; 
+ imag_wfx<<line<<endl; 
+ real_wfx<<Ncenters<<endl; 
+ imag_wfx<<Ncenters<<endl; 
+ line="</Number of Nuclei>";
+ real_wfx<<line<<endl; 
+ imag_wfx<<line<<endl; 
+ line="<Number of Occupied Molecular Orbitals>";
+ real_wfx<<line<<endl; 
+ imag_wfx<<line<<endl; 
+ if(OneMO_wfx==-1)
+ {
+  real_wfx<<NMOs_occ<<endl; 
+  imag_wfx<<NMOs_occ<<endl;
+ } 
+ else
+ {
+  real_wfx<<4<<endl; 
+  imag_wfx<<4<<endl;
+ } 
+ line="</Number of Occupied Molecular Orbitals>";
+ real_wfx<<line<<endl; 
+ imag_wfx<<line<<endl; 
+ line="<Electronic Spin Multiplicity>"; // Fixed for 'faked' close shell
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ real_wfx<<1<<endl; 
+ imag_wfx<<1<<endl; 
+ line="</Electronic Spin Multiplicity>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Nuclear Charges>"; // Faked (No need to change them for RHO_OPS!)
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(icenter=0;icenter<Ncenters;icenter++)
+ {
+  real_wfx<<0<<endl; 
+  imag_wfx<<0<<endl; 
+ }
+ line="</Nuclear Charges>"; // Faked
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Nuclear Cartesian Coordinates>"; // Only C1 symmetry in DIRAC 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(icenter=0;icenter<Ncenters;icenter++)
+ {
+  real_wfx<<Center_x[icenter]<<endl; // x
+  imag_wfx<<Center_x[icenter]<<endl; 
+  real_wfx<<Center_y[icenter]<<endl; // y
+  imag_wfx<<Center_y[icenter]<<endl; 
+  real_wfx<<Center_z[icenter]<<endl; // z
+  imag_wfx<<Center_z[icenter]<<endl; 
+ }
+ line="</Nuclear Cartesian Coordinates>"; // Only C1 symmetry in DIRAC 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Number of Primitives>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ real_wfx<<Nprimitives<<endl;
+ imag_wfx<<Nprimitives<<endl;
+ line="</Number of Primitives>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Primitive Centers>"; // Only atomic systems 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(iprim=0;iprim<Nprimitives;iprim++)
+ {
+  real_wfx<<Prim2Center_map[iprim]<<endl;
+  imag_wfx<<Prim2Center_map[iprim]<<endl;
+ }
+ line="</Primitive Centers>"; 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Primitive Types>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(iprim=0;iprim<Nprimitives;iprim++)
+ {
+  real_wfx<<shell_types[iprim]<<endl;
+  imag_wfx<<shell_types[iprim]<<endl;
+ }
+ line="</Primitive Types>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Primitive Exponents>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ for(iprim=0;iprim<Nprimitives;iprim++)
+ {
+  real_wfx<<prim_exponents[iprim]<<endl;
+  imag_wfx<<prim_exponents[iprim]<<endl;
+ }
+ line="</Primitive Exponents>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Molecular Orbital Occupation Numbers>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ if(OneMO_wfx==-1)
+ {
+  for(imos=0;imos<NMOs_occ;imos++)
+  {
+   real_wfx<<MOsLS_occ[imos]<<endl;
+   imag_wfx<<MOsLS_occ[imos]<<endl;
+  }
+ }
+ else
+ {
+  for(imos=0;imos<4;imos++)
+  {
+   real_wfx<<ONE<<endl;
+   imag_wfx<<ONE<<endl;
+  }
+ }
+ line="</Molecular Orbital Occupation Numbers>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Molecular Orbital Spin Types>"; // Faked spin
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ if(OneMO_wfx==-1)
+ {
+  for(imos=0;imos<NMOs_occ;imos++)
+  {
+   line=" Alpha";
+   real_wfx<<line<<endl;
+   imag_wfx<<line<<endl;
+  }
+ }
+ else
+ {
+  for(imos=0;imos<4;imos++)
+  {
+   line=" Alpha";
+   real_wfx<<line<<endl;
+   imag_wfx<<line<<endl;
+  }
+ }
+ line="</Molecular Orbital Spin Types>";
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ line="<Molecular Orbital Primitive Coefficients>"; 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ if(OneMO_wfx==-1)
+ {
+  for(imos=0;imos<NMOs_occ;imos++)
+  {
+   line="</MO Number>";
+   real_wfx<<line<<endl;
+   imag_wfx<<line<<endl;
+   for(iprim=0;iprim<Nprimitives;iprim++)
+   {
+    real_wfx<<Prim2MO_Coef[imos][iprim].real()<<endl;
+    imag_wfx<<Prim2MO_Coef[imos][iprim].imag()<<endl;
+   }
+  }
+ }
+ else
+ {
+  imos1=0;
+  for(imos=0;imos<4;imos++)
+  {
+   line="</MO Number>";
+   real_wfx<<line<<endl;
+   imag_wfx<<line<<endl;
+   for(iprim=0;iprim<Nprimitives;iprim++)
+   {
+    real_wfx<<One_Prim2MO_Coef_RE[imos1]<<endl;
+    imag_wfx<<One_Prim2MO_Coef_IM[imos1]<<endl;
+    imos1++;
+   }
+  }
+ }
+ line="</Molecular Orbital Primitive Coefficients>"; 
+ real_wfx<<line<<endl;
+ imag_wfx<<line<<endl;
+ imag_wfx.close(); 
+ real_wfx.close(); 
+}
+
+//
+/* MRM: Switched off because we do not need the imaginary part of the 2-RDM in primitives
+// 
 // Function used to transform scalar 2-RDM to (complex) Primitives
 void transform_Dijkl2Dpqrs_cplx()
 {
@@ -1797,9 +2132,9 @@ void reduce_getreal_print()
  // Print
  cout<<"Printing the reduced (real) transformed 2-RDM"<<endl;
  // TODO: add this symmetry
- /*
- if(symmrr_prime){cout<<"keep only one term among prim_p(1) prim_q(2) prim_r(1) prim_s(2) = prim_q(2) prim_p(1) prim_s(2) prim_r(1)"<<endl;}
- */
+ //
+ //if(symmrr_prime){cout<<"keep only one term among prim_p(1) prim_q(2) prim_r(1) prim_s(2) = prim_q(2) prim_p(1) prim_s(2) prim_r(1)"<<endl;}
+ //
  conv_name="Conv_"+dirac_output_name+"dm2";
  ofstream output_data(conv_name.c_str(),ios::binary);
  for(IPRIM=0;IPRIM<Nprims4;IPRIM++)
@@ -1812,13 +2147,13 @@ void reduce_getreal_print()
    index_Prim[1]=(int)((IPRIM-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3)/Nprims1);
    index_Prim[0]=(int)(IPRIM-index_Prim[1]*Nprims1-index_Prim_prime[0]*Nprims2-index_Prim_prime[1]*Nprims3);
    // Symmetry reduction?
-   /*
-   if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]) && symmrr_prime)
-   {
-    Dpqrs_ALL_cplx[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=CZERO;
-    Dpqrs_ALL_cplx[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=CZERO;
-   }
-   */
+   //
+   //if(!(index_Prim[0]==index_Prim[1] && index_Prim[1]==index_Prim_prime[0] && index_Prim_prime[0]==index_Prim_prime[1]) && symmrr_prime)
+   //{
+   // Dpqrs_ALL_cplx[index_Prim[0]+index_Prim[1]*Nprims1+index_Prim_prime[0]*Nprims2+index_Prim_prime[1]*Nprims3]=CZERO;
+   // Dpqrs_ALL_cplx[index_Prim[1]+index_Prim[0]*Nprims1+index_Prim_prime[1]*Nprims2+index_Prim_prime[0]*Nprims3]=CZERO;
+   //}
+   //
    index_Prim[0]++;index_Prim[1]++;index_Prim_prime[0]++;index_Prim_prime[1]++;
    output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
    output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
@@ -1844,327 +2179,4 @@ void reduce_getreal_print()
  output_data.close();
  delete[] Dpqrs_ALL_cplx;Dpqrs_ALL_cplx=NULL;
 }
-
-// Read the 2-RDM in primitive basis, reduce it using symmetry, and print it real
-void reduce_print()
-{
- int index_Prim[2],index_Prim_prime[2];
- long int IPRIM,IPRIM1,IPRIM2,IPRIM3,IPRIM4;    // IPRIM (0 to Nprimitives) but can be summed for large Nprimitives number.
- double Dpqrs,MEM;
- string conv_name="Conv_"+dirac_output_name+"dm2";
- MEM=(EIGHT*((Nprims1*(Nprims1+1)*Nprims1*(Nprims1+1))/4))/pow(TEN,NINE);
- cout<<setprecision(2)<<fixed;
- cout<<"Memory required ";
- if(MEM>pow(TEN,THREE))
- {
-  cout<<setw(10)<<MEM/pow(TEN,THREE)<<" Tb.";
- }
- else
- {
-  if(MEM>ONE)
-  {
-   cout<<setw(10)<<MEM<<" Gb.";
-  }
-  else
-  {
-   if(MEM<ONE && MEM>pow(TEN,-THREE))
-   {
-    cout<<setw(10)<<MEM*pow(TEN,THREE)<<" Mb.";
-   }
-   else
-   {
-    cout<<setw(10)<<MEM*pow(TEN,SIX)<<" Kb.";
-   }
-  }
- }
- cout<<" for the reduction."<<endl; 
- cout<<"Num. of 2-RDM elem.  : "<<setw(12)<<(Nprims1*(Nprims1+1)*Nprims1*(Nprims1+1))/4<<endl;
- cout<<endl;
- Dpqrs_ALL=new double***[Nprims1];
- for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
- {
-  Dpqrs_ALL[IPRIM]=new double**[Nprims1];
-  for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
-  {
-   Dpqrs_ALL[IPRIM][IPRIM1]=new double*[IPRIM+1];
-   for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
-   {
-    Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2]=new double[IPRIM1+1];
-    for(IPRIM3=0;IPRIM3<IPRIM1+1;IPRIM3++)
-    {
-     Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2][IPRIM3]=ZERO;
-    }
-   }
-  }
- }
- ifstream input_data2(conv_name.c_str(),ios::binary);
- cout<<endl;
- index_Prim[0]=10;index_Prim[1]=10;index_Prim_prime[0]=10;index_Prim_prime[1]=10;
- cout<<"Reading the transformed 2-RDM elements from "<<conv_name<<endl;
- while(index_Prim[0]!=0 || index_Prim[1]!=0 || index_Prim_prime[0]!=0 || index_Prim_prime[1]!=0)
- {
-  input_data2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
-  input_data2.read((char*) &index_Prim[0], sizeof(index_Prim[0]));
-  input_data2.read((char*) &index_Prim[1], sizeof(index_Prim[1]));
-  input_data2.read((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
-  input_data2.read((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
-  input_data2.read((char*) &Dpqrs, sizeof(Dpqrs));
-  input_data2.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
-  if(abs(Dpqrs)!=ZERO && index_Prim[0]!=0 && index_Prim[1]!=0 && index_Prim_prime[0]!=0 && index_Prim_prime[1]!=0)
-  {
-   index_Prim[0]=index_Prim[0]-1;index_Prim[1]=index_Prim[1]-1;index_Prim_prime[0]=index_Prim_prime[0]-1;index_Prim_prime[1]=index_Prim_prime[1]-1;
-   Dpqrs_ALL[index_Prim[0]][index_Prim[1]][index_Prim_prime[0]][index_Prim_prime[1]]=
-   Dpqrs_ALL[index_Prim[0]][index_Prim[1]][index_Prim_prime[0]][index_Prim_prime[1]]+Dpqrs;
-   index_Prim[0]=index_Prim[0]+1;index_Prim[1]=index_Prim[1]+1;index_Prim_prime[0]=index_Prim_prime[0]+1;index_Prim_prime[1]=index_Prim_prime[1]+1;
-  }
- }
- input_data2.close();
- // Print
- cout<<"Printing the reduced transformed 2-RDM"<<endl;
- conv_name="Conv_"+dirac_output_name+"dm2";
- ofstream output_data(conv_name.c_str(),ios::binary);
- for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
- {
-  for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
-  {
-   for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
-   {
-    for(IPRIM3=0;IPRIM3<IPRIM1+1;IPRIM3++)
-    {
-     Dpqrs=Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2][IPRIM3];
-     if(abs(Dpqrs)>=threshold)
-     {
-      index_Prim[0]=IPRIM+1;index_Prim[1]=IPRIM1+1;index_Prim_prime[0]=IPRIM2+1;index_Prim_prime[1]=IPRIM3+1;
-      output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
-      output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
-      output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
-      output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
-      output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
-      output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
-      output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
-     }
-    }
-   }
-  }
- }
- index_Prim[0]=0;
- index_Prim[1]=0;
- index_Prim_prime[0]=0;
- index_Prim_prime[1]=0;
- Dpqrs=ZERO;
- output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
- output_data.write((char*) &index_Prim[0], sizeof(index_Prim[0]));
- output_data.write((char*) &index_Prim[1], sizeof(index_Prim[1]));
- output_data.write((char*) &index_Prim_prime[0], sizeof(index_Prim_prime[0]));
- output_data.write((char*) &index_Prim_prime[1], sizeof(index_Prim_prime[1]));
- output_data.write((char*) &Dpqrs, sizeof(Dpqrs));
- output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
- output_data.close();
- for(IPRIM=0;IPRIM<Nprims1;IPRIM++)
- {
-  for(IPRIM1=0;IPRIM1<Nprims1;IPRIM1++)
-  {
-   for(IPRIM2=0;IPRIM2<IPRIM+1;IPRIM2++)
-   {
-    delete[] Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2];Dpqrs_ALL[IPRIM][IPRIM1][IPRIM2]=NULL;
-   }
-   delete[] Dpqrs_ALL[IPRIM][IPRIM1];Dpqrs_ALL[IPRIM][IPRIM1]=NULL;
-  }
-  delete[] Dpqrs_ALL[IPRIM];Dpqrs_ALL[IPRIM]=NULL;
- }
- delete[] Dpqrs_ALL;Dpqrs_ALL=NULL;
-}
-
-// Currently, only available for ATOMS
-void print_wfx()
-{
- int iprim,imos,imos1,icenter;
- string line;
- ofstream real_wfx(("dirac_"+dirac_output_name+"RE.wfx").c_str());
- ofstream imag_wfx(("dirac_"+dirac_output_name+"IM.wfx").c_str());
- real_wfx<<setprecision(15)<<fixed<<scientific;
- imag_wfx<<setprecision(15)<<fixed<<scientific;
- line="<Number of Nuclei>";
- real_wfx<<line<<endl; 
- imag_wfx<<line<<endl; 
- real_wfx<<Ncenters<<endl; 
- imag_wfx<<Ncenters<<endl; 
- line="</Number of Nuclei>";
- real_wfx<<line<<endl; 
- imag_wfx<<line<<endl; 
- line="<Number of Occupied Molecular Orbitals>";
- real_wfx<<line<<endl; 
- imag_wfx<<line<<endl; 
- if(OneMO_wfx==-1)
- {
-  real_wfx<<NMOs_occ<<endl; 
-  imag_wfx<<NMOs_occ<<endl;
- } 
- else
- {
-  real_wfx<<4<<endl; 
-  imag_wfx<<4<<endl;
- } 
- line="</Number of Occupied Molecular Orbitals>";
- real_wfx<<line<<endl; 
- imag_wfx<<line<<endl; 
- line="<Electronic Spin Multiplicity>"; // Fixed for 'faked' close shell
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- real_wfx<<1<<endl; 
- imag_wfx<<1<<endl; 
- line="</Electronic Spin Multiplicity>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- line="<Nuclear Charges>"; // Faked (No need to change them for RHO_OPS!)
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- for(icenter=0;icenter<Ncenters;icenter++)
- {
-  real_wfx<<0<<endl; 
-  imag_wfx<<0<<endl; 
- }
- line="</Nuclear Charges>"; // Faked
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- line="<Nuclear Cartesian Coordinates>"; // Only C1 symmetry in DIRAC 
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- for(icenter=0;icenter<Ncenters;icenter++)
- {
-  real_wfx<<Center_x[icenter]<<endl; // x
-  imag_wfx<<Center_x[icenter]<<endl; 
-  real_wfx<<Center_y[icenter]<<endl; // y
-  imag_wfx<<Center_y[icenter]<<endl; 
-  real_wfx<<Center_z[icenter]<<endl; // z
-  imag_wfx<<Center_z[icenter]<<endl; 
- }
- line="</Nuclear Cartesian Coordinates>"; // Only C1 symmetry in DIRAC 
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- line="<Number of Primitives>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- real_wfx<<Nprimitives<<endl;
- imag_wfx<<Nprimitives<<endl;
- line="</Number of Primitives>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- line="<Primitive Centers>"; // Only atomic systems 
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- for(iprim=0;iprim<Nprimitives;iprim++)
- {
-  real_wfx<<Prim2Center_map[iprim]<<endl;
-  imag_wfx<<Prim2Center_map[iprim]<<endl;
- }
- line="</Primitive Centers>"; 
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- line="<Primitive Types>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- for(iprim=0;iprim<Nprimitives;iprim++)
- {
-  real_wfx<<shell_types[iprim]<<endl;
-  imag_wfx<<shell_types[iprim]<<endl;
- }
- line="</Primitive Types>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- line="<Primitive Exponents>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- for(iprim=0;iprim<Nprimitives;iprim++)
- {
-  real_wfx<<prim_exponents[iprim]<<endl;
-  imag_wfx<<prim_exponents[iprim]<<endl;
- }
- line="</Primitive Exponents>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- line="<Molecular Orbital Occupation Numbers>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- if(OneMO_wfx==-1)
- {
-  for(imos=0;imos<NMOs_occ;imos++)
-  {
-   real_wfx<<MOsLS_occ[imos]<<endl;
-   imag_wfx<<MOsLS_occ[imos]<<endl;
-  }
- }
- else
- {
-  for(imos=0;imos<4;imos++)
-  {
-   real_wfx<<ONE<<endl;
-   imag_wfx<<ONE<<endl;
-  }
- }
- line="</Molecular Orbital Occupation Numbers>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- line="<Molecular Orbital Spin Types>"; // Faked spin
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- if(OneMO_wfx==-1)
- {
-  for(imos=0;imos<NMOs_occ;imos++)
-  {
-   line=" Alpha";
-   real_wfx<<line<<endl;
-   imag_wfx<<line<<endl;
-  }
- }
- else
- {
-  for(imos=0;imos<4;imos++)
-  {
-   line=" Alpha";
-   real_wfx<<line<<endl;
-   imag_wfx<<line<<endl;
-  }
- }
- line="</Molecular Orbital Spin Types>";
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- line="<Molecular Orbital Primitive Coefficients>"; 
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- if(OneMO_wfx==-1)
- {
-  for(imos=0;imos<NMOs_occ;imos++)
-  {
-   line="</MO Number>";
-   real_wfx<<line<<endl;
-   imag_wfx<<line<<endl;
-   for(iprim=0;iprim<Nprimitives;iprim++)
-   {
-    real_wfx<<Prim2MO_Coef[imos][iprim].real()<<endl;
-    imag_wfx<<Prim2MO_Coef[imos][iprim].imag()<<endl;
-   }
-  }
- }
- else
- {
-  imos1=0;
-  for(imos=0;imos<4;imos++)
-  {
-   line="</MO Number>";
-   real_wfx<<line<<endl;
-   imag_wfx<<line<<endl;
-   for(iprim=0;iprim<Nprimitives;iprim++)
-   {
-    real_wfx<<One_Prim2MO_Coef_RE[imos1]<<endl;
-    imag_wfx<<One_Prim2MO_Coef_IM[imos1]<<endl;
-    imos1++;
-   }
-  }
- }
- line="</Molecular Orbital Primitive Coefficients>"; 
- real_wfx<<line<<endl;
- imag_wfx<<line<<endl;
- imag_wfx.close(); 
- real_wfx.close(); 
-}
+*/

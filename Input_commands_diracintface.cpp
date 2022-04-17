@@ -27,7 +27,7 @@ Input_diracintface::Input_diracintface(string I_in)
     name_out=I_in;
    }
    else if(I_in=="$large_mem"){large_mem=true;}
-   else if(I_in=="$transf_cplx"){transf_cplx=true;}
+//   else if(I_in=="$transf_cplx"){transf_cplx=true;} // Currently switched off
    else if(I_in=="$print_coef_files"){print_coef_files=true;}
    else if(I_in=="$threshold")
    {
