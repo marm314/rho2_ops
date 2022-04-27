@@ -484,23 +484,23 @@ void read_dirac_out()
     for(ishell=0;ishell<Nshell;ishell++)
     {
      Dirac_file>>shell2aos[ishell].styp;
-     if(shell2aos[ishell].styp== 0)
+     if(shell2aos[ishell].styp==0)
      {
       shell2aos[ishell].naos=1;
      }
-     else if(shell2aos[ishell].styp== 1)
+     else if(shell2aos[ishell].styp==1)
      {
       shell2aos[ishell].naos=3;
      }
-     else if(shell2aos[ishell].styp==-2)
+     else if(shell2aos[ishell].styp==2)
      {
       shell2aos[ishell].naos=6;
      }
-     else if(shell2aos[ishell].styp==-3)
+     else if(shell2aos[ishell].styp==3)
      {
       shell2aos[ishell].naos=10;
      }
-     else if(shell2aos[ishell].styp==-4)
+     else if(shell2aos[ishell].styp==4)
      {
       shell2aos[ishell].naos=15;
      }
@@ -754,7 +754,7 @@ void print_basis_file()
       Coord_x.push_back(shell2aos[ishell].Coord[0]);Coord_y.push_back(shell2aos[ishell].Coord[1]);Coord_z.push_back(shell2aos[ishell].Coord[2]);
      }
      break;
-    case -2:
+    case 2:
      Nprimitives=Nprimitives+shell2aos[ishell].nprim*6;
      // 2 0 0 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -817,7 +817,7 @@ void print_basis_file()
       Coord_x.push_back(shell2aos[ishell].Coord[0]);Coord_y.push_back(shell2aos[ishell].Coord[1]);Coord_z.push_back(shell2aos[ishell].Coord[2]);
      }
      break;
-    case -3:
+    case 3:
      Nprimitives=Nprimitives+shell2aos[ishell].nprim*10;
      // 3 0 0 
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
@@ -920,7 +920,7 @@ void print_basis_file()
       Coord_x.push_back(shell2aos[ishell].Coord[0]);Coord_y.push_back(shell2aos[ishell].Coord[1]);Coord_z.push_back(shell2aos[ishell].Coord[2]);
      }
      break;
-    case -4:
+    case 4:
      Nprimitives=Nprimitives+shell2aos[ishell].nprim*15;
      // 4 0 0
      for(iprim=0;iprim<shell2aos[ishell].nprim;iprim++)
