@@ -31,6 +31,7 @@ clean:
 	$(Cln) *chimpanC
 	$(Cln) *psi4intface
 	$(Cln) *diracintface
+	$(Cln) *diracintface_h5
 	$(Cln) *~
 	$(Cln) gitver.o gitver.cpp gitver.h
 	$(Cln) RHO2_OPS.tar.gz 
