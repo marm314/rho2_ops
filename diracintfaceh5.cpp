@@ -83,14 +83,14 @@ int main(int argc, char *argv[])
    Shell_type_L[i]=Shell_type_L[i]-1;
    cout<<setw(10)<<Shell_type_L[i];
    j++;
-   if(j==10){cout<<endl;j==0;cout<<" ";}
+   if(j==10){cout<<endl;j=0;cout<<" ";}
   }
   for(i=0;i<Shell_type_S.size();i++)
   {
    Shell_type_S[i]=Shell_type_S[i]-1;
    cout<<setw(10)<<Shell_type_S[i];
    j++;
-   if(j==10){cout<<endl;j==0;cout<<" ";}
+   if(j==10){cout<<endl;j=0;cout<<" ";}
   }
   cout<<endl;
   // Retrieve Nprim per shell S
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
   {
    cout<<setw(10)<<s2atom_map[i];
    j++;
-   if(j==10){cout<<endl;j==0;cout<<" ";}
+   if(j==10){cout<<endl;j=0;cout<<" ";}
   }
   cout<<endl;
   // Retrieve Shell_coord_S
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
   {
    cout<<setw(10)<<Nprim_shell_L[i];
    j++;
-   if(j==10){cout<<endl;j==0;cout<<" ";}
+   if(j==10){cout<<endl;j=0;cout<<" ";}
   }
   for(i=0;i<Nprim_shell_S.size();i++)
   {
