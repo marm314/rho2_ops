@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
   {
    cout<<setw(10)<<Nprim_shell_S[i];
    j++;
-   if(j==10){cout<<endl;j==0;cout<<" ";}
+   if(j==10){cout<<endl;j=0;cout<<" ";}
   }
   cout<<endl;
   // Retrieve Prim_coefs_S
