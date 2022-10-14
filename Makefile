@@ -17,6 +17,7 @@ all:
 	make chimpanC
 	make psi4intface
 	make diracintface
+	make diracintfaceh5
 	make tar
  
 RHO2_OPS: $(OBJECTS) $(SRC) Makefile README 
@@ -31,7 +32,7 @@ clean:
 	$(Cln) *chimpanC
 	$(Cln) *psi4intface
 	$(Cln) *diracintface
-	$(Cln) *diracintface_h5
+	$(Cln) *diracintfaceh5
 	$(Cln) *~
 	$(Cln) gitver.o gitver.cpp gitver.h
 	$(Cln) RHO2_OPS.tar.gz 
@@ -43,9 +44,12 @@ chimpanC: String_ops.cpp Input_commands.cpp chimpanC.cpp
 psi4intface: psi4intface.cpp
 	$(CPP) $(CPPFLAGS) psi4intface.cpp -o psi4intface
 
-diracintface:  String_ops.cpp Input_commands_diracintface.cpp diracintface.cpp diracintface_h5.cpp 
+diracintface:  String_ops.cpp Input_commands_diracintface.cpp diracintface.cpp
 	$(CPP) $(CPPFLAGS) String_ops.cpp Input_commands_diracintface.cpp diracintface.cpp -o diracintface
-	$(H5CPP) $(CPPFLAGS) diracintface_h5.cpp -o diracintface_h5
+
+diracintfaceh5: diracintfaceh5.cpp
+	$(H5CPP) diracintfaceh5.cpp -o diracintfaceh5
+	$(Cln) diracintfaceh5.o
 
 
 tar:

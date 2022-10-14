@@ -13,6 +13,4 @@ gitver.cpp
 gitver.h
 gitver.o
 diracintface
-diracintface.o
 diracintface_h5
-diracintface_h5.o
