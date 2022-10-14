@@ -2,6 +2,7 @@
 #
 #CPP = g++
 CPP = mpicxx -DHAVE_MPI
+H5CPP = h5c++
 CPPFLAGS = -O3 
 PARALLEL = -fopenmp 
 Cln = /bin/rm -rf
@@ -41,8 +42,9 @@ chimpanC: String_ops.cpp Input_commands.cpp chimpanC.cpp
 psi4intface: psi4intface.cpp
 	$(CPP) $(CPPFLAGS) psi4intface.cpp -o psi4intface
 
-diracintface:  String_ops.cpp Input_commands_diracintface.cpp diracintface.cpp  
+diracintface:  String_ops.cpp Input_commands_diracintface.cpp diracintface.cpp diracintface_h5.cpp 
 	$(CPP) $(CPPFLAGS) String_ops.cpp Input_commands_diracintface.cpp diracintface.cpp -o diracintface
+	$(H5CPP) $(CPPFLAGS) diracintface_h5.cpp -o diracintface_h5
 
 
 tar:
