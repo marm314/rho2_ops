@@ -3,6 +3,7 @@
 #include<vector>
 #include<cstring>
 #include<cmath>
+#include<fstream>
 #include"hdf5.h"
 #define zero 0.0e0
 #define two  2.0e0
@@ -13,20 +14,11 @@ using namespace std;
 void read_int(hid_t file_id,string path,string var, vector<int> *to_store);
 void read_dou(hid_t file_id,string path,string var, vector<double> *to_store);
 void asign(vector<int> *s2atom_map,vector<double> *Shell_coord_L,vector<double> *Shell_coord_S);
+void h5_to_temp(string h5_file);
 
 int main(int argc, char *argv[]) 
 {
- int i,j,k,nbasis_tot,coefs_quat;
- double **MO2AO_coefs_quat;
- hid_t file_id, dset_id, dspace_id; /* identifiers */
- herr_t status;
- string path,file_name;
- vector<int> Nbasis_L,Shell_type_L,Nprim_shell_L,Nshells_L;
- vector<double> Shell_coord_L,Prim_exponents_L,Prim_coefs_L;
- vector<int> Nbasis_S,Shell_type_S,Nprim_shell_S,Nshells_S;
- vector<double> Shell_coord_S,Prim_exponents_S,Prim_coefs_S;
- vector<int> Nbasis_MO,Nz,s2atom_map;
- vector<double> MO_occs,MO_coefs;
+ string h5_file;
  if(argc!=2)
  {
   cout<<"Include the name of the H5 file"<<endl;
@@ -34,24 +26,41 @@ int main(int argc, char *argv[])
  }
  else
  {
-  file_name=argv[1];
+  h5_file=argv[1];
  }
- 
- cout<<endl;
- cout<<"******************"<<endl;
- cout<<"Open DIRAC H5 file"<<endl;
- cout<<"******************"<<endl;
- cout<<endl;
+ h5_to_temp(h5_file);  
+ return 0;
+}
 
- file_id = H5Fopen(file_name.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+void h5_to_temp(string h5_file)
+{ 
+ int i,j,k,nbasis_tot,coefs_quat;
+ double **MO2AO_coefs_quat;
+ hid_t file_id, dset_id, dspace_id; /* identifiers */
+ herr_t status;
+ vector<int> Nbasis_L,Shell_type_L,Nprim_shell_L,Nshells_L;
+ vector<double> Shell_coord_L,Prim_exponents_L,Prim_coefs_L;
+ vector<int> Nbasis_S,Shell_type_S,Nprim_shell_S,Nshells_S;
+ vector<double> Shell_coord_S,Prim_exponents_S,Prim_coefs_S;
+ vector<int> Nbasis_MO,Nz,s2atom_map;
+ vector<double> MO_occs,MO_coefs;
+ string path;
+ ofstream tmp_h5((h5_file.substr(0,h5_file.length()-3)+".tmp").c_str());
+ tmp_h5<<endl;
+ tmp_h5<<"******************"<<endl;
+ tmp_h5<<"Open DIRAC H5 file"<<endl;
+ tmp_h5<<"******************"<<endl;
+ tmp_h5<<endl;
+
+ file_id = H5Fopen(h5_file.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
  // Reading Large component basis
   path="/input/aobasis/1/";
   // Retrieve Num. AO Large
   read_int(file_id,path,"n_ao",&Nbasis_L);
-  cout<<" Nbasis  Large "<<setw(12)<<Nbasis_L[0]<<endl;
+  tmp_h5<<" Nbasis  Large "<<setw(12)<<Nbasis_L[0]<<endl;
   // Retrieve Num. large shells
   read_int(file_id,path,"n_shells",&Nshells_L);
-  cout<<" Nshells Large "<<setw(12)<<Nshells_L[0]<<endl;
+  tmp_h5<<" Nshells Large "<<setw(12)<<Nshells_L[0]<<endl;
   // Retrieve Shell_type_L
   read_int(file_id,path,"orbmom",&Shell_type_L);
   // Retrieve Nprim per shell L
@@ -67,148 +76,148 @@ int main(int argc, char *argv[])
   path="/input/aobasis/2/";
   // Retrieve Num. AO Small
   read_int(file_id,path,"n_ao",&Nbasis_S);
-  cout<<" Nbasis  Small "<<setw(12)<<Nbasis_S[0]<<endl;
-  cout<<" Nbasis        "<<setw(12)<<Nbasis_L[0]+Nbasis_S[0]<<endl;
+  tmp_h5<<" Nbasis  Small "<<setw(12)<<Nbasis_S[0]<<endl;
+  tmp_h5<<" Nbasis        "<<setw(12)<<Nbasis_L[0]+Nbasis_S[0]<<endl;
   // Retrieve Num. small shells
   read_int(file_id,path,"n_shells",&Nshells_S);
-  cout<<" Nshells Small "<<setw(12)<<Nshells_S[0]<<endl;
-  cout<<" Nshells       "<<setw(12)<<Nshells_L[0]+Nshells_S[0]<<endl;
+  tmp_h5<<" Nshells Small "<<setw(12)<<Nshells_S[0]<<endl;
+  tmp_h5<<" Nshells       "<<setw(12)<<Nshells_L[0]+Nshells_S[0]<<endl;
   // Retrieve Shell_type_S
   read_int(file_id,path,"orbmom",&Shell_type_S);
-  cout<<endl;
-  cout<<" Shell type:"<<endl;
-  j=0;cout<<" ";
+  tmp_h5<<endl;
+  tmp_h5<<" Shell type:"<<endl;
+  j=0;tmp_h5<<" ";
   for(i=0;i<Shell_type_L.size();i++)
   {
    Shell_type_L[i]=Shell_type_L[i]-1;
-   cout<<setw(10)<<Shell_type_L[i];
+   tmp_h5<<setw(10)<<Shell_type_L[i];
    j++;
-   if(j==10){cout<<endl;j=0;cout<<" ";}
+   if(j==10){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
   for(i=0;i<Shell_type_S.size();i++)
   {
    Shell_type_S[i]=Shell_type_S[i]-1;
-   cout<<setw(10)<<Shell_type_S[i];
+   tmp_h5<<setw(10)<<Shell_type_S[i];
    j++;
-   if(j==10){cout<<endl;j=0;cout<<" ";}
+   if(j==10){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
-  cout<<endl;
+  tmp_h5<<endl;
   // Retrieve Nprim per shell S
   read_dou(file_id,path,"center",&Shell_coord_S);
-  cout<<endl;
-  cout<<" Shell to atom map:"<<endl;
+  tmp_h5<<endl;
+  tmp_h5<<" Shell to atom map:"<<endl;
   asign(&s2atom_map,&Shell_coord_L,&Shell_coord_S);
-  j=0;cout<<" ";
+  j=0;tmp_h5<<" ";
   for(i=0;i<s2atom_map.size();i++)
   {
-   cout<<setw(10)<<s2atom_map[i];
+   tmp_h5<<setw(10)<<s2atom_map[i];
    j++;
-   if(j==10){cout<<endl;j=0;cout<<" ";}
+   if(j==10){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
-  cout<<endl;
+  tmp_h5<<endl;
   // Retrieve Shell_coord_S
-  cout<<endl;
-  cout<<" Number of primitives per shell:"<<endl;
+  tmp_h5<<endl;
+  tmp_h5<<" Number of primitives per shell:"<<endl;
   read_int(file_id,path,"n_prim",&Nprim_shell_S);
-  j=0;cout<<" ";
+  j=0;tmp_h5<<" ";
   for(i=0;i<Nprim_shell_L.size();i++)
   {
-   cout<<setw(10)<<Nprim_shell_L[i];
+   tmp_h5<<setw(10)<<Nprim_shell_L[i];
    j++;
-   if(j==10){cout<<endl;j=0;cout<<" ";}
+   if(j==10){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
   for(i=0;i<Nprim_shell_S.size();i++)
   {
-   cout<<setw(10)<<Nprim_shell_S[i];
+   tmp_h5<<setw(10)<<Nprim_shell_S[i];
    j++;
-   if(j==10){cout<<endl;j=0;cout<<" ";}
+   if(j==10){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
-  cout<<endl;
+  tmp_h5<<endl;
   // Retrieve Prim_coefs_S
   read_dou(file_id,path,"contractions",&Prim_coefs_S);
-  cout<<endl;
-  cout<<" Contraction coefficients:"<<endl;
-  j=0;cout<<" ";
+  tmp_h5<<endl;
+  tmp_h5<<" Contraction coefficients:"<<endl;
+  j=0;tmp_h5<<" ";
   for(i=0;i<Prim_coefs_L.size();i++)
   {
-   cout<<setprecision(8)<<fixed<<setw(24)<<Prim_coefs_L[i];
+   tmp_h5<<setprecision(8)<<fixed<<setw(24)<<Prim_coefs_L[i];
    j++;
-   if(j==6){cout<<endl;j=0;cout<<" ";}
+   if(j==6){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
   for(i=0;i<Prim_coefs_S.size();i++)
   {
-   cout<<setprecision(8)<<fixed<<setw(24)<<Prim_coefs_S[i];
+   tmp_h5<<setprecision(8)<<fixed<<setw(24)<<Prim_coefs_S[i];
    j++;
-   if(j==6){cout<<endl;j=0;cout<<" ";}
+   if(j==6){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
-  cout<<endl;
+  tmp_h5<<endl;
   // Retrieve Prim_exponents_S
   read_dou(file_id,path,"exponents",&Prim_exponents_S);
-  cout<<endl;
-  cout<<" Primitive exponents:"<<endl;
-  j=0;cout<<" ";
+  tmp_h5<<endl;
+  tmp_h5<<" Primitive exponents:"<<endl;
+  j=0;tmp_h5<<" ";
   for(i=0;i<Prim_exponents_L.size();i++)
   {
-   cout<<setprecision(8)<<fixed<<setw(24)<<Prim_exponents_L[i];
+   tmp_h5<<setprecision(8)<<fixed<<setw(24)<<Prim_exponents_L[i];
    j++;
-   if(j==6){cout<<endl;j=0;cout<<" ";}
+   if(j==6){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
   for(i=0;i<Prim_exponents_S.size();i++)
   {
-   cout<<setprecision(8)<<fixed<<setw(24)<<Prim_exponents_S[i];
+   tmp_h5<<setprecision(8)<<fixed<<setw(24)<<Prim_exponents_S[i];
    j++;
-   if(j==6){cout<<endl;j=0;cout<<" ";}
+   if(j==6){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
-  cout<<endl;
+  tmp_h5<<endl;
   // Print shell cartes coordinates
-  cout<<endl;
-  cout<<" Cartesian coordinates of each shell:"<<endl;
-  j=0;cout<<" ";
+  tmp_h5<<endl;
+  tmp_h5<<" Cartesian coordinates of each shell:"<<endl;
+  j=0;tmp_h5<<" ";
   for(i=0;i<Shell_coord_L.size();i++)
   {
-   cout<<setprecision(8)<<fixed<<setw(24)<<Shell_coord_L[i];
+   tmp_h5<<setprecision(8)<<fixed<<setw(24)<<Shell_coord_L[i];
    j++;
-   if(j==6){cout<<endl;j=0;cout<<" ";}
+   if(j==6){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
   for(i=0;i<Shell_coord_S.size();i++)
   {
-   cout<<setprecision(8)<<fixed<<setw(24)<<Shell_coord_S[i];
+   tmp_h5<<setprecision(8)<<fixed<<setw(24)<<Shell_coord_S[i];
    j++;
-   if(j==6){cout<<endl;j=0;cout<<" ";}
+   if(j==6){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
-  cout<<endl;
+  tmp_h5<<endl;
  // Read results information
   path="/result/wavefunctions/scf/mobasis/";
   // Retrieve MO_occs
   read_dou(file_id,path,"occupations",&MO_occs);
-  cout<<" Occupancies:"<<setw(9)<<MO_occs.size()<<endl;
-  j=0;cout<<" ";
+  tmp_h5<<" Occupancies:"<<setw(9)<<MO_occs.size()<<endl;
+  j=0;tmp_h5<<" ";
   for(i=0;i<MO_occs.size();i++)
   {
-   cout<<setprecision(8)<<fixed<<setw(24)<<MO_occs[i];
+   tmp_h5<<setprecision(8)<<fixed<<setw(24)<<MO_occs[i];
    j++;
-   if(j==6){cout<<endl;j=0;cout<<" ";}
+   if(j==6){tmp_h5<<endl;j=0;tmp_h5<<" ";}
   }
-  cout<<endl;
+  tmp_h5<<endl;
   // Retrieve Num. MO
   read_int(file_id,path,"n_mo",&Nbasis_MO);
-  cout<<endl;
-  cout<<" Norbs         "<<setw(12)<<Nbasis_MO[0]<<endl;
+  tmp_h5<<endl;
+  tmp_h5<<" Norbs         "<<setw(12)<<Nbasis_MO[0]<<endl;
   // Retrieve MO_coefs
   read_dou(file_id,path,"orbitals",&MO_coefs);
   coefs_quat=MO_coefs.size()/4;
   nbasis_tot=coefs_quat/Nbasis_MO[0];
-  cout<<" NBasis        "<<setw(12)<<nbasis_tot<<endl;
+  tmp_h5<<" NBasis        "<<setw(12)<<nbasis_tot<<endl;
   // Retrieve Nz
   read_int(file_id,path,"nz",&Nz);
-  cout<<" Nz            "<<setw(12)<<Nz[0]<<endl;
-  cout<<endl;
+  tmp_h5<<" Nz            "<<setw(12)<<Nz[0]<<endl;
+  tmp_h5<<endl;
   MO2AO_coefs_quat=new double*[coefs_quat];
   for(i=0;i<coefs_quat;i++)
   {
    MO2AO_coefs_quat[i]=new double[4];
   } 
-  cout<<endl;
+  tmp_h5<<endl;
   k=0;
   for(i=0;i<4;i++)
   {
@@ -224,13 +233,13 @@ int main(int argc, char *argv[])
    {
     for(k=0;k<4;k++)
     {
-     cout<<setprecision(8)<<fixed<<setw(20)<<MO2AO_coefs_quat[j+i*nbasis_tot][k];
+     tmp_h5<<setprecision(8)<<fixed<<setw(20)<<MO2AO_coefs_quat[j+i*nbasis_tot][k];
     }
-    cout<<endl;
+    tmp_h5<<endl;
    }
-   cout<<endl;
+   tmp_h5<<endl;
   }
-  cout<<endl;
+  tmp_h5<<endl;
   for(i=0;i<coefs_quat;i++)
   {
    delete[] MO2AO_coefs_quat[i];MO2AO_coefs_quat[i]=NULL;
@@ -239,8 +248,7 @@ int main(int argc, char *argv[])
 
  // Close the file
  status = H5Fclose(file_id);
-    
- return 0;
+ tmp_h5.close();
 }
 
 void read_int(hid_t file_id, string path, string var, vector<int> *to_store)
