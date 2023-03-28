@@ -280,6 +280,7 @@ void Create_HF_dm1_file(int *dm1,int nbasis, string name_dmn)
  for(i=0;i<nbasis;i++)
  {
   elements[0]=i+1;
+  niHF=dm1[i];
   output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
   output_data.write((char*) &elements[0], sizeof(elements[0]));
   output_data.write((char*) &elements[0], sizeof(elements[0]));
