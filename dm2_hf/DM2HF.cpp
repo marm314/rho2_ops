@@ -26,6 +26,7 @@ using namespace std;
 ////////////////
 void trace_dmn(string name_file);
 void Create_HF_dm2_from_dm1(int *dm1,int nbasis, string name_dmn);
+void Create_HF_dm1_file(int *dm1,int nbasis, string name_dmn);
 void Create_HFl_dm2_from_dm1(double **dm1,int nbasis, string name_dmn);
 double dm1_to_dm2(int &i, int &j, int &k, int &l, int *dm1);
 double dm1_to_dm2_hfl(int &i, int &j, int &k, int &l, double **dm1);
@@ -90,6 +91,7 @@ int main(int argc, char *argv[])
   } 
   delete[] aux; aux=NULL; 
   nbasis=2*nbasis;  
+  Create_HF_dm1_file(dm1,nbasis,name_file);
   Create_HF_dm2_from_dm1(dm1,nbasis,name_file);
   delete[] dm1; dm1=NULL;
   name_file="HF_"+name_file+".dm2"; 
@@ -270,6 +272,28 @@ void Create_HFl_dm2_from_dm1(double **dm1,int nbasis, string name_dmn)
  output_data.close();
 }
 
+void Create_HF_dm1_file(int *dm1,int nbasis, string name_dmn)
+{
+ int i,elements[1];
+ double niHF;
+ ofstream output_data(("HF_"+name_dmn+".dm1").c_str(),ios::out | ios::binary);
+ for(i=0;i<nbasis;i++)
+ {
+  elements[0]=i+1;
+  output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+  output_data.write((char*) &elements[0], sizeof(elements[0]));
+  output_data.write((char*) &elements[0], sizeof(elements[0]));
+  output_data.write((char*) &niHF, sizeof(niHF));
+  output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ }
+ elements[0]=0;niHF=ZERO;
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.write((char*) &elements[0], sizeof(elements[0]));
+ output_data.write((char*) &elements[0], sizeof(elements[0]));
+ output_data.write((char*) &niHF, sizeof(niHF));
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.close();
+}
 
 void Create_HF_dm2_from_dm1(int *dm1,int nbasis, string name_dmn)
 {
