@@ -26,6 +26,7 @@ using namespace std;
 ////////////////
 void trace_dmn(string name_file);
 void Create_HF_dm2_from_dm1(int *dm1,int nbasis, string name_dmn);
+void Create_HF_alldm2_from_dm1(int *dm1,int nbasis, string name_dmn);
 void Create_HF_dm1_file(int *dm1,int nbasis, string name_dmn);
 void Create_HFl_dm2_from_dm1(double **dm1,int nbasis, string name_dmn);
 double dm1_to_dm2(int &i, int &j, int &k, int &l, int *dm1);
@@ -41,14 +42,21 @@ double threshold;
 ///////////////////
 int main(int argc, char *argv[])
 {
- if(argc==5)
+ if(argc==5 || argc==6)
  {
-  //Argument 0 name_program, 1 first.dm2, 2 nelects, 3 nbasis, 4 multiplicity.  
+  //Argument 0 name_program, 1 first.dm2, 2 nelects, 3 nbasis, 4 multiplicity.
+  bool lowertriang=true;
   int i,nalpha,nbeta,nexcess;
   string name_file(argv[1]);
-  int  nelectrons=(int)atof(argv[2]);
-  int  nbasis=atof(argv[3]);
-  int  multiplicity=atof(argv[4]);
+  int nelectrons=(int)atof(argv[2]);
+  int nbasis=(int)atof(argv[3]);
+  int multiplicity=(int)atof(argv[4]);
+  if(argc==6) 
+  {
+   int allHF2rdm=(int)atof(argv[5]);
+   if(allHF2rdm!=1) lowertriang=false;
+   cout<<"Writing all 2-RDM elements (including the 2Dabba and 2Dbaab terms)"<<endl;
+  }
   int *aux,*dm1;
   threshold=ZERO;
   nexcess=(multiplicity-1);
@@ -92,7 +100,14 @@ int main(int argc, char *argv[])
   delete[] aux; aux=NULL; 
   nbasis=2*nbasis;  
   Create_HF_dm1_file(dm1,nbasis,name_file);
-  Create_HF_dm2_from_dm1(dm1,nbasis,name_file);
+  if(lowertriang)
+  {
+   Create_HF_dm2_from_dm1(dm1,nbasis,name_file);
+  }
+  else
+  {
+   Create_HF_alldm2_from_dm1(dm1,nbasis,name_file);
+  }
   delete[] dm1; dm1=NULL;
   name_file="HF_"+name_file+".dm2"; 
   trace_dmn(name_file);
@@ -130,8 +145,9 @@ int main(int argc, char *argv[])
  else
  {
   cout<<"Write the parameters:"<<endl;
-  cout<<"a) name.dm1(in) nbasis(num AOs) threshold > To build a  HFlike-DM2"<<endl;
-  cout<<"b) name.dm2(out) nelectrons nbasis(num AOs) multiplicity(1 for singlet)  -> To build a HF-DM2"<<endl;
+  cout<<"a) name.dm1(in) nbasis(num AOs) threshold -> To build a  HFlike-DM2"<<endl;
+  cout<<"b) name.dm2(out) nelectrons nbasis(num AOs) multiplicity(1 for singlet)   -> To build a HF-DM2"<<endl;
+  cout<<"b) name.dm2(out) nelectrons nbasis(num AOs) multiplicity(1 for singlet) 1 -> To build all the HF-DM2"<<endl;
  }
  return 0;
 }
@@ -352,6 +368,53 @@ void Create_HF_dm2_from_dm1(int *dm1,int nbasis, string name_dmn)
    }
   }
  } 
+ elements[0]=0;
+ elements[1]=0;
+ elements[2]=0;
+ elements[3]=0;
+ DijklHF=ZERO;
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.write((char*) &elements[0], sizeof(elements[0]));
+ output_data.write((char*) &elements[1], sizeof(elements[1]));
+ output_data.write((char*) &elements[2], sizeof(elements[2]));
+ output_data.write((char*) &elements[3], sizeof(elements[3]));
+ output_data.write((char*) &DijklHF, sizeof(DijklHF));
+ output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+ output_data.close();
+}
+
+void Create_HF_alldm2_from_dm1(int *dm1,int nbasis, string name_dmn)
+{
+ int i,j,k,l,elements[4];
+ double DijklHF;
+ ofstream output_data(("HF_"+name_dmn+".dm2").c_str(),ios::out | ios::binary);
+ for(i=0;i<nbasis;i++)
+ {
+  for(j=0;j<nbasis;j++)
+  {  
+   for(k=0;k<nbasis;k++)
+   {
+    for(l=0;l<nbasis;l++)
+    {
+     DijklHF=dm1_to_dm2(i,j,k,l,dm1);
+     if(abs(DijklHF)>threshold)
+     {
+      elements[0]=i+1;
+      elements[1]=j+1;
+      elements[2]=k+1;
+      elements[3]=l+1;
+      output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+      output_data.write((char*) &elements[0], sizeof(elements[0]));
+      output_data.write((char*) &elements[1], sizeof(elements[1]));
+      output_data.write((char*) &elements[2], sizeof(elements[2]));
+      output_data.write((char*) &elements[3], sizeof(elements[3]));
+      output_data.write((char*) &DijklHF, sizeof(DijklHF));
+      output_data.seekp(RECORD_DELIMITER_LENGTH, ios::cur);
+     }
+    }
+   } 
+  }
+ }
  elements[0]=0;
  elements[1]=0;
  elements[2]=0;
