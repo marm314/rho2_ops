@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
   if(argc==6) 
   {
    int allHF2rdm=(int)atof(argv[5]);
-   if(allHF2rdm!=1) lowertriang=false;
+   if(allHF2rdm!=0) lowertriang=false;
    cout<<"Writing all 2-RDM elements (including the 2Dabba and 2Dbaab terms)"<<endl;
   }
   int *aux,*dm1;
