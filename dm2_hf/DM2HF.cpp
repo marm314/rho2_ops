@@ -37,6 +37,7 @@ void fill_in_dm1(double **dm1, string name_file);
 //////////////////////
 const int RECORD_DELIMITER_LENGTH=4;
 double threshold;
+bool lowertriang=true;
 ///////////////////
 // Main Function //
 ///////////////////
@@ -45,7 +46,6 @@ int main(int argc, char *argv[])
  if(argc==5 || argc==6)
  {
   //Argument 0 name_program, 1 first.dm2, 2 nelects, 3 nbasis, 4 multiplicity.
-  bool lowertriang=true;
   int i,nalpha,nbeta,nexcess;
   string name_file(argv[1]);
   int nelectrons=(int)atof(argv[2]);
@@ -212,7 +212,14 @@ void trace_dmn(string name_file)
     {Trace=Trace+Dijkl;}
    }
   }
-  cout<<"Trace(DM2 "<<name_file<<" out): "<<setprecision(12)<<fixed<<Trace*TWO<<endl;
+  if(lowertriang)
+  {
+   cout<<"Trace(DM2 "<<name_file<<" out): "<<setprecision(12)<<fixed<<Trace*TWO<<endl;
+  }
+  else
+  {
+   cout<<"Trace(DM2 "<<name_file<<" out): "<<setprecision(12)<<fixed<<Trace<<endl;
+  }
  }
  input_data.close();
 }
