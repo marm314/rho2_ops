@@ -13,7 +13,7 @@ Currently, it will not work for open-shell calculations including the frozen cor
 b) chimpanC which is an interface to transform 2-RDM matrices from the molecular orbital basis to the primitive basis. 
 This code is compatible with the psi4_interface (ready for PSI4 except open-shell systems with frozen-core), DMN code of Dr. Matito, and with DoNOF code of Dr. Piris. 
 chimpanC requires a Gaussian fchk file to produce the 2-RDM in the primitive basis. Although, 2-RDM and the .basis files can be generated using a user's coded interface 
-(see the psi4_interface for example). Contact me for doubts about formats. 
+(see the psi4_interface for example). Contact me if you have any doubts about formats. 
 
 c) RHO2_OPS which requires the .basis (with the information about the primitives basis set) and the 2-RDM (in primitives as well). 
 This code computes: intracules, extracules, and total position spread. The first two quantities are computed using the algorithm of Cioslowksi and Liu.
