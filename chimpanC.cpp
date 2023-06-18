@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
  if(argc==2)
  {
   bool contractSP=false,use_dm2_iiii_aa=false,large_mem=false,reduce=false,all_dm2_are_given=false,red_sym=false,method1=true,sl2rdm=false;
+  bool only_trace=false;
   int i,j,k,l,AO,nbasis,nprimitives,nprim_shell,stype,contr_coef,spcontr_coef,iprim,iprim_tot,smap,prim_exp,natoms;
   int *shelltype,*nprim_per_shell,*shell_to_atom,*Atomic_Z,nucleous,**Quant;
   int pivot,element[2]={10},element_prime[2]={10};
@@ -59,6 +60,7 @@ int main(int argc, char *argv[])
   int8alldm2=Input_commands.int8alldm2;               // 2-RDM elements from PSI4 code 
   method1=Input_commands.method1;                     // Use the methods based on changing only occ MOs
   sl2rdm=Input_commands.sl2rdm;                       // Print the spin-less 2-RDM
+  only_trace=Input_commands.only_trace;               // Compute intracule only for trace elements 2D^ij _ij
   MAXMEM=Input_commands.maxmem;                       // Max memory in Gb available
   if(MAXMEM>pow(TEN,THREE))
   {
@@ -594,6 +596,7 @@ int main(int argc, char *argv[])
           element_prime[0]=element_prime[1];
           element_prime[1]=pivot;
           Dijkl=-Dijkl;
+          if(only_trace && (element[0]!=element_prime[0] || element[1]!=element_prime[1])){Dijkl=ZERO;}
          }
          if(element[0]%2==element_prime[0]%2 && element[1]%2==element_prime[1]%2)
          {
@@ -659,6 +662,7 @@ int main(int argc, char *argv[])
           element_prime[0]=element_prime[1];
           element_prime[1]=pivot;
           Dijkl=-Dijkl;
+          if(only_trace && (element[0]!=element_prime[0] || element[1]!=element_prime[1])){Dijkl=ZERO;}
          }
          if(element[0]%2==element_prime[0]%2 && element[1]%2==element_prime[1]%2)
          {

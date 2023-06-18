@@ -33,6 +33,7 @@ Input_chimpanC::Input_chimpanC(string I_in)
    else if(I_in=="$reduce_sym"){reduce_sym=true;}
    else if(I_in=="$all_dm2_are_given"){all_dm2_are_given=true;}
    else if(I_in=="$int8alldm2"){int8alldm2=true;}
+   else if(I_in=="$only_trace"){only_trace=true;}
    else if(I_in=="$donof"){donof=true;}
    else if(I_in=="$sl2rdm"){sl2rdm=true;}
    else if(I_in=="$method2"){method1=false;}
