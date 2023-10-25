@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
    {
     for(iprim=0;iprim<Nprimitives;iprim++)
     {
-     coefs_file_pos<<setw(20)<<Prim2MO_Coef[imos][iprim].real()<<setw(20)<<Prim2MO_Coef[imos][iprim].imag();
+     coefs_file_pos<<setw(20)<<Prim2MO_Coef[imos][iprim].real()<<setw(20)<<Prim2MO_Coef[imos][iprim].imag()<<endl;
     }
    }
   }
@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
     Prim2MO_Coef[imos1][iprim]=Prim2MO_Coef[imos][iprim];
     if(Input_commands.print_coef_files)
     {
-     coefs_file<<setw(20)<<Prim2MO_Coef[imos1][iprim].real()<<setw(20)<<Prim2MO_Coef[imos1][iprim].imag();
+     coefs_file<<setw(20)<<Prim2MO_Coef[imos1][iprim].real()<<setw(20)<<Prim2MO_Coef[imos1][iprim].imag()<<endl;
     }
    }
    MOsLS_occ.push_back(OCCs[imos]);
