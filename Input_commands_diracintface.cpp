@@ -2,7 +2,7 @@
 Input_diracintface::Input_diracintface(){cout<<"Not allowed default constructor"<<endl;}
 Input_diracintface::Input_diracintface(string I_in)
 {
- large_mem=false;oneMOwfx=false;transf_cplx=false;print_coef_files=false;
+ is_gaunt=false;large_mem=false;oneMOwfx=false;transf_cplx=false;print_coef_files=false;
  threshold=pow(TEN,-TEN);
  maxmem=ONE;
  ifstream I_input_file;
@@ -27,6 +27,7 @@ Input_diracintface::Input_diracintface(string I_in)
     name_out=I_in;
    }
    else if(I_in=="$large_mem"){large_mem=true;}
+   else if(I_in=="$gaunt"){is_gaunt=true;}
 //   else if(I_in=="$transf_cplx"){transf_cplx=true;} // Currently switched off
    else if(I_in=="$print_coef_files"){print_coef_files=true;}
    else if(I_in=="$threshold")

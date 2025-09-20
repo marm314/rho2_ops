@@ -27,7 +27,7 @@ void reduce_print();
 
 // Global variables
 complex<double>CZERO=(ZERO,ZERO);
-bool transf_cplx=false,large_mem=false;//symmrr_prime=true;
+bool transf_cplx=false,large_mem=false,is_gaunt=false;//symmrr_prime=true;
 int Ncenters,Nprimitives,Nbasis,Nbasis_L,Nbasis_S,Nshell,Nshell_L,Nshell_S,NMOs,NMOs_LS,NMOs_occ,Largest_Prim;
 int OneMO_wfx=-1;
 long int NMOs_LS_1,NMOs_LS_2,NMOs_LS_3,NMOs_LS_4,Nterms_printed=0;
@@ -133,6 +133,7 @@ int main(int argc, char *argv[])
  //transf_cplx=Input_commands.transf_cplx;
  }
  if(Input_commands.large_mem){large_mem=Input_commands.large_mem;}
+ if(Input_commands.is_gaunt){is_gaunt=Input_commands.is_gaunt;}
  // TODO: 
  /*
   symmrr_prime=false;
@@ -1230,8 +1231,10 @@ void read_2rdm4cMO_and_transf()
 // Function used to transform the 4C 2-RDM to scalar MO 2-RDM
 void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cMO4, double Dijkl_4cMO)
 {
- int imos,imos1;
+ int imos,imos1,imos2,imos3;
  long int indices_MO1[4],indices_MO2[4],indices_MO3[4],indices_MO4[4];
+ double dijkl_4cMO;
+ dijkl_4cMO=Dijkl_4cMO;
  // Transform index from 4cMO to 2(L+S) MO
  indices_MO1[0]=index_4cMO1*4;indices_MO2[0]=index_4cMO2*4;indices_MO3[0]=index_4cMO3*4;indices_MO4[0]=index_4cMO4*4; 
  for(imos=1;imos<4;imos++)
@@ -1242,13 +1245,117 @@ void dm2_4c2LS(int &index_4cMO1,int &index_4cMO2,int &index_4cMO3,int &index_4cM
   indices_MO4[imos]=indices_MO4[imos-1]+1; 
  }
  // Produce the 2-RDM in the 2(L+S) scalar MO basis
- for(imos=0;imos<4;imos++)
+ if(!is_gaunt) // Coulomb [electron-electron intracule] 
  {
-  for(imos1=0;imos1<4;imos1++)
+  for(imos=0;imos<4;imos++)
   {
-   Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos]*NMOs_LS_2+indices_MO4[imos1]*NMOs_LS_3]=
-   Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos]*NMOs_LS_2+indices_MO4[imos1]*NMOs_LS_3]+Dijkl_4cMO; 
+   for(imos1=0;imos1<4;imos1++)
+   {
+    Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos]*NMOs_LS_2+indices_MO4[imos1]*NMOs_LS_3]=
+    Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos]*NMOs_LS_2+indices_MO4[imos1]*NMOs_LS_3]+dijkl_4cMO; 
+   }
   }
+ }
+ else // Gaunt [current-current intracule]
+ {
+  // Gaunt is - alpha.alpha / r_12. So, we choose to change the sign of the 2-RDM elements
+  dijkl_4cMO=-Dijkl_4cMO;
+  // 0220
+  imos=0;imos1=2;imos2=2;imos3=0;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+dijkl_4cMO; 
+  // 1230
+  imos=1;imos1=2;imos2=3;imos3=0;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]-dijkl_4cMO;
+  // 0330 
+  imos=0;imos1=3;imos2=3;imos3=0;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+TWO*dijkl_4cMO;
+  // 1221 
+  imos=1;imos1=2;imos2=2;imos3=1;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+TWO*dijkl_4cMO;
+  // 0321 
+  imos=0;imos1=3;imos2=2;imos3=1;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]-dijkl_4cMO;
+  // 1331 
+  imos=1;imos1=3;imos2=3;imos3=1;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+dijkl_4cMO;
+  // 0022 
+  imos=0;imos1=0;imos2=2;imos3=2;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+dijkl_4cMO;
+  // 1032 
+  imos=1;imos1=0;imos2=3;imos3=2;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]-dijkl_4cMO;
+  // 0132 
+  imos=0;imos1=1;imos2=3;imos3=2;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+TWO*dijkl_4cMO;
+  // 1023 
+  imos=1;imos1=0;imos2=2;imos3=3;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+TWO*dijkl_4cMO;
+  // 0123 
+  imos=0;imos1=1;imos2=2;imos3=3;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]-dijkl_4cMO;
+  // 1133 
+  imos=1;imos1=1;imos2=3;imos3=3;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+dijkl_4cMO;
+  // 2200 
+  imos=2;imos1=2;imos2=0;imos3=0;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+dijkl_4cMO;
+  // 2310 
+  imos=2;imos1=3;imos2=1;imos3=0;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+TWO*dijkl_4cMO;
+  // 2301 
+  imos=2;imos1=3;imos2=0;imos3=1;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]-dijkl_4cMO;
+  // 2002 
+  imos=2;imos1=0;imos2=0;imos3=2;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+dijkl_4cMO;
+  // 2112 
+  imos=2;imos1=1;imos2=1;imos3=2;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+TWO*dijkl_4cMO;
+  // 2103 
+  imos=2;imos1=1;imos2=0;imos3=3;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]-dijkl_4cMO;
+  // 3210 
+  imos=3;imos1=2;imos2=1;imos3=0;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]-dijkl_4cMO;
+  // 3201 
+  imos=3;imos1=2;imos2=0;imos3=1;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+TWO*dijkl_4cMO;
+  // 3311 
+  imos=3;imos1=3;imos2=1;imos3=1;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+dijkl_4cMO;
+  // 3012 
+  imos=3;imos1=0;imos2=1;imos3=2;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]-dijkl_4cMO;
+  // 3003 
+  imos=3;imos1=0;imos2=0;imos3=3;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+TWO*dijkl_4cMO;
+  // 3113 
+  imos=3;imos1=1;imos2=1;imos3=3;
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]=
+  Dijkl_MOsLS[indices_MO1[imos]+indices_MO2[imos1]*NMOs_LS_1+indices_MO3[imos2]*NMOs_LS_2+indices_MO4[imos3]*NMOs_LS_3]+dijkl_4cMO;
  }
 }
 
