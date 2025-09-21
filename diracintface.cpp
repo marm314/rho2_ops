@@ -1172,7 +1172,7 @@ void read_2rdm4cMO_and_transf()
  for(IMOS=0;IMOS<NMOs_LS_4;IMOS++){Dijkl_MOsLS[IMOS]=ZERO;} 
  ifstream input_data(dm2_file.c_str(),ios::binary);
  cout<<endl;
- cout<<"Reading the 4c 2-RDM elements"<<endl;
+ cout<<"Reading the 4c 2-RDM elements [Note: assuming the 2-RDM is real]"<<endl;
  while(index_4cMO[0]!=0 || index_4cMO[1]!=0 || index_4cMO_prime[0]!=0 || index_4cMO_prime[1]!=0)
  {
   input_data.seekg(RECORD_DELIMITER_LENGTH, ios::cur);
