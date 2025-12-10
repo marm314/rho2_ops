@@ -45,10 +45,7 @@ Input_diracintface::Input_diracintface(string I_in)
    {
     I_input_file>>maxmem;    
    }
-   else if(I_in=="$rotate_krammers")
-   {
-    I_input_file>>theta_krammers;    
-   }
+   else if(I_in=="$rotate_krammers"){rotate_krammers=true;}
    else
    {
     // Nth

@@ -42,7 +42,7 @@ struct Shell2AOs
 Shell2AOs *shell2aos;
 double threshold,maxmem,sumMEM=ZERO;
 double Quaternion_coef[4];
-double *OCCs,**Prim2AO_Coef;
+double *OCCs,*theta_krammers,**Prim2AO_Coef;
 double ****Dpqrs_ALL;
 complex<double> **AO2MO_Coef,**Prim2MO_Coef;
 complex<double> *Dpqrs_ALL_cplx;
@@ -289,26 +289,6 @@ int main(int argc, char *argv[])
   delete[] Prim2AO_Coef[iaos];Prim2AO_Coef[iaos]=NULL;
  }
  delete[] Prim2AO_Coef;Prim2AO_Coef=NULL;
- // Rotate spinors that are Krammers pairs
- if(Input_commands.rotate_krammers)
- {
-  for(imos=0;imos<NMOs_LS/8;imos++)
-  {
-   for(iprim=0;iprim<Nprimitives;iprim++)
-   {
-    // New unbar
-    Prim2MO_Coef[8*imos+0][iprim]=cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+0][iprim]+sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+4][iprim];
-    Prim2MO_Coef[8*imos+1][iprim]=cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+1][iprim]+sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+5][iprim];
-    Prim2MO_Coef[8*imos+2][iprim]=cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+2][iprim]+sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+6][iprim];
-    Prim2MO_Coef[8*imos+3][iprim]=cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+3][iprim]+sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+7][iprim];
-    // New bar
-    Prim2MO_Coef[8*imos+4][iprim]=-sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+4][iprim]+cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+0][iprim];
-    Prim2MO_Coef[8*imos+5][iprim]=-sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+5][iprim]+cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+1][iprim];
-    Prim2MO_Coef[8*imos+6][iprim]=-sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+6][iprim]+cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+2][iprim];
-    Prim2MO_Coef[8*imos+7][iprim]=-sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+7][iprim]+cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+3][iprim];
-   }
-  }
- } 
  // Print the Prim2MO_Coef matrix (coefficients are rows). 
  // WARNING! Below we may overwrite the positronic states (initial ones) with the occ. electronic states (i.e. put them on top of the list)!
  ofstream coefs_file;
@@ -366,6 +346,36 @@ int main(int argc, char *argv[])
   coefs_file_pos.close();
  }
  cout<<"Num. of occ MO (Scalar): "<<setw(12)<<NMOs_occ<<endl;
+ // Rotate OCCUPIED spinors that are Krammers pairs
+ // we form new Krammers pairs with  cos(theta) Phi_a  + sin(theta) Phi_bar{a}  and -sin(theta) Phi_a + cos(theta) P_bar{a}
+ if(Input_commands.rotate_krammers)
+ {
+  theta_krammers=new double[NMOs_occ/8];
+  for(imos=0;imos<NMOs_occ/8;imos++){theta_krammers[imos]=ZERO;}
+  ifstream read_theta_krms("theta_krammers");
+  for(imos=0;imos<NMOs_occ/8;imos++)
+  {
+   read_theta_krms>>theta_krammmers[imos];
+  } 
+  read_theta_krms.close();
+  for(imos=0;imos<NMOs_occ/8;imos++)
+  {
+   for(iprim=0;iprim<Nprimitives;iprim++)
+   {
+    // New unbar
+    Prim2MO_Coef[8*imos+0][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+0][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+4][iprim];
+    Prim2MO_Coef[8*imos+1][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+1][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+5][iprim];
+    Prim2MO_Coef[8*imos+2][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+2][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+6][iprim];
+    Prim2MO_Coef[8*imos+3][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+3][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+7][iprim];
+    // New bar
+    Prim2MO_Coef[8*imos+4][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+4][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+0][iprim];
+    Prim2MO_Coef[8*imos+5][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+5][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+1][iprim];
+    Prim2MO_Coef[8*imos+6][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+6][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+2][iprim];
+    Prim2MO_Coef[8*imos+7][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+7][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+3][iprim];
+   }
+  }
+  delete[] theta_krammers;theta_krammers=NULL;
+ } 
  // Print a WFX file for RHO_OPS (currently only available for ATOMS) and delete OCCs array.
  if(OneMO_wfx==-1)
  {
