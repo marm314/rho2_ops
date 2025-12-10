@@ -3,8 +3,10 @@ Input_diracintface::Input_diracintface(){cout<<"Not allowed default constructor"
 Input_diracintface::Input_diracintface(string I_in)
 {
  is_gaunt=false;large_mem=false;oneMOwfx=false;transf_cplx=false;print_coef_files=false;
+ rotate_krammers=false;
  threshold=pow(TEN,-TEN);
  maxmem=ONE;
+ theta_krammers=ZERO;
  ifstream I_input_file;
  I_in.erase(std::remove_if(I_in.begin(),I_in.end(),::isspace),I_in.end());
  I_input_file.open((I_in).c_str());
@@ -42,6 +44,10 @@ Input_diracintface::Input_diracintface(string I_in)
    else if(I_in=="$maxmem")
    {
     I_input_file>>maxmem;    
+   }
+   else if(I_in=="$rotate_krammers")
+   {
+    I_input_file>>theta_krammers;    
    }
    else
    {

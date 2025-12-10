@@ -18,9 +18,9 @@ using namespace std;
 class Input_diracintface
 {
  public:
- bool is_gaunt,large_mem,oneMOwfx,transf_cplx,print_coef_files;
+ bool is_gaunt,large_mem,oneMOwfx,transf_cplx,print_coef_files,rotate_krammers;
  int OneMO_wfx;
- double threshold,maxmem;
+ double threshold,maxmem,theta_krammers;
  string name_dm2,name_out;
  Input_diracintface();
  Input_diracintface(string);

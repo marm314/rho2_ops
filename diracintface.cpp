@@ -289,6 +289,26 @@ int main(int argc, char *argv[])
   delete[] Prim2AO_Coef[iaos];Prim2AO_Coef[iaos]=NULL;
  }
  delete[] Prim2AO_Coef;Prim2AO_Coef=NULL;
+ // Rotate spinors that are Krammers pairs
+ if(Input_commands.rotate_krammers)
+ {
+  for(imos=0;imos<NMOs_LS/8;imos++)
+  {
+   for(iprim=0;iprim<Nprimitives;iprim++)
+   {
+    // New unbar
+    Prim2MO_Coef[8*imos+0][iprim]=cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+0][iprim]+sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+4][iprim];
+    Prim2MO_Coef[8*imos+1][iprim]=cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+1][iprim]+sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+5][iprim];
+    Prim2MO_Coef[8*imos+2][iprim]=cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+2][iprim]+sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+6][iprim];
+    Prim2MO_Coef[8*imos+3][iprim]=cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+3][iprim]+sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+7][iprim];
+    // New bar
+    Prim2MO_Coef[8*imos+4][iprim]=-sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+4][iprim]+cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+0][iprim];
+    Prim2MO_Coef[8*imos+5][iprim]=-sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+5][iprim]+cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+1][iprim];
+    Prim2MO_Coef[8*imos+6][iprim]=-sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+6][iprim]+cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+2][iprim];
+    Prim2MO_Coef[8*imos+7][iprim]=-sin(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+7][iprim]+cos(Input_commands.theta_krammers)*Prim2MO_Coef[8*imos+3][iprim];
+   }
+  }
+ } 
  // Print the Prim2MO_Coef matrix (coefficients are rows). 
  // WARNING! Below we may overwrite the positronic states (initial ones) with the occ. electronic states (i.e. put them on top of the list)!
  ofstream coefs_file;
@@ -325,7 +345,7 @@ int main(int argc, char *argv[])
     }
    }
   }
-  if(OCCs[imos]>pow(TEN,-EIGHT)) // Overwrite positronic MO coefs with electronic ones and print the electronic ones
+  if(OCCs[imos]>pow(TEN,-EIGHT)) // Overwrite positronic MO coefs with OCCUPIED electronic ones and print the OCCUPIED electronic MOs
   {
    for(iprim=0;iprim<Nprimitives;iprim++)
    {
