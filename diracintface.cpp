@@ -353,10 +353,15 @@ int main(int argc, char *argv[])
   theta_krammers=new double[NMOs_occ/8];
   for(imos=0;imos<NMOs_occ/8;imos++){theta_krammers[imos]=ZERO;}
   ifstream read_theta_krms("theta_krammers");
+  cout<<endl;
+  cout<<"Read rotation angles from the theta_krammers file"<<endl;
+  cout<<endl;
   for(imos=0;imos<NMOs_occ/8;imos++)
   {
    read_theta_krms>>theta_krammers[imos];
-  } 
+   cout<<setprecision(8)<<fixed<<setw(17)<<theta_krammers[imos]<<endl;
+  }
+  cout<<endl; 
   read_theta_krms.close();
   for(imos=0;imos<NMOs_occ/8;imos++)
   {
