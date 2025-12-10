@@ -44,7 +44,7 @@ double threshold,maxmem,sumMEM=ZERO;
 double Quaternion_coef[4];
 double *OCCs,*theta_krammers,**Prim2AO_Coef;
 double ****Dpqrs_ALL;
-complex<double> **AO2MO_Coef,**Prim2MO_Coef;
+complex<double> **AO2MO_Coef,**Prim2MO_Coef,**Prim2MO_Coef_tmp;
 complex<double> *Dpqrs_ALL_cplx;
 double *Dijkl_MOsLS;
 string dirac_output_name,dirac_output_file,dm2_file;
@@ -351,6 +351,11 @@ int main(int argc, char *argv[])
  if(Input_commands.rotate_krammers)
  {
   theta_krammers=new double[NMOs_occ/8];
+  Prim2MO_Coef_tmp=new complex<double>*[NMOs_LS]; 
+  for(imos=0;imos<8;imos++)
+  {
+   Prim2MO_Coef_tmp[imos]=new complex<double>[Nprimitives];
+  }
   for(imos=0;imos<NMOs_occ/8;imos++){theta_krammers[imos]=ZERO;}
   ifstream read_theta_krms("theta_krammers");
   cout<<endl;
@@ -360,6 +365,7 @@ int main(int argc, char *argv[])
   {
    read_theta_krms>>theta_krammers[imos];
    cout<<setprecision(8)<<fixed<<setw(17)<<theta_krammers[imos]<<endl;
+   theta_krammers[imos]=theta_krammers[imos]*PI/180e0;
   }
   cout<<endl; 
   read_theta_krms.close();
@@ -368,18 +374,36 @@ int main(int argc, char *argv[])
    for(iprim=0;iprim<Nprimitives;iprim++)
    {
     // New unbar
-    Prim2MO_Coef[8*imos+0][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+0][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+4][iprim];
-    Prim2MO_Coef[8*imos+1][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+1][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+5][iprim];
-    Prim2MO_Coef[8*imos+2][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+2][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+6][iprim];
-    Prim2MO_Coef[8*imos+3][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+3][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+7][iprim];
+    Prim2MO_Coef_tmp[0][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+0][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+4][iprim];
+    Prim2MO_Coef_tmp[1][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+1][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+5][iprim];
+    Prim2MO_Coef_tmp[2][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+2][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+6][iprim];
+    Prim2MO_Coef_tmp[3][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+3][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+7][iprim];
     // New bar
-    Prim2MO_Coef[8*imos+4][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+0][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+4][iprim];
-    Prim2MO_Coef[8*imos+5][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+1][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+5][iprim];
-    Prim2MO_Coef[8*imos+6][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+2][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+6][iprim];
-    Prim2MO_Coef[8*imos+7][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+3][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+7][iprim];
+    Prim2MO_Coef_tmp[4][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+0][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+4][iprim];
+    Prim2MO_Coef_tmp[5][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+1][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+5][iprim];
+    Prim2MO_Coef_tmp[6][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+2][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+6][iprim];
+    Prim2MO_Coef_tmp[7][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+3][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+7][iprim];
+   }
+   for(iprim=0;iprim<Nprimitives;iprim++)
+   {
+    // New unbar
+    Prim2MO_Coef[8*imos+0][iprim]=Prim2MO_Coef_tmp[0][iprim];
+    Prim2MO_Coef[8*imos+1][iprim]=Prim2MO_Coef_tmp[1][iprim];
+    Prim2MO_Coef[8*imos+2][iprim]=Prim2MO_Coef_tmp[2][iprim];
+    Prim2MO_Coef[8*imos+3][iprim]=Prim2MO_Coef_tmp[3][iprim];
+    // New bar
+    Prim2MO_Coef[8*imos+4][iprim]=Prim2MO_Coef_tmp[4][iprim];
+    Prim2MO_Coef[8*imos+5][iprim]=Prim2MO_Coef_tmp[5][iprim];
+    Prim2MO_Coef[8*imos+6][iprim]=Prim2MO_Coef_tmp[6][iprim];
+    Prim2MO_Coef[8*imos+7][iprim]=Prim2MO_Coef_tmp[7][iprim];
    }
   }
   delete[] theta_krammers;theta_krammers=NULL;
+  for(imos=0;imos<8;imos++)
+  {
+   delete[] Prim2MO_Coef_tmp[imos];Prim2MO_Coef_tmp[imos]=NULL;
+  }
+  delete[] Prim2MO_Coef_tmp;Prim2MO_Coef_tmp=NULL;
  } 
  // Print a WFX file for RHO_OPS (currently only available for ATOMS) and delete OCCs array.
  if(OneMO_wfx==-1)
