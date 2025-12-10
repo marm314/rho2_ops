@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
   ifstream read_theta_krms("theta_krammers");
   for(imos=0;imos<NMOs_occ/8;imos++)
   {
-   read_theta_krms>>theta_krammmers[imos];
+   read_theta_krms>>theta_krammers[imos];
   } 
   read_theta_krms.close();
   for(imos=0;imos<NMOs_occ/8;imos++)

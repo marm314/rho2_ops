@@ -6,7 +6,6 @@ Input_diracintface::Input_diracintface(string I_in)
  rotate_krammers=false;
  threshold=pow(TEN,-TEN);
  maxmem=ONE;
- theta_krammers=ZERO;
  ifstream I_input_file;
  I_in.erase(std::remove_if(I_in.begin(),I_in.end(),::isspace),I_in.end());
  I_input_file.open((I_in).c_str());
