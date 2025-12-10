@@ -368,10 +368,10 @@ int main(int argc, char *argv[])
     Prim2MO_Coef[8*imos+2][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+2][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+6][iprim];
     Prim2MO_Coef[8*imos+3][iprim]=cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+3][iprim]+sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+7][iprim];
     // New bar
-    Prim2MO_Coef[8*imos+4][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+4][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+0][iprim];
-    Prim2MO_Coef[8*imos+5][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+5][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+1][iprim];
-    Prim2MO_Coef[8*imos+6][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+6][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+2][iprim];
-    Prim2MO_Coef[8*imos+7][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+7][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+3][iprim];
+    Prim2MO_Coef[8*imos+4][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+0][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+4][iprim];
+    Prim2MO_Coef[8*imos+5][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+1][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+5][iprim];
+    Prim2MO_Coef[8*imos+6][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+2][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+6][iprim];
+    Prim2MO_Coef[8*imos+7][iprim]=-sin(theta_krammers[imos])*Prim2MO_Coef[8*imos+3][iprim]+cos(theta_krammers[imos])*Prim2MO_Coef[8*imos+7][iprim];
    }
   }
   delete[] theta_krammers;theta_krammers=NULL;
