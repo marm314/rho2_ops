@@ -422,6 +422,20 @@ int main(int argc, char *argv[])
   }
  }
  delete[] OCCs;OCCs=NULL;
+ // When printing only the WFX file, we exit
+ if(Input_commands.only_wfx)
+ {
+  for(imos=0;imos<NMOs_LS;imos++)
+  {
+   delete [] Prim2MO_Coef[imos];Prim2MO_Coef[imos]=NULL;
+  }
+  delete[] Prim2MO_Coef;Prim2MO_Coef=NULL;
+  cout<<"                                            "<<endl;
+  cout<<"--------------------------------------------"<<endl;
+  cout<<"--          Normal termination            --"<<endl;
+  cout<<"--------------------------------------------"<<endl;
+  return 0;
+ }
  // Read 2-RDM (binary) and store it in the scalar (2(L+S)) MO basis (using only Scalar occupied MOs for the size of the 2-RDM at this stage!).
  ifstream check_dm2;
  check_dm2.open(dm2_file);
